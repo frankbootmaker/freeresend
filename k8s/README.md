@@ -90,7 +90,9 @@ kubectl get hpa -n freeresend
 
 ## Scaling
 
-The HPA automatically scales between 2-10 replicas based on CPU and memory usage.
+The HPA automatically scales between 2-10 replicas based on **CPU usage only**.
+
+Memory is deliberately NOT a scaling trigger(memory target removed 2026-08-25, ELI-289: HPA memory utilisation is a per-pod average that never falls as replicas are added, so it welds the replica count up.
 
 Manual scaling:
 ```bash
