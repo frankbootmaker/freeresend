@@ -355,6 +355,39 @@ select {
   color: inherit;
 }
 
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 44px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 40px;
+  min-height: 0;
+  height: auto;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.password-toggle:hover,
+.password-toggle:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  color: var(--fg);
+}
+
+.password-toggle svg {
+  display: block;
+}
+
 .authform .primary {
   width: 100%;
   margin-top: 12px;

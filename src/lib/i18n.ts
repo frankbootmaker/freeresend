@@ -81,6 +81,8 @@ type Dict = {
     passwordPlaceholder: string;
     prefsAria: string;
     apiExampleAria: string;
+    showPassword: string;
+    hidePassword: string;
   };
   register: {
     kickerStory: string;
@@ -383,6 +385,8 @@ const en: Dict = {
     passwordPlaceholder: '12 characters minimum',
     prefsAria: 'Sign-in preferences',
     apiExampleAria: 'API example',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
   },
   register: {
     kickerStory: 'OutPost console',
@@ -688,6 +692,8 @@ const de: Dict = {
     passwordPlaceholder: 'Mindestens 12 Zeichen',
     prefsAria: 'Anmelde-Einstellungen',
     apiExampleAria: 'API-Beispiel',
+    showPassword: 'Passwort anzeigen',
+    hidePassword: 'Passwort verbergen',
   },
   register: {
     kickerStory: 'OutPost-Konsole',
@@ -994,6 +1000,8 @@ const hu: Dict = {
     passwordPlaceholder: 'Legalább 12 karakter',
     prefsAria: 'Belépési beállítások',
     apiExampleAria: 'API-példa',
+    showPassword: 'Jelszó megjelenítése',
+    hidePassword: 'Jelszó elrejtése',
   },
   register: {
     kickerStory: 'OutPost konzol',
