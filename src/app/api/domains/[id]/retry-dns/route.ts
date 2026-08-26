@@ -90,7 +90,7 @@ export async function POST(
       }
 
       // Generate DNS records
-      const dnsRecords = generateDNSRecords(
+      const dnsRecords = await generateDNSRecords(
         domainName,
         domain.verification_token || "",
         dkimTokens

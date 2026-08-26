@@ -1,4 +1,5 @@
-import { sendEmail } from "./ses";
+import { sendPlatformSystemEmail } from "./mail-transport";
+import { getResolvedPlatformSettings } from "./platform-settings";
 
 export interface WaitlistNotificationData {
   email: string;
@@ -15,11 +16,12 @@ export interface WaitlistNotificationData {
 }
 
 export async function sendWaitlistNotification(data: WaitlistNotificationData): Promise<void> {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const fromEmail = process.env.FROM_EMAIL || "info@freeresend.com";
+  const settings = await getResolvedPlatformSettings();
+  const adminEmail = settings.alertEmail;
+  const fromEmail = settings.alertFrom || "info@freeresend.com";
 
   if (!adminEmail) {
-    console.warn("ADMIN_EMAIL not configured, skipping waitlist notification");
+    console.warn("Alert email is not configured, skipping waitlist notification");
     return;
   }
 
@@ -157,7 +159,7 @@ FreeResend Admin Notifications
   `;
 
   try {
-    await sendEmail({
+    await sendPlatformSystemEmail({
       from: `FreeResend Notifications <${fromEmail}>`,
       to: [adminEmail],
       subject,
@@ -177,7 +179,8 @@ FreeResend Admin Notifications
 }
 
 export async function sendWelcomeEmail(email: string, signupId: string): Promise<void> {
-  const fromEmail = process.env.FROM_EMAIL || "info@freeresend.com";
+  const settings = await getResolvedPlatformSettings();
+  const fromEmail = settings.alertFrom || process.env.FROM_EMAIL || "info@freeresend.com";
   const subject = "Welcome to the FreeResend Waitlist! 🚀";
 
   const html = `
@@ -300,7 +303,7 @@ Signup ID: ${signupId}
   `;
 
   try {
-    await sendEmail({
+    await sendPlatformSystemEmail({
       from: `FreeResend <${fromEmail}>`,
       to: [email],
       subject,

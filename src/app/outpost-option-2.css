@@ -597,6 +597,13 @@ select {
   padding: 12px;
 }
 
+.cardlead {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
 .formgrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -621,6 +628,14 @@ select {
 
 .save {
   margin-top: 8px;
+}
+
+.settings-alerts {
+  margin-top: 12px;
+}
+
+.formgrid > .cardlead {
+  grid-column: 1 / -1;
 }
 
 table {

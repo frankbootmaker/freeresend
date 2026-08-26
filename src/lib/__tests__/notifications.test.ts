@@ -1,20 +1,46 @@
 import { sendWaitlistNotification, sendWelcomeEmail } from '../notifications';
-import { sendEmail } from '../ses';
+import { sendPlatformSystemEmail } from '../mail-transport';
+import { getResolvedPlatformSettings } from '../platform-settings';
 
-// Mock the SES module
-jest.mock('../ses', () => ({
-  sendEmail: jest.fn(),
+jest.mock('../mail-transport', () => ({
+  sendPlatformSystemEmail: jest.fn(),
 }));
 
-const mockSendEmail = sendEmail as jest.MockedFunction<typeof sendEmail>;
+jest.mock('../platform-settings', () => ({
+  getResolvedPlatformSettings: jest.fn(),
+}));
+
+const mockSendEmail = sendPlatformSystemEmail as jest.MockedFunction<
+  typeof sendPlatformSystemEmail
+>;
+const mockGetSettings = getResolvedPlatformSettings as jest.MockedFunction<
+  typeof getResolvedPlatformSettings
+>;
+
+function resolvedFromEnv() {
+  return {
+    sesRegion: 'us-east-1',
+    sesAccessKeyId: '',
+    sesSecretAccessKey: '',
+    sesConfigurationSet: 'outpost-prod',
+    smtpEnabled: false,
+    smtpHost: '',
+    smtpPort: 587,
+    smtpSecure: true,
+    smtpUsername: '',
+    smtpPassword: '',
+    alertEmail: process.env.ADMIN_EMAIL || '',
+    alertFrom: process.env.FROM_EMAIL || '',
+  };
+}
 
 describe('Notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock environment variables
     process.env.ADMIN_EMAIL = 'admin@test.com';
     process.env.FROM_EMAIL = 'info@freeresend.com';
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
+    mockGetSettings.mockImplementation(async () => resolvedFromEnv());
   });
 
   afterEach(() => {
@@ -180,7 +206,7 @@ describe('Notifications', () => {
 
       await sendWaitlistNotification({
         email: 'user@example.com',
-        estimatedVolume: 1000000, // 1 million
+        estimatedVolume: 1000000,
         signupId: 'test-id',
         createdAt: '2024-01-01T00:00:00Z',
       });

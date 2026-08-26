@@ -3,18 +3,22 @@ import { z } from 'zod';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { updateTenantRouting } from '@/lib/tenants';
+import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 
 const schema = z.object({
   inboundTransport: z.enum(['https', 'smtp', 'both']).optional(),
   outboundTransport: z.enum(['ses', 'smtp']).optional(),
   smtpUpstream: z
-    .object({
-      host: z.string().min(1),
-      port: z.number().int(),
-      secure: z.boolean().optional().default(false),
-      username: z.string().optional(),
-      password: z.string().optional(),
-    })
+    .union([
+      z.null(),
+      z.object({
+        host: z.string(),
+        port: z.number().int(),
+        secure: z.boolean().optional().default(false),
+        username: z.string().optional(),
+        password: z.string().optional(),
+      }),
+    ])
     .optional(),
 });
 
@@ -26,6 +30,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await resolveTenantSession(request);
     const smtp = session.tenant.smtp_upstream;
+    const platform = await getResolvedPlatformSettings();
     return json({
       success: true,
       data: {
@@ -54,8 +59,12 @@ export async function GET(request: NextRequest) {
           passwordHint: 'Use an OutPost API key as the SMTP password',
         },
         ses: {
-          region: process.env.AWS_REGION || 'us-east-1',
-          configurationSet: process.env.SES_CONFIGURATION_SET || 'outpost-prod',
+          region: platform.sesRegion,
+          configurationSet: platform.sesConfigurationSet,
+        },
+        platformSmtpRelay: {
+          enabled: platform.smtpEnabled && Boolean(platform.smtpHost),
+          host: platform.smtpEnabled ? platform.smtpHost : '',
         },
       },
     });

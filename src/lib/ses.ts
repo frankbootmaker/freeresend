@@ -10,14 +10,45 @@ import {
   GetIdentityDkimAttributesCommand,
 } from "@aws-sdk/client-ses";
 import { generateSendingDnsRecords } from "./dns-records";
+import { getResolvedPlatformSettings } from "./platform-settings";
 
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+let cachedClient: { key: string; client: SESClient } | null = null;
+
+export async function getSesRegion(): Promise<string> {
+  const settings = await getResolvedPlatformSettings();
+  return settings.sesRegion || "us-east-1";
+}
+
+export async function getSesClient(): Promise<SESClient> {
+  const settings = await getResolvedPlatformSettings();
+  const region = settings.sesRegion || "us-east-1";
+  const accessKeyId = settings.sesAccessKeyId;
+  const secretAccessKey = settings.sesSecretAccessKey;
+  if (!accessKeyId || !secretAccessKey) {
+    throw new Error("SES credentials are not configured");
+  }
+  const key = `${region}:${accessKeyId}:${secretAccessKey}`;
+  if (cachedClient?.key === key) {
+    return cachedClient.client;
+  }
+  const client = new SESClient({
+    region,
+    credentials: { accessKeyId, secretAccessKey },
+  });
+  cachedClient = { key, client };
+  return client;
+}
+
+export function invalidateSesClient(): void {
+  cachedClient = null;
+}
+
+async function sesSendOptions(): Promise<{ ConfigurationSetName?: string }> {
+  const settings = await getResolvedPlatformSettings();
+  return settings.sesConfigurationSet
+    ? { ConfigurationSetName: settings.sesConfigurationSet }
+    : {};
+}
 
 export interface EmailAttachment {
   filename: string;
@@ -82,9 +113,10 @@ export async function sendEmail(options: SendEmailOptions): Promise<string> {
     Tags: tags
       ? Object.entries(tags).map(([Name, Value]) => ({ Name, Value }))
       : undefined,
+    ...(await sesSendOptions()),
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
   return response.MessageId!;
 }
 
@@ -152,9 +184,10 @@ export async function sendRawEmail(options: SendEmailOptions): Promise<string> {
     RawMessage: {
       Data: new TextEncoder().encode(rawMessage),
     },
+    ...(await sesSendOptions()),
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
   return response.MessageId!;
 }
 
@@ -165,7 +198,7 @@ export async function verifyDomain(
     Domain: domain,
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
 
   return {
     verificationToken: response.VerificationToken!,
@@ -180,7 +213,7 @@ export async function getDomainVerificationStatus(
     Identities: [domain],
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
   const attributes = response.VerificationAttributes?.[domain];
 
   return attributes?.VerificationStatus || "NotStarted";
@@ -191,7 +224,7 @@ export async function enableDomainDkim(domain: string): Promise<string[]> {
     Domain: domain,
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
   return response.DkimTokens || [];
 }
 
@@ -200,7 +233,7 @@ export async function getDomainDkimTokens(domain: string): Promise<string[]> {
     Identities: [domain],
   });
 
-  const response = await sesClient.send(command);
+  const response = await (await getSesClient()).send(command);
   const attributes = response.DkimAttributes?.[domain];
 
   return attributes?.DkimTokens || [];
@@ -211,7 +244,7 @@ export async function deleteDomainIdentity(domain: string): Promise<void> {
     Identity: domain,
   });
 
-  await sesClient.send(command);
+  await (await getSesClient()).send(command);
 }
 
 export async function createConfigurationSet(domain: string): Promise<string> {
@@ -224,7 +257,7 @@ export async function createConfigurationSet(domain: string): Promise<string> {
       },
     });
 
-    await sesClient.send(command);
+    await (await getSesClient()).send(command);
 
     return configSetName;
   } catch (error: unknown) {
@@ -247,7 +280,7 @@ export async function createConfigurationSet(domain: string): Promise<string> {
   }
 }
 
-export function generateDNSRecords(
+export async function generateDNSRecords(
   domain: string,
   verificationToken: string,
   dkimTokens: string[] = []
@@ -257,6 +290,6 @@ export function generateDNSRecords(
     outboundTransport: "ses",
     sesVerificationToken: verificationToken,
     sesDkimTokens: dkimTokens,
-    sesRegion: process.env.AWS_REGION || "us-east-1",
+    sesRegion: await getSesRegion(),
   });
 }

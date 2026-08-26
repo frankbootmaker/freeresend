@@ -177,9 +177,13 @@ export async function updateTenantRouting(
     ? existing.smtp_upstream
     : input.smtpUpstream;
 
-  if (transport === 'smtp') {
-    if (!smtpUpstream?.host || !smtpUpstream?.port) {
-      throw new Error('SMTP upstream host and port are required');
+  if (smtpUpstream && !String(smtpUpstream.host || '').trim()) {
+    smtpUpstream = null;
+  }
+
+  if (transport === 'smtp' && smtpUpstream?.host) {
+    if (!smtpUpstream.port) {
+      throw new Error('SMTP upstream port is required when a host is set');
     }
     if (
       (!smtpUpstream.password || smtpUpstream.password === '********')
@@ -203,7 +207,7 @@ export async function updateTenantRouting(
       tenantId,
       inbound,
       transport,
-      transport === 'smtp' && smtpUpstream
+      transport === 'smtp' && smtpUpstream?.host
         ? JSON.stringify(smtpUpstream)
         : null,
     ],

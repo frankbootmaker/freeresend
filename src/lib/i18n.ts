@@ -113,6 +113,7 @@ type Dict = {
     apiKeys: string;
     logs: string;
     customers: string;
+    settings: string;
     signOut: string;
     switchTenant: string;
     tenantFallback: string;
@@ -179,6 +180,7 @@ type Dict = {
     accessKey: string;
     secretKey: string;
     saveRoute: string;
+    platformRelayHint: string;
   };
   customers: {
     kicker: string;
@@ -213,6 +215,23 @@ type Dict = {
     kicker: string;
     title: string;
     lead: string;
+  };
+  settings: {
+    title: string;
+    sesTitle: string;
+    sesLead: string;
+    smtpTitle: string;
+    smtpLead: string;
+    smtpEnabled: string;
+    smtpDisabled: string;
+    alertTitle: string;
+    alertLead: string;
+    alertEmail: string;
+    alertFrom: string;
+    save: string;
+    saved: string;
+    saveFailed: string;
+    secretSet: string;
   };
   tabs: {
     domainsTitle: string;
@@ -418,6 +437,7 @@ const en: Dict = {
     apiKeys: 'API Keys',
     logs: 'Logs',
     customers: 'Customers',
+    settings: 'Configuration',
     signOut: 'Sign out',
     switchTenant: 'Switch tenant',
     tenantFallback: 'Tenant',
@@ -485,6 +505,8 @@ const en: Dict = {
     accessKey: 'Access key ID',
     secretKey: 'Secret access key',
     saveRoute: 'Save route',
+    platformRelayHint:
+      'Leave host empty to send through the platform SMTP relay.',
   },
   customers: {
     kicker: 'Portal administration',
@@ -519,6 +541,26 @@ const en: Dict = {
     kicker: 'Nethorizon / portal',
     title: 'Portal',
     lead: 'Provision customers here. Open a tenant to use their sending console.',
+  },
+  settings: {
+    title: 'Configuration',
+    sesTitle: 'Amazon SES',
+    sesLead:
+      'Installation credentials for tenant SES egress and domain verification.',
+    smtpTitle: 'SMTP relay',
+    smtpLead:
+      'Shared outbound relay for tenants that choose SMTP and do not set their own upstream.',
+    smtpEnabled: 'Enabled',
+    smtpDisabled: 'Disabled',
+    alertTitle: 'Monitoring and alerts',
+    alertLead:
+      'Operational notices, including waitlist and delivery alerts, go to this address.',
+    alertEmail: 'Alert email',
+    alertFrom: 'From address',
+    save: 'Save configuration',
+    saved: 'Platform configuration saved.',
+    saveFailed: 'Save failed',
+    secretSet: 'Stored — enter a new value to rotate',
   },
   tabs: {
     domainsTitle: 'Domains',
@@ -725,6 +767,7 @@ const de: Dict = {
     apiKeys: 'API-Schlüssel',
     logs: 'Protokolle',
     customers: 'Kunden',
+    settings: 'Konfiguration',
     signOut: 'Abmelden',
     switchTenant: 'Mandant wechseln',
     tenantFallback: 'Mandant',
@@ -792,6 +835,8 @@ const de: Dict = {
     accessKey: 'Access-Key-ID',
     secretKey: 'Geheimer Access Key',
     saveRoute: 'Route speichern',
+    platformRelayHint:
+      'Host leer lassen, um das Plattform-SMTP-Relay zu nutzen.',
   },
   customers: {
     kicker: 'Portalverwaltung',
@@ -827,6 +872,26 @@ const de: Dict = {
     kicker: 'Nethorizon / Portal',
     title: 'Portal',
     lead: 'Kunden hier anlegen. Einen Mandanten öffnen, um seine Versandkonsole zu nutzen.',
+  },
+  settings: {
+    title: 'Konfiguration',
+    sesTitle: 'Amazon SES',
+    sesLead:
+      'Installations-Zugangsdaten für SES-Ausgang und Domain-Verifizierung.',
+    smtpTitle: 'SMTP-Relay',
+    smtpLead:
+      'Gemeinsames Ausgangs-Relay für Mandanten mit SMTP ohne eigenen Upstream.',
+    smtpEnabled: 'Aktiv',
+    smtpDisabled: 'Inaktiv',
+    alertTitle: 'Überwachung und Alarmierung',
+    alertLead:
+      'Betriebshinweise, inklusive Warteliste und Zustellalarme, gehen an diese Adresse.',
+    alertEmail: 'Alarm-E-Mail',
+    alertFrom: 'Absenderadresse',
+    save: 'Konfiguration speichern',
+    saved: 'Plattformkonfiguration gespeichert.',
+    saveFailed: 'Speichern fehlgeschlagen',
+    secretSet: 'Gespeichert — neuen Wert eingeben zum Rotieren',
   },
   tabs: {
     domainsTitle: 'Domains',
@@ -1033,6 +1098,7 @@ const hu: Dict = {
     apiKeys: 'API-kulcsok',
     logs: 'Naplók',
     customers: 'Ügyfelek',
+    settings: 'Konfiguráció',
     signOut: 'Kilépés',
     switchTenant: 'Bérlő váltása',
     tenantFallback: 'Bérlő',
@@ -1100,6 +1166,8 @@ const hu: Dict = {
     accessKey: 'Access key ID',
     secretKey: 'Secret access key',
     saveRoute: 'Útvonal mentése',
+    platformRelayHint:
+      'Hagyja üresen a gépet a platform SMTP-relé használatához.',
   },
   customers: {
     kicker: 'Portáladminisztráció',
@@ -1135,6 +1203,26 @@ const hu: Dict = {
     kicker: 'Nethorizon / portál',
     title: 'Portál',
     lead: 'Itt hozza létre az ügyfeleket. Egy bérlő megnyitásával annak küldőkonzolját használja.',
+  },
+  settings: {
+    title: 'Konfiguráció',
+    sesTitle: 'Amazon SES',
+    sesLead:
+      'Telepítési hitelesítő adatok a bérlői SES-kimenethez és a domain-ellenőrzéshez.',
+    smtpTitle: 'SMTP-relé',
+    smtpLead:
+      'Közös kimenő relé azoknak a bérlőknek, akik SMTP-t választanak saját upstream nélkül.',
+    smtpEnabled: 'Bekapcsolva',
+    smtpDisabled: 'Kikapcsolva',
+    alertTitle: 'Felügyelet és riasztás',
+    alertLead:
+      'Üzemeltetési értesítések, beleértve a várólistát és a kézbesítési riasztásokat, ide mennek.',
+    alertEmail: 'Riasztási e-mail',
+    alertFrom: 'Feladó címe',
+    save: 'Konfiguráció mentése',
+    saved: 'A platformkonfiguráció mentve.',
+    saveFailed: 'Mentés sikertelen',
+    secretSet: 'Tárolva — új értéket adjon meg a cseréhez',
   },
   tabs: {
     domainsTitle: 'Domainek',

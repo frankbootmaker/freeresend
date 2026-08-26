@@ -13,6 +13,8 @@ import {
   type DODomainRecord,
 } from "./digitalocean";
 import { getTenantById } from "./tenants";
+import { getSesRegion } from "./ses";
+import { hasSesCredentials } from "./platform-settings";
 import {
   allRequiredRecordsValid,
   checkDnsRecords,
@@ -512,7 +514,7 @@ export async function verifyDomainDns(domainId: string): Promise<{
     newStatus = "verified";
     if (
       (await getTenantById(domain.tenant_id))?.outbound_transport === "ses"
-      && process.env.AWS_ACCESS_KEY_ID
+      && await hasSesCredentials()
     ) {
       try {
         const sesStatus = await getDomainVerificationStatus(domain.domain);
@@ -660,7 +662,7 @@ export async function registerTenantDomain(
   let setupInstructions =
     'Publish every DNS record below. Sending stays blocked until MX, SPF, DKIM, and DMARC match.';
 
-  if (tenant.outbound_transport === 'ses' && process.env.AWS_ACCESS_KEY_ID) {
+  if (tenant.outbound_transport === 'ses' && await hasSesCredentials()) {
     try {
       const sesVerification = await verifyDomain(normalized);
       verificationToken = sesVerification.verificationToken;
@@ -691,6 +693,7 @@ export async function registerTenantDomain(
     outboundTransport: tenant.outbound_transport,
     sesVerificationToken: verificationToken,
     sesDkimTokens,
+    sesRegion: await getSesRegion(),
     smtpMxHost: tenant.smtp_upstream?.host,
     dkimSelector,
     dkimPublicKey,
@@ -771,7 +774,7 @@ async function expectedRecordsForDomain(domain: Domain): Promise<{
     } else {
       dkimPublicKey = publicKeyFromPrivate(dkimPrivateKey);
     }
-  } else if (process.env.AWS_ACCESS_KEY_ID) {
+  } else if (await hasSesCredentials()) {
     try {
       const tokens = await getDomainDkimTokens(domain.domain);
       if (tokens.length > 0) {
@@ -788,6 +791,7 @@ async function expectedRecordsForDomain(domain: Domain): Promise<{
       outboundTransport: transport,
       sesVerificationToken: domain.verification_token,
       sesDkimTokens,
+      sesRegion: await getSesRegion(),
       smtpMxHost: tenant?.smtp_upstream?.host,
       dkimSelector,
       dkimPublicKey,

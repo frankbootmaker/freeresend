@@ -27,8 +27,8 @@ export default function SendingTab() {
   const { t } = usePrefs();
   const [ingress, setIngress] = useState<Ingress>('https');
   const [transport, setTransport] = useState<Egress>('ses');
-  const [host, setHost] = useState('localhost');
-  const [port, setPort] = useState(2525);
+  const [host, setHost] = useState('');
+  const [port, setPort] = useState(587);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
@@ -41,6 +41,10 @@ export default function SendingTab() {
   const [ses, setSes] = useState({
     region: 'eu-central-1',
     configurationSet: 'outpost-prod',
+  });
+  const [platformRelay, setPlatformRelay] = useState({
+    enabled: false,
+    host: '',
   });
 
   useEffect(() => {
@@ -68,6 +72,12 @@ export default function SendingTab() {
           configurationSet: res.data.ses.configurationSet || 'outpost-prod',
         });
       }
+      if (res.data.platformSmtpRelay) {
+        setPlatformRelay({
+          enabled: Boolean(res.data.platformSmtpRelay.enabled),
+          host: res.data.platformSmtpRelay.host || '',
+        });
+      }
     });
   }, []);
 
@@ -81,7 +91,15 @@ export default function SendingTab() {
         outboundTransport: transport,
         smtpUpstream:
           transport === 'smtp'
-            ? { host, port: Number(port), secure, username, password }
+            ? host.trim()
+              ? {
+                  host: host.trim(),
+                  port: Number(port),
+                  secure,
+                  username,
+                  password,
+                }
+              : null
             : undefined,
       });
       setMessage(t.sending.saved);
@@ -161,6 +179,12 @@ export default function SendingTab() {
             </div>
             {transport === 'smtp' ? (
               <div className="formgrid">
+                {platformRelay.enabled && (
+                  <p className="cardlead">
+                    {t.sending.platformRelayHint}
+                    {platformRelay.host ? ` (${platformRelay.host})` : ''}
+                  </p>
+                )}
                 <div className="field">
                   <label>{t.sending.smtpHost}</label>
                   <input

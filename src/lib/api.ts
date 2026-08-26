@@ -124,7 +124,7 @@ class ApiClient {
       secure?: boolean;
       username?: string;
       password?: string;
-    };
+    } | null;
   }) {
     return this.request("/tenant", {
       method: "PATCH",
@@ -143,6 +143,17 @@ class ApiClient {
   async createCustomer(payload: Record<string, unknown>) {
     return this.request("/admin/customers", {
       method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getPlatformSettings() {
+    return this.request("/admin/settings");
+  }
+
+  async updatePlatformSettings(payload: Record<string, unknown>) {
+    return this.request("/admin/settings", {
+      method: "PATCH",
       body: JSON.stringify(payload),
     });
   }
