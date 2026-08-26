@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyJWT } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { json, optionsResponse } from "@/lib/http";
+import { AuthError, resolveTenantSession } from "@/lib/tenant-context";
 import { query } from "@/lib/database";
 
 // Helper function to safely parse email arrays (handles both string and array)
@@ -34,44 +35,18 @@ function safeParseJSON(jsonData: unknown): Record<string, unknown> {
   return {};
 }
 
-function cors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  return response;
+export async function OPTIONS() {
+  return optionsResponse();
 }
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Handle CORS preflight
-  if (request.method === "OPTIONS") {
-    return cors(new NextResponse(null, { status: 200 }));
-  }
-
   try {
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return cors(NextResponse.json(
-        { error: "Missing or invalid authorization header" },
-        { status: 401 }
-      ));
-    }
-
-    const token = authHeader.substring(7);
-    const user = verifyJWT(token);
-    if (!user) {
-      return cors(NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      ));
-    }
-
+    const session = await resolveTenantSession(request);
     const { id } = await params;
 
-    // Get email with related data
     const emailResult = await query(
       `SELECT 
         el.*,
@@ -81,20 +56,15 @@ export async function GET(
       FROM email_logs el
       LEFT JOIN domains d ON el.domain_id = d.id
       LEFT JOIN api_keys ak ON el.api_key_id = ak.id
-      WHERE el.id = $1`,
-      [id]
+      WHERE el.id = $1 AND el.tenant_id = $2`,
+      [id, session.tenant.id]
     );
 
     if (emailResult.rows.length === 0) {
-      return cors(NextResponse.json({ error: "Email not found" }, { status: 404 }));
+      return json({ error: "Email not found" }, 404);
     }
 
     const emailData = emailResult.rows[0];
-
-    // Check if user owns this email log
-    if (emailData.domain_user_id !== user.id) {
-      return cors(NextResponse.json({ error: "Email not found" }, { status: 404 }));
-    }
 
     // Get webhook events for this email
     const webhookResult = await query(
@@ -125,15 +95,15 @@ export async function GET(
       })),
     };
 
-    return cors(NextResponse.json({
+    return json({
       success: true,
       data: { email },
-    }));
+    });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return json({ error: error.message }, error.status);
+    }
     console.error("API Error:", error);
-    return cors(NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    ));
+    return json({ error: "Internal server error" }, 500);
   }
 }

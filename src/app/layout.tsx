@@ -1,40 +1,32 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
+import { IBM_Plex_Mono, Nunito_Sans, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PrefsProvider } from "@/contexts/PrefsContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const display = Source_Serif_4({
+  variable: "--font-display-file",
+  subsets: ["latin", "latin-ext"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const body = Nunito_Sans({
+  variable: "--font-body-file",
+  subsets: ["latin", "latin-ext"],
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono-file",
+  weight: ["400", "500"],
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "FreeResend - Self-hosted Email Service | 85% Cost Savings",
+  title: 'OutPost by Nethorizon — programmatic outbound email',
   description:
-    "Open-source, self-hosted alternative to Resend. 100% API compatible with 85% cost savings using Amazon SES. Drop-in replacement with auto DNS setup.",
-  keywords: "resend alternative, self-hosted email, amazon ses, transactional email, email api, open source",
-  authors: [{ name: "Emad Ibrahim", url: "https://x.com/eibrahim" }],
-  creator: "Emad Ibrahim",
-  openGraph: {
-    title: "FreeResend - Self-hosted Alternative to Resend",
-    description: "100% API compatible • 85% cost savings • Complete control over your email infrastructure",
-    url: "https://freeresend.com",
-    siteName: "FreeResend",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "FreeResend - Self-hosted Alternative to Resend",
-    description: "100% API compatible • 85% cost savings • Complete control over your email infrastructure",
-    creator: "@eibrahim",
-  },
+    'Multi-tenant outbound email: Resend-compatible HTTPS API, tenant isolation, and MCP traffic tools.',
 };
+
+const prefsBootScript = `(function(){try{var t=localStorage.getItem('fr-theme');var l=localStorage.getItem('fr-locale');document.documentElement.setAttribute('data-theme',t==='light'?'light':'dark');if(l==='de'||l==='hu'||l==='en')document.documentElement.lang=l;}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -42,18 +34,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      data-theme="dark"
+      suppressHydrationWarning
+      className={`${display.variable} ${body.variable} ${mono.variable}`}
+    >
       <head>
-        <Script
-          defer
-          src="https://analytics.hub.elitecoders.ai/umami"
-          data-website-id="14571765-f9b8-4ced-b501-61413f2bdabf"
-        />
+        <script dangerouslySetInnerHTML={{ __html: prefsBootScript }} />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <AuthProvider>{children}</AuthProvider>
+      <body>
+        <PrefsProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </PrefsProvider>
       </body>
     </html>
   );

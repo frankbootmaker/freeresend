@@ -3,36 +3,77 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 
-interface User {
+export interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  isPlatformAdmin?: boolean;
+  tenantId?: string;
+  membershipRole?: string;
+}
+
+export interface TenantSummary {
+  id: string;
+  slug: string;
+  name: string;
+  status: string;
+}
+
+export interface Membership {
+  tenant_id: string;
+  slug: string;
+  tenant_name: string;
+  role: string;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
+  tenant: TenantSummary | null;
+  memberships: Membership[];
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
+  register: (payload: {
+    name: string;
+    slug?: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
+  switchTenant: (tenantId: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [tenant, setTenant] = useState<TenantSummary | null>(null);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
+  const applySession = (data: {
+    user?: AuthUser;
+    tenant?: TenantSummary;
+    memberships?: Membership[];
+  }) => {
+    setUser(data.user || null);
+    setTenant(data.tenant || null);
+    setMemberships(data.memberships || []);
+    if (data.user?.tenantId) {
+      api.setTenantId(data.user.tenantId);
+    }
+  };
+
   const checkAuth = async () => {
     try {
       const response = await api.getUser();
-      setUser(response.data.user);
+      applySession(response.data);
     } catch {
-      console.log("Not authenticated");
       api.clearToken();
+      api.setTenantId(null);
     } finally {
       setLoading(false);
     }
@@ -40,16 +81,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password);
-    setUser(response.data.user);
+    applySession(response.data);
+    return response.data.user as AuthUser;
+  };
+
+  const register = async (payload: {
+    name: string;
+    slug?: string;
+    email: string;
+    password: string;
+  }) => {
+    const response = await api.register(payload);
+    applySession(response.data);
+  };
+
+  const switchTenant = async (tenantId: string) => {
+    const response = await api.switchTenant(tenantId);
+    applySession({
+      user: response.data.user,
+      tenant: response.data.tenant,
+      memberships: response.data.memberships,
+    });
   };
 
   const logout = () => {
     api.clearToken();
+    api.setTenantId(null);
     setUser(null);
+    setTenant(null);
+    setMemberships([]);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        tenant,
+        memberships,
+        loading,
+        login,
+        register,
+        switchTenant,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,14 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { query } from "./database";
-import type { User } from "./database";
+import jwt from 'jsonwebtoken';
+import { query } from './database';
+import type { User } from './database';
+import { hashPassword, verifyPassword } from './auth-crypto';
+import {
+  addMembership,
+  createTenant,
+  getMembershipsForUser,
+} from './tenants';
+import type { MembershipRole } from './tenants';
+import { createMcpToken } from './mcp-tokens';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
 
@@ -9,18 +16,12 @@ export interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  isPlatformAdmin: boolean;
+  tenantId: string;
+  membershipRole: MembershipRole;
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
-}
-
-export async function verifyPassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
-  return bcrypt.compare(password, hash);
-}
+export { hashPassword, verifyPassword };
 
 export function generateJWT(user: AuthUser): string {
   return jwt.sign(
@@ -28,19 +29,26 @@ export function generateJWT(user: AuthUser): string {
       id: user.id,
       email: user.email,
       name: user.name,
+      isPlatformAdmin: user.isPlatformAdmin,
+      tenantId: user.tenantId,
+      membershipRole: user.membershipRole,
     },
     JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: '7d' },
   );
 }
 
 export function verifyJWT(token: string): AuthUser | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; name?: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
+    if (!decoded.id || !decoded.tenantId) return null;
     return {
       id: decoded.id,
       email: decoded.email,
       name: decoded.name,
+      isPlatformAdmin: Boolean(decoded.isPlatformAdmin),
+      tenantId: decoded.tenantId,
+      membershipRole: decoded.membershipRole || 'member',
     };
   } catch {
     return null;
@@ -50,103 +58,139 @@ export function verifyJWT(token: string): AuthUser | null {
 export async function createUser(
   email: string,
   password: string,
-  name?: string
+  name?: string,
+  isPlatformAdmin = false,
 ): Promise<User> {
   const passwordHash = await hashPassword(password);
-
-  try {
-    const result = await query(
-      `INSERT INTO users (email, password_hash, name) 
-       VALUES ($1, $2, $3) 
-       RETURNING *`,
-      [email, passwordHash, name]
-    );
-
-    if (result.rows.length === 0) {
-      throw new Error("Failed to create user");
-    }
-
-    return result.rows[0];
-  } catch (error: unknown) {
-    const errorObj = error as { message?: string };
-    throw new Error(`Failed to create user: ${errorObj.message}`);
+  const result = await query(
+    `INSERT INTO users (email, password_hash, name, is_platform_admin)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [email, passwordHash, name, isPlatformAdmin],
+  );
+  if (result.rows.length === 0) {
+    throw new Error('Failed to create user');
   }
+  return result.rows[0];
 }
 
-export async function authenticateUser(
-  email: string,
-  password: string
+export async function buildAuthUser(
+  userId: string,
+  tenantId?: string,
 ): Promise<AuthUser | null> {
-  try {
-    const result = await query("SELECT * FROM users WHERE email = $1 LIMIT 1", [
-      email,
-    ]);
+  const userRes = await query(
+    'SELECT id, email, name, is_platform_admin FROM users WHERE id = $1',
+    [userId],
+  );
+  const user = userRes.rows[0];
+  if (!user) return null;
 
-    if (result.rows.length === 0) {
-      return null;
-    }
+  const memberships = await getMembershipsForUser(user.id);
+  const match = tenantId
+    ? memberships.find((m) => m.tenant_id === tenantId)
+    : undefined;
 
-    const user = result.rows[0];
-    const isValid = await verifyPassword(password, user.password_hash);
-    if (!isValid) {
-      return null;
-    }
-
+  if (match) {
     return {
       id: user.id,
       email: user.email,
       name: user.name,
+      isPlatformAdmin: Boolean(user.is_platform_admin),
+      tenantId: match.tenant_id,
+      membershipRole: match.role,
     };
+  }
+
+  if (user.is_platform_admin && tenantId) {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isPlatformAdmin: true,
+      tenantId,
+      membershipRole: 'owner',
+    };
+  }
+
+  const fallback = memberships[0];
+  if (!fallback) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    isPlatformAdmin: Boolean(user.is_platform_admin),
+    tenantId: fallback.tenant_id,
+    membershipRole: fallback.role,
+  };
+}
+
+export async function authenticateUser(
+  email: string,
+  password: string,
+  tenantId?: string,
+): Promise<AuthUser | null> {
+  try {
+    const result = await query('SELECT * FROM users WHERE email = $1 LIMIT 1', [
+      email,
+    ]);
+    if (result.rows.length === 0) return null;
+    const user = result.rows[0];
+    const isValid = await verifyPassword(password, user.password_hash);
+    if (!isValid) return null;
+    return buildAuthUser(user.id, tenantId);
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error('Authentication error:', error);
     return null;
   }
 }
 
 export async function getUserById(id: string): Promise<AuthUser | null> {
-  try {
-    const result = await query(
-      "SELECT id, email, name FROM users WHERE id = $1 LIMIT 1",
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    return result.rows[0];
-  } catch (error) {
-    console.error("Get user by ID error:", error);
-    return null;
-  }
+  return buildAuthUser(id);
 }
 
-export async function initializeDefaultUser(): Promise<void> {
+export async function initializeDefaultUser(): Promise<{
+  created: boolean;
+  mcpToken?: string;
+}> {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
     console.warn(
-      "ADMIN_EMAIL and ADMIN_PASSWORD not set. Skipping default user creation."
+      'ADMIN_EMAIL and ADMIN_PASSWORD not set. Skipping default user creation.',
     );
-    return;
+    return { created: false };
   }
 
-  try {
-    // Check if user already exists
-    const result = await query(
-      "SELECT id FROM users WHERE email = $1 LIMIT 1",
-      [adminEmail]
-    );
-
-    if (result.rows.length > 0) {
-      console.log("Default admin user already exists");
-      return;
-    }
-
-    await createUser(adminEmail, adminPassword, "Admin");
-    console.log("Default admin user created successfully");
-  } catch (error) {
-    console.error("Failed to create default admin user:", error);
+  const existing = await query(
+    'SELECT id FROM users WHERE email = $1 LIMIT 1',
+    [adminEmail],
+  );
+  let created = false;
+  if (existing.rows.length === 0) {
+    const user = await createUser(adminEmail, adminPassword, 'Admin', true);
+    const tenant = await createTenant({
+      name: 'Platform',
+      slug: 'platform',
+      billingEmail: adminEmail,
+    });
+    await addMembership(tenant.id, user.id, 'owner');
+    created = true;
+    console.log('Default platform admin and tenant created');
+  } else {
+    console.log('Default admin user already exists');
   }
+
+  const existingMcp = await query(
+    'SELECT id FROM mcp_tokens WHERE tenant_id IS NULL LIMIT 1',
+  );
+  if (existingMcp.rows.length > 0) {
+    return { created };
+  }
+
+  const mcp = await createMcpToken({ tenantId: null, name: 'platform' });
+  return { created, mcpToken: mcp.token };
 }

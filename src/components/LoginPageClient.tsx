@@ -1,28 +1,27 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrefs } from "@/contexts/PrefsContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import LoginForm from "@/components/LoginForm";
+import { postAuthPath } from "@/lib/post-auth";
 
 export default function LoginPageClient() {
   const { user, loading } = useAuth();
+  const { t } = usePrefs();
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to dashboard if user is already logged in
     if (user) {
-      router.push("/");
+      router.push(postAuthPath(user));
     }
   }, [user, router]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading FreeResend...</p>
-        </div>
+      <div className="shell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p className="muted">{t.loading}</p>
       </div>
     );
   }

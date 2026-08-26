@@ -3,11 +3,17 @@ import { initializeDefaultUser } from "@/lib/auth";
 
 export async function POST() {
   try {
-    await initializeDefaultUser();
+    const result = await initializeDefaultUser();
 
     return NextResponse.json({
       success: true,
-      message: "Default user initialized successfully",
+      message: result.created
+        ? "Platform admin initialized successfully"
+        : "Platform admin already exists",
+      mcpToken: result.mcpToken,
+      hint: result.mcpToken
+        ? "Store the platform MCP token now; it is not shown again."
+        : undefined,
     });
   } catch (error: unknown) {
     const errorObj = error as { message?: string };

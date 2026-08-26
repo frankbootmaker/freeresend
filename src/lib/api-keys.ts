@@ -27,7 +27,8 @@ export async function generateApiKey(
   userId: string,
   domainId: string,
   keyName: string,
-  permissions: string[] = ["send"]
+  permissions: string[] = ["send"],
+  tenantId?: string,
 ): Promise<ApiKeyWithKey> {
   // Generate a secure API key with prefix
   const keyId = nanoid(8);
@@ -37,12 +38,25 @@ export async function generateApiKey(
   // Hash the key for storage
   const keyHash = await bcrypt.hash(apiKey, 10);
 
+  if (!tenantId) {
+    const domainRow = await query(
+      'SELECT tenant_id FROM domains WHERE id = $1 LIMIT 1',
+      [domainId],
+    );
+    tenantId = domainRow.rows[0]?.tenant_id;
+  }
+  if (!tenantId) {
+    throw new Error('tenant_id is required to create an API key');
+  }
+
   try {
     const result = await query(
-      `INSERT INTO api_keys (user_id, domain_id, key_name, key_hash, key_prefix, permissions) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO api_keys
+        (tenant_id, user_id, domain_id, key_name, key_hash, key_prefix, permissions)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
+        tenantId,
         userId,
         domainId,
         keyName,
@@ -121,7 +135,26 @@ export async function verifyApiKey(apiKey: string): Promise<ApiKey | null> {
   }
 }
 
-export async function getUserApiKeys(userId: string): Promise<ApiKey[]> {
+export async function getTenantApiKeys(tenantId: string): Promise<ApiKey[]> {
+  const result = await query(
+    `SELECT ak.*, d.domain as domain_name
+     FROM api_keys ak
+     LEFT JOIN domains d ON ak.domain_id = d.id
+     WHERE ak.tenant_id = $1
+     ORDER BY ak.created_at DESC`,
+    [tenantId],
+  );
+  return result.rows.map((row) => ({
+    ...row,
+    permissions: safeParsePermissions(row.permissions),
+    domains: row.domain_name ? { domain: row.domain_name } : null,
+  }));
+}
+
+export async function getUserApiKeys(
+  userId: string,
+  tenantId?: string,
+): Promise<ApiKey[]> {
   try {
     const result = await query(
       `SELECT 
@@ -130,8 +163,9 @@ export async function getUserApiKeys(userId: string): Promise<ApiKey[]> {
       FROM api_keys ak
       LEFT JOIN domains d ON ak.domain_id = d.id
       WHERE ak.user_id = $1
+        AND ($2::uuid IS NULL OR ak.tenant_id = $2)
       ORDER BY ak.created_at DESC`,
-      [userId]
+      [userId, tenantId || null]
     );
 
     return result.rows.map((row) => ({
@@ -166,12 +200,15 @@ export async function getDomainApiKeys(domainId: string): Promise<ApiKey[]> {
 
 export async function deleteApiKey(
   keyId: string,
-  userId: string
+  userId: string,
+  tenantId?: string,
 ): Promise<void> {
   try {
     const result = await query(
-      "DELETE FROM api_keys WHERE id = $1 AND user_id = $2",
-      [keyId, userId]
+      `DELETE FROM api_keys
+       WHERE id = $1 AND user_id = $2
+         AND ($3::uuid IS NULL OR tenant_id = $3)`,
+      [keyId, userId, tenantId || null]
     );
 
     if (result.rowCount === 0) {

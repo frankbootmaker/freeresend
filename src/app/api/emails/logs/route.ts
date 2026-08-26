@@ -1,12 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyJWT } from "@/lib/auth";
-import { verifyApiKey } from "@/lib/api-keys";
-import { query } from "@/lib/database";
+import { NextRequest } from 'next/server';
+import { json, optionsResponse } from '@/lib/http';
+import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
+import { query } from '@/lib/database';
 
-// Helper function to safely parse email arrays (handles both string and array)
 function safeParseEmailArray(emailData: unknown): string[] {
   if (!emailData) return [];
-  if (typeof emailData === "string") {
+  if (typeof emailData === 'string') {
     try {
       return JSON.parse(emailData);
     } catch {
@@ -19,93 +18,27 @@ function safeParseEmailArray(emailData: unknown): string[] {
   return [];
 }
 
-
-function cors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  return response;
+export async function OPTIONS() {
+  return optionsResponse();
 }
 
-// Support both user authentication (dashboard) and API key authentication
 export async function GET(request: NextRequest) {
-  // Handle CORS preflight
-  if (request.method === "OPTIONS") {
-    return cors(new NextResponse(null, { status: 200 }));
-  }
-
   try {
-    const authHeader = request.headers.get("authorization");
-    
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return cors(NextResponse.json(
-        { error: "Missing authorization header" },
-        { status: 401 }
-      ));
-    }
-
+    const session = await resolveTenantSession(request);
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = Math.min(parseInt(searchParams.get("limit") || "50"), 100);
-    const domainId = searchParams.get("domain_id");
-    const status = searchParams.get("status");
-
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const domainId = searchParams.get('domain_id');
+    const status = searchParams.get('status');
     const offset = (page - 1) * limit;
-    let domainIds: string[] = [];
 
-    if (authHeader.startsWith("Bearer frs_")) {
-      // API key authentication
-      const apiKey = await verifyApiKey(authHeader.substring(7));
-      if (!apiKey) {
-        return cors(NextResponse.json(
-          { error: "Invalid API key" },
-          { status: 401 }
-        ));
-      }
-      domainIds = [apiKey.domain_id];
-    } else {
-      // User JWT authentication
-      const user = verifyJWT(authHeader.substring(7));
-      if (!user) {
-        return cors(NextResponse.json(
-          { error: "Invalid or expired token" },
-          { status: 401 }
-        ));
-      }
-      
-      try {
-        const result = await query(
-          "SELECT id FROM domains WHERE user_id = $1",
-          [user.id]
-        );
-        domainIds = result.rows.map((d) => d.id);
-      } catch (domainsError: unknown) {
-        const errorObj = domainsError as { message?: string };
-        throw new Error(
-          `Failed to fetch user domains: ${errorObj.message}`
-        );
-      }
+    const whereConditions = ['el.tenant_id = $1'];
+    const queryParams: unknown[] = [session.tenant.id];
+
+    if (session.apiKey?.domain_id) {
+      whereConditions.push(`el.domain_id = $${queryParams.length + 1}`);
+      queryParams.push(session.apiKey.domain_id);
     }
-
-    // If user has no domains, return empty result
-    if (domainIds.length === 0) {
-      return cors(NextResponse.json({
-        success: true,
-        data: {
-          emails: [],
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            totalPages: 0,
-          },
-        },
-      }));
-    }
-
-    // Build WHERE conditions
-    const whereConditions = [`el.domain_id = ANY($1)`];
-    const queryParams: (string | string[])[] = [domainIds];
 
     if (domainId) {
       whereConditions.push(`el.domain_id = $${queryParams.length + 1}`);
@@ -117,18 +50,16 @@ export async function GET(request: NextRequest) {
       queryParams.push(status);
     }
 
-    const whereClause = whereConditions.join(" AND ");
+    const whereClause = whereConditions.join(' AND ');
 
-    // Get total count for pagination
     const countResult = await query(
       `SELECT COUNT(*) as count FROM email_logs el WHERE ${whereClause}`,
-      queryParams
+      queryParams,
     );
     const totalCount = parseInt(countResult.rows[0].count);
 
-    // Get email logs with JOINs
     const emailLogsResult = await query(
-      `SELECT 
+      `SELECT
         el.*,
         d.domain as domain_name,
         ak.key_name as api_key_name
@@ -138,10 +69,9 @@ export async function GET(request: NextRequest) {
       WHERE ${whereClause}
       ORDER BY el.created_at DESC
       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
-      [...queryParams, limit, offset]
+      [...queryParams, limit, offset],
     );
 
-    // Parse JSON fields and format data
     const emailLogs = emailLogsResult.rows.map((row) => ({
       ...row,
       to_emails: safeParseEmailArray(row.to_emails),
@@ -152,7 +82,7 @@ export async function GET(request: NextRequest) {
       api_keys: row.api_key_name ? { key_name: row.api_key_name } : null,
     }));
 
-    return cors(NextResponse.json({
+    return json({
       success: true,
       data: {
         emails: emailLogs,
@@ -163,12 +93,12 @@ export async function GET(request: NextRequest) {
           totalPages: Math.ceil(totalCount / limit),
         },
       },
-    }));
+    });
   } catch (error) {
-    console.error("API Error:", error);
-    return cors(NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    ));
+    if (error instanceof AuthError) {
+      return json({ error: error.message }, error.status);
+    }
+    console.error('API Error:', error);
+    return json({ error: 'Internal server error' }, 500);
   }
 }

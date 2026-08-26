@@ -40,7 +40,7 @@ export async function GET(
     const { id } = await params;
     const domain = await getDomainById(id);
 
-    if (!domain || domain.user_id !== user.id) {
+    if (!domain || domain.tenant_id !== user.tenantId) {
       return cors(NextResponse.json({ error: "Domain not found" }, { status: 404 }));
     }
 
@@ -86,7 +86,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await deleteDomain(id, user.id);
+    await deleteDomain(id, user.tenantId);
 
     return cors(NextResponse.json({
       success: true,

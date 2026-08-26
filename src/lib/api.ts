@@ -1,12 +1,21 @@
-const API_BASE =
-  process.env.NODE_ENV === "development" ? "http://localhost:3000/api" : "/api";
+const API_BASE = '/api';
 
 class ApiClient {
   private token: string | null = null;
+  private tenantId: string | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
       this.token = localStorage.getItem("auth_token");
+      this.tenantId = localStorage.getItem("tenant_id");
+    }
+  }
+
+  setTenantId(id: string | null) {
+    this.tenantId = id;
+    if (typeof window !== "undefined") {
+      if (id) localStorage.setItem("tenant_id", id);
+      else localStorage.removeItem("tenant_id");
     }
   }
 
@@ -28,12 +37,15 @@ class ApiClient {
     const url = `${API_BASE}${endpoint}`;
 
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
     if (this.token) {
       headers.Authorization = `Bearer ${this.token}`;
+    }
+    if (this.tenantId) {
+      headers['X-Tenant-Id'] = this.tenantId;
     }
 
     const response = await fetch(url, {
@@ -60,13 +72,79 @@ class ApiClient {
 
     if (response.data?.token) {
       this.setToken(response.data.token);
+      this.setTenantId(response.data.user?.tenantId || null);
     }
 
     return response;
   }
 
+  async register(payload: {
+    name: string;
+    slug?: string;
+    email: string;
+    password: string;
+  }) {
+    const response = await this.request("/auth/register", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    if (response.data?.token) {
+      this.setToken(response.data.token);
+      this.setTenantId(response.data.user?.tenantId || null);
+    }
+    return response;
+  }
+
   async getUser() {
     return this.request("/auth/me");
+  }
+
+  async switchTenant(tenantId: string) {
+    const response = await this.request("/auth/me", {
+      method: "POST",
+      body: JSON.stringify({ tenantId }),
+    });
+    if (response.data?.token) {
+      this.setToken(response.data.token);
+      this.setTenantId(response.data.user?.tenantId || tenantId);
+    }
+    return response;
+  }
+
+  async getTenant() {
+    return this.request("/tenant");
+  }
+
+  async updateTenantSending(payload: {
+    inboundTransport?: "https" | "smtp" | "both";
+    outboundTransport?: "ses" | "smtp";
+    smtpUpstream?: {
+      host: string;
+      port: number;
+      secure?: boolean;
+      username?: string;
+      password?: string;
+    };
+  }) {
+    return this.request("/tenant", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async getTenantStats(days = 30) {
+    return this.request(`/stats/tenant?days=${days}`);
+  }
+
+  async listCustomers() {
+    return this.request("/admin/customers");
+  }
+
+  async createCustomer(payload: Record<string, unknown>) {
+    return this.request("/admin/customers", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 
   // Domains

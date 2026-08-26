@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import React, { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+import { usePrefs } from '@/contexts/PrefsContext';
 
 interface Domain {
   id: string;
@@ -20,18 +21,52 @@ interface ApiKey {
   domains?: { domain: string };
 }
 
+async function copyTextToClipboard(value: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // Fall through to execCommand for unfocused or older browsers.
+  }
+
+  const field = document.createElement('textarea');
+  field.value = value;
+  field.setAttribute('readonly', '');
+  field.style.position = 'fixed';
+  field.style.top = '0';
+  field.style.left = '0';
+  field.style.opacity = '0';
+  document.body.appendChild(field);
+  field.focus();
+  field.select();
+  field.setSelectionRange(0, value.length);
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  }
+  document.body.removeChild(field);
+  return copied;
+}
+
 export default function ApiKeysTab() {
+  const { t } = usePrefs();
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [error, setError] = useState('');
   const [newKey, setNewKey] = useState({
-    domainId: "",
-    keyName: "",
-    permissions: ["send"],
+    domainId: '',
+    keyName: t.keys.labelPlaceholder,
+    permissions: ['send'],
   });
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -43,37 +78,69 @@ export default function ApiKeysTab() {
         api.getApiKeys(),
         api.getDomains(),
       ]);
+      const allDomains = domainsResponse.data.domains as Domain[];
       setApiKeys(apiKeysResponse.data.apiKeys);
-      setDomains(
-        domainsResponse.data.domains.filter(
-          (d: Domain) => d.status === "verified"
-        )
-      );
-    } catch (error) {
-      console.error("Failed to load data:", error);
+      setDomains(allDomains);
+      const verified = allDomains.filter((d) => d.status === 'verified');
+      setNewKey((current) => ({
+        ...current,
+        domainId: current.domainId || verified[0]?.id || allDomains[0]?.id || '',
+      }));
+    } catch (loadError) {
+      console.error('Failed to load data:', loadError);
     } finally {
       setLoading(false);
     }
   };
 
+  const verifiedDomains = domains.filter((d) => d.status === 'verified');
+
+  const openCreateForm = () => {
+    setError('');
+    setCreatedKey(null);
+    setCopied(false);
+    setShowCreateForm(true);
+    if (!newKey.domainId) {
+      setNewKey((current) => ({
+        ...current,
+        domainId: verifiedDomains[0]?.id || domains[0]?.id || '',
+        keyName: current.keyName || t.keys.labelPlaceholder,
+      }));
+    }
+  };
+
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newKey.domainId || !newKey.keyName.trim()) return;
+    setError('');
+
+    if (verifiedDomains.length === 0) {
+      setError(t.keys.needVerified);
+      return;
+    }
+    if (!newKey.domainId || !newKey.keyName.trim()) {
+      setError(t.keys.chooseFields);
+      return;
+    }
 
     setCreating(true);
     try {
       const response = await api.createApiKey(
         newKey.domainId,
         newKey.keyName.trim(),
-        newKey.permissions
+        newKey.permissions,
       );
       setApiKeys([response.data.apiKey, ...apiKeys]);
       setCreatedKey(response.data.apiKey.key);
-      setNewKey({ domainId: "", keyName: "", permissions: ["send"] });
+      setCopied(false);
+      setNewKey({
+        domainId: verifiedDomains[0]?.id || '',
+        keyName: t.keys.labelPlaceholder,
+        permissions: ['send'],
+      });
       setShowCreateForm(false);
-    } catch (error: unknown) {
-      const errorObj = error as { message?: string };
-      alert(errorObj.message || "Failed to create API key");
+    } catch (createError: unknown) {
+      const errorObj = createError as { message?: string };
+      setError(errorObj.message || t.keys.createFailed);
     } finally {
       setCreating(false);
     }
@@ -82,229 +149,166 @@ export default function ApiKeysTab() {
   const handleDeleteKey = async (keyId: string) => {
     if (
       !confirm(
-        "Are you sure you want to delete this API key? This action cannot be undone."
+        t.keys.confirmDelete,
       )
-    )
+    ) {
       return;
+    }
 
     try {
       await api.deleteApiKey(keyId);
       setApiKeys(apiKeys.filter((k) => k.id !== keyId));
-    } catch (error: unknown) {
-      const errorObj = error as { message?: string };
-      alert(errorObj.message || "Failed to delete API key");
+    } catch (deleteError: unknown) {
+      const errorObj = deleteError as { message?: string };
+      setError(errorObj.message || t.keys.deleteFailed);
     }
   };
 
-  const maskApiKey = (keyPrefix: string) => {
-    return `${keyPrefix}_${"*".repeat(32)}`;
+  const copyCreatedKey = async () => {
+    if (!createdKey) return;
+
+    const copiedOk = await copyTextToClipboard(createdKey);
+    if (copiedOk) {
+      setError('');
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+      return;
+    }
+
+    setError(t.keys.copyFailed);
+  };
+
+  const maskApiKey = (keyPrefix: string) => `${keyPrefix}_${'…'.repeat(4)}`;
+
+  const formatLastUsed = (date?: string) => {
+    if (!date) return '—';
+    const diff = Date.now() - new Date(date).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 60) return t.keys.minutesAgo(minutes);
+    const hours = Math.floor(minutes / 60);
+    if (hours < 48) return t.keys.hoursAgo(hours);
+    return new Date(date).toLocaleDateString();
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading API keys...</div>;
+    return <div className="muted">{t.sending.loading}</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-xl font-semibold text-gray-900">API Keys</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Create and manage API keys for sending emails through your verified
-            domains.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            disabled={domains.length === 0}
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Create API Key
-          </button>
-        </div>
-      </div>
+    <section className="card">
+      <header className="cardhead">
+        <h2>{t.keys.title}</h2>
+      </header>
+      <div className="cardbody">
+        <button className="primary" type="button" onClick={openCreateForm}>
+          {t.keys.create}
+        </button>
 
-      {domains.length === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">
-                No verified domains
-              </h3>
-              <div className="mt-2 text-sm text-yellow-700">
-                <p>
-                  You need to add and verify at least one domain before creating
-                  API keys.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Create API Key Form */}
-      {showCreateForm && domains.length > 0 && (
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Create New API Key
-            </h3>
-            <form onSubmit={handleCreateKey} className="mt-5 space-y-4">
-              <div>
-                <label
-                  htmlFor="domain"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Domain
-                </label>
-                <select
-                  id="domain"
-                  value={newKey.domainId}
-                  onChange={(e) =>
-                    setNewKey({ ...newKey, domainId: e.target.value })
-                  }
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  required
-                >
-                  <option value="">Select a domain</option>
-                  {domains.map((domain) => (
-                    <option key={domain.id} value={domain.id}>
-                      {domain.domain}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="keyName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Key Name
-                </label>
-                <input
-                  type="text"
-                  id="keyName"
-                  value={newKey.keyName}
-                  onChange={(e) =>
-                    setNewKey({ ...newKey, keyName: e.target.value })
-                  }
-                  placeholder="e.g., Production Key, Development Key"
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateForm(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {creating ? "Creating..." : "Create Key"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Created API Key Display */}
-      {createdKey && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">
-                API Key Created Successfully!
-              </h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p className="mb-2">
-                  Save this API key now - it will not be shown again:
-                </p>
-                <div className="bg-white p-3 rounded border font-mono text-sm break-all">
-                  {createdKey}
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(createdKey);
-                    alert("API key copied to clipboard!");
-                  }}
-                  className="mt-2 text-green-600 hover:text-green-800 text-sm font-medium"
-                >
-                  Copy to clipboard
-                </button>
-              </div>
-              <button
-                onClick={() => setCreatedKey(null)}
-                className="mt-3 text-sm font-medium text-green-600 hover:text-green-800"
-              >
-                Dismiss
+        {createdKey && (
+          <div className="key-reveal">
+            <div className="key-reveal-head">
+              <p className="key-reveal-hint">{t.keys.copyOnce}</p>
+              <button type="button" onClick={copyCreatedKey} aria-live="polite">
+                {copied ? t.keys.copied : t.keys.copy}
               </button>
             </div>
+            <code>{createdKey}</code>
           </div>
-        </div>
-      )}
+        )}
+        {error && <div className="fr-error">{error}</div>}
 
-      {/* API Keys List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        {apiKeys.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No API keys created yet. Create your first API key to start sending
-            emails.
+        {showCreateForm && (
+          <form onSubmit={handleCreateKey} className="formgrid" style={{ marginTop: 12 }}>
+            <div className="field">
+              <label htmlFor="domain">{t.keys.domain}</label>
+              <select
+                id="domain"
+                value={newKey.domainId}
+                onChange={(e) =>
+                  setNewKey({ ...newKey, domainId: e.target.value })
+                }
+                required
+              >
+                <option value="">{t.keys.selectDomain}</option>
+                {domains.map((domain) => (
+                  <option key={domain.id} value={domain.id}>
+                    {domain.domain}
+                    {domain.status === 'verified'
+                      ? ''
+                      : ` (${
+                          domain.status === 'failed'
+                            ? t.domains.failed
+                            : t.domains.pending
+                        })`}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="field">
+              <label htmlFor="keyName">{t.keys.label}</label>
+              <input
+                id="keyName"
+                value={newKey.keyName}
+                onChange={(e) =>
+                  setNewKey({ ...newKey, keyName: e.target.value })
+                }
+                placeholder={t.keys.labelPlaceholder}
+                required
+              />
+            </div>
+            <div className="field" style={{ alignSelf: 'end', display: 'flex', gap: 8 }}>
+              <button className="primary" type="submit" disabled={creating}>
+                {creating ? t.keys.creating : t.keys.createSubmit}
+              </button>
+              <button type="button" onClick={() => setShowCreateForm(false)}>
+                {t.keys.cancel}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {apiKeys.length === 0 && !showCreateForm ? (
+          <div className="empty">
+            <h3>{t.keys.emptyTitle}</h3>
+            <p>{t.keys.emptyBody}</p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-200">
-            {apiKeys.map((key) => (
-              <li key={key.id}>
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {key.key_name}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Domain: {key.domains?.domain || "Unknown"}
-                      </div>
-                      <div className="text-xs text-gray-500 font-mono">
-                        {maskApiKey(key.key_prefix)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Created {new Date(key.created_at).toLocaleDateString()}
-                        {key.last_used_at && (
-                          <span>
-                            {" "}
-                            • Last used{" "}
-                            {new Date(key.last_used_at).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {key.permissions.join(", ")}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteKey(key.id)}
-                        className="text-red-600 hover:text-red-900 text-sm font-medium"
-                      >
-                        Delete
+          apiKeys.length > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th>{t.keys.label}</th>
+                  <th>{t.keys.prefix}</th>
+                  <th>{t.keys.scope}</th>
+                  <th>{t.keys.lastUsed}</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {apiKeys.map((key) => (
+                  <tr key={key.id}>
+                    <td>{key.key_name}</td>
+                    <td>
+                      <code>{maskApiKey(key.key_prefix)}</code>
+                    </td>
+                    <td>
+                      {key.permissions.includes('send')
+                        ? 'send:write'
+                        : key.permissions.join(':')}
+                    </td>
+                    <td>{formatLastUsed(key.last_used_at)}</td>
+                    <td>
+                      <button type="button" onClick={() => handleDeleteKey(key.id)}>
+                        {t.keys.delete}
                       </button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )
         )}
       </div>
-    </div>
+    </section>
   );
 }

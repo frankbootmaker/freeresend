@@ -25,3 +25,9 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 
 CMD ["node", "server.js"]
+
+FROM builder AS smtp
+WORKDIR /app
+ENV NODE_ENV=production
+EXPOSE 2525
+CMD ["npx", "tsx", "src/smtp/server.ts"]

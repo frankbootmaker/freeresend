@@ -1,9 +1,9 @@
+import { createPublicKey } from 'node:crypto';
 import { query } from "./database";
 import {
   verifyDomain,
   getDomainVerificationStatus,
   createConfigurationSet,
-  generateDNSRecords,
   enableDomainDkim,
   getDomainDkimTokens,
 } from "./ses";
@@ -12,14 +12,20 @@ import {
   verifyDomainOwnership,
   type DODomainRecord,
 } from "./digitalocean";
+import { getTenantById } from "./tenants";
+import {
+  allRequiredRecordsValid,
+  checkDnsRecords,
+  extractSesDkimTokens,
+  generateDkimKeyPair,
+  generateSendingDnsRecords,
+  pemToBase64,
+  skipDnsVerification,
+  type DnsRecord,
+} from "./dns-records";
 import type { Domain } from "./database";
 
-export interface DNSRecord {
-  type: string;
-  name: string;
-  value: string;
-  ttl?: number;
-}
+export type DNSRecord = DnsRecord;
 
 export interface DomainSetupResult {
   domain: Domain;
@@ -30,7 +36,7 @@ export interface DomainSetupResult {
 }
 
 // Helper function to safely parse DNS records (handles both string and object)
-function safeParseDNSRecords(dnsRecords: unknown): DNSRecord[] {
+function safeParseDNSRecords(dnsRecords: unknown): DnsRecord[] {
   if (!dnsRecords) return [];
   if (typeof dnsRecords === "string") {
     try {
@@ -40,9 +46,23 @@ function safeParseDNSRecords(dnsRecords: unknown): DNSRecord[] {
     }
   }
   if (Array.isArray(dnsRecords)) {
-    return dnsRecords;
+    return dnsRecords as DnsRecord[];
   }
   return [];
+}
+
+function toPublicDomain(row: Record<string, unknown>): Domain {
+  const { dkim_private_key: _privateKey, ...rest } = row;
+  return {
+    ...(rest as unknown as Domain),
+    dns_records: safeParseDNSRecords(row.dns_records),
+    dkim_private_key: undefined,
+  };
+}
+
+function publicKeyFromPrivate(pem: string): string {
+  const exported = createPublicKey(pem).export({ type: "spki", format: "pem" });
+  return pemToBase64(String(exported));
 }
 
 // Helper function to safely stringify JSON with circular reference protection
@@ -74,12 +94,15 @@ function convertDORecordToDNSRecord(doRecord: DODomainRecord): DNSRecord {
     name: doRecord.name,
     value: doRecord.data,
     ttl: doRecord.ttl,
+    purpose: 'mx',
+    required: false,
   };
 }
 
 export async function addDomain(
   userId: string,
-  domainName: string
+  domainName: string,
+  tenantId?: string,
 ): Promise<DomainSetupResult> {
   // Validate domain format
   if (!isValidDomain(domainName)) {
@@ -117,11 +140,12 @@ export async function addDomain(
     const configurationSet = await createConfigurationSet(domainName);
 
     // 4. Generate DNS records (including DKIM if available)
-    const dnsRecords = generateDNSRecords(
-      domainName,
-      sesVerification.verificationToken,
-      dkimTokens
-    );
+    const dnsRecords = generateSendingDnsRecords({
+      domain: domainName,
+      outboundTransport: 'ses',
+      sesVerificationToken: sesVerification.verificationToken,
+      sesDkimTokens: dkimTokens,
+    });
 
     // 5. Setup DNS records in Digital Ocean (if configured)
     let digitalOceanRecords: DNSRecord[] = [];
@@ -143,12 +167,18 @@ export async function addDomain(
         "DNS records need to be created manually. Please add the following records to your DNS provider:";
     }
 
+    if (!tenantId) {
+      throw new Error('tenant_id is required to add a domain');
+    }
+
     // 6. Store domain information in database
     const result = await query(
-      `INSERT INTO domains (user_id, domain, status, ses_configuration_set, dns_records, verification_token) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO domains
+        (tenant_id, user_id, domain, status, ses_configuration_set, dns_records, verification_token)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
+        tenantId,
         userId,
         domainName,
         "pending",
@@ -270,11 +300,12 @@ async function verifyAndCompleteExistingDomain(
     }
 
     // 4. Generate current DNS records
-    const dnsRecords = generateDNSRecords(
-      domainName,
-      sesVerificationToken || "",
-      dkimTokens
-    );
+    const dnsRecords = generateSendingDnsRecords({
+      domain: domainName,
+      outboundTransport: 'ses',
+      sesVerificationToken: sesVerificationToken || '',
+      sesDkimTokens: dkimTokens,
+    });
 
     // 5. Check/setup Digital Ocean DNS
     try {
@@ -356,19 +387,32 @@ async function verifyAndCompleteExistingDomain(
   }
 }
 
+export async function getTenantDomains(tenantId: string): Promise<Domain[]> {
+  try {
+    const result = await query(
+      `SELECT * FROM domains
+       WHERE tenant_id = $1
+       ORDER BY created_at DESC`,
+      [tenantId],
+    );
+
+    return result.rows.map((row) => toPublicDomain(row));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to fetch domains: ${errorMessage}`);
+  }
+}
+
 export async function getUserDomains(userId: string): Promise<Domain[]> {
   try {
     const result = await query(
       `SELECT * FROM domains 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC`,
+ WHERE user_id = $1 
+ ORDER BY created_at DESC`,
       [userId]
     );
 
-    return result.rows.map((row) => ({
-      ...row,
-      dns_records: safeParseDNSRecords(row.dns_records),
-    }));
+    return result.rows.map((row) => toPublicDomain(row));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to fetch domains: ${errorMessage}`);
@@ -442,52 +486,90 @@ export async function updateDomainStatus(
 export async function checkDomainVerification(
   domainId: string
 ): Promise<Domain["status"]> {
+  const result = await verifyDomainDns(domainId);
+  return result.status;
+}
+
+export async function verifyDomainDns(domainId: string): Promise<{
+  status: Domain["status"];
+  verified: boolean;
+  records: DnsRecord[];
+}> {
   const domain = await getDomainById(domainId);
   if (!domain) {
     throw new Error("Domain not found");
   }
 
-  try {
-    const sesStatus = await getDomainVerificationStatus(domain.domain);
+  const expected = await expectedRecordsForDomain(domain);
+  const checked = await checkDnsRecords(expected.records);
+  const dnsOk = allRequiredRecordsValid(checked);
+  const skip = skipDnsVerification();
 
-    let newStatus: Domain["status"] = "pending";
-    if (sesStatus === "Success") {
-      newStatus = "verified";
-    } else if (sesStatus === "Failed") {
-      newStatus = "failed";
+  let newStatus: Domain["status"] = "pending";
+  if (skip) {
+    newStatus = "verified";
+  } else if (dnsOk) {
+    newStatus = "verified";
+    if (
+      (await getTenantById(domain.tenant_id))?.outbound_transport === "ses"
+      && process.env.AWS_ACCESS_KEY_ID
+    ) {
+      try {
+        const sesStatus = await getDomainVerificationStatus(domain.domain);
+        if (sesStatus === "Failed") {
+          newStatus = "failed";
+        } else if (sesStatus !== "Success") {
+          newStatus = "pending";
+        }
+      } catch (error) {
+        console.warn("SES identity check failed:", error);
+        newStatus = "pending";
+      }
     }
-
-    if (newStatus !== domain.status) {
-      await updateDomainStatus(domainId, newStatus);
-    }
-
-    return newStatus;
-  } catch (error) {
-    console.error("Failed to check domain verification:", error);
-    return domain.status;
   }
+
+  await query(
+    `UPDATE domains
+     SET status = $2,
+         dns_records = $3,
+         dns_checked_at = NOW(),
+         dkim_selector = COALESCE($4, dkim_selector),
+         dkim_private_key = COALESCE($5, dkim_private_key)
+     WHERE id = $1`,
+    [
+      domainId,
+      newStatus,
+      safeJSONStringify(checked),
+      expected.dkimSelector || null,
+      expected.dkimPrivateKey || null,
+    ],
+  );
+
+  return {
+    status: newStatus,
+    verified: newStatus === "verified",
+    records: checked,
+  };
 }
 
 export async function deleteDomain(
   domainId: string,
-  userId: string
+  tenantId: string
 ): Promise<void> {
   const domain = await getDomainById(domainId);
-  if (!domain || domain.user_id !== userId) {
+  if (!domain || domain.tenant_id !== tenantId) {
     throw new Error("Domain not found or unauthorized");
   }
 
   try {
-    // Delete from SES (if needed)
-    // await deleteDomainIdentity(domain.domain)
+    await query("DELETE FROM api_keys WHERE domain_id = $1 AND tenant_id = $2", [
+      domainId,
+      tenantId,
+    ]);
 
-    // Delete API keys associated with this domain
-    await query("DELETE FROM api_keys WHERE domain_id = $1", [domainId]);
-
-    // Delete domain record
     const result = await query(
-      "DELETE FROM domains WHERE id = $1 AND user_id = $2",
-      [domainId, userId]
+      "DELETE FROM domains WHERE id = $1 AND tenant_id = $2",
+      [domainId, tenantId]
     );
 
     if (result.rowCount === 0) {
@@ -539,4 +621,178 @@ export async function validateEmailDomain(email: string): Promise<boolean> {
 
   const domainRecord = await getDomainByName(domain);
   return domainRecord?.status === "verified";
+}
+
+export async function registerTenantDomain(
+  tenantId: string,
+  userId: string,
+  domainName: string,
+): Promise<DomainSetupResult> {
+  if (!isValidDomain(domainName)) {
+    throw new Error('Invalid domain format');
+  }
+
+  const existing = await getDomainByName(domainName);
+  if (existing) {
+    if (existing.tenant_id !== tenantId) {
+      throw new Error('Domain belongs to another tenant');
+    }
+    const publicDomain = toPublicDomain(existing as unknown as Record<string, unknown>);
+    return {
+      domain: publicDomain,
+      dnsRecords: safeParseDNSRecords(existing.dns_records),
+      setupInstructions: 'Domain already exists for this tenant.',
+    };
+  }
+
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) {
+    throw new Error('Tenant not found');
+  }
+
+  const normalized = domainName.toLowerCase();
+  let verificationToken: string | null = null;
+  let configurationSet: string | undefined;
+  let sesDkimTokens: string[] = [];
+  let dkimSelector: string | null = null;
+  let dkimPrivateKey: string | null = null;
+  let dkimPublicKey: string | null = null;
+  let setupInstructions =
+    'Publish every DNS record below. Sending stays blocked until MX, SPF, DKIM, and DMARC match.';
+
+  if (tenant.outbound_transport === 'ses' && process.env.AWS_ACCESS_KEY_ID) {
+    try {
+      const sesVerification = await verifyDomain(normalized);
+      verificationToken = sesVerification.verificationToken;
+      try {
+        sesDkimTokens = await enableDomainDkim(normalized);
+      } catch (error) {
+        console.warn('DKIM setup failed:', error);
+      }
+      try {
+        configurationSet = await createConfigurationSet(normalized);
+      } catch (error) {
+        console.warn('SES configuration set failed:', error);
+      }
+    } catch (error) {
+      console.warn('SES domain verify failed:', error);
+    }
+  }
+
+  if (tenant.outbound_transport === 'smtp') {
+    const pair = generateDkimKeyPair();
+    dkimSelector = pair.selector;
+    dkimPrivateKey = pair.privateKeyPem;
+    dkimPublicKey = pair.publicKeyBase64;
+  }
+
+  const dnsRecords = generateSendingDnsRecords({
+    domain: normalized,
+    outboundTransport: tenant.outbound_transport,
+    sesVerificationToken: verificationToken,
+    sesDkimTokens,
+    smtpMxHost: tenant.smtp_upstream?.host,
+    dkimSelector,
+    dkimPublicKey,
+  });
+
+  try {
+    const isDomainInDO = await verifyDomainOwnership(normalized);
+    if (isDomainInDO) {
+      await setupDomainDNS(
+        normalized,
+        dnsRecords.map((record) => ({
+          type: record.type,
+          name: record.name,
+          value: record.value,
+          ttl: record.ttl,
+        })),
+      );
+      setupInstructions =
+        'DNS records were created in Digital Ocean. Wait for them to propagate, then check verification.';
+    }
+  } catch (error) {
+    console.warn('Digital Ocean setup skipped:', error);
+  }
+
+  const status = skipDnsVerification() ? 'verified' : 'pending';
+  const result = await query(
+    `INSERT INTO domains
+      (tenant_id, user_id, domain, status, ses_configuration_set, dns_records,
+       verification_token, dkim_selector, dkim_private_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING *`,
+    [
+      tenantId,
+      userId,
+      normalized,
+      status,
+      configurationSet || null,
+      safeJSONStringify(dnsRecords),
+      verificationToken,
+      dkimSelector,
+      dkimPrivateKey,
+    ],
+  );
+
+  const domain = toPublicDomain(result.rows[0]);
+  if (skipDnsVerification()) {
+    setupInstructions +=
+      ' SKIP_DNS_VERIFICATION is on, so sending is allowed locally before DNS matches.';
+  }
+
+  return {
+    domain,
+    dnsRecords,
+    sesConfigurationSet: configurationSet,
+    setupInstructions,
+  };
+}
+
+async function expectedRecordsForDomain(domain: Domain): Promise<{
+  records: DnsRecord[];
+  dkimSelector?: string | null;
+  dkimPrivateKey?: string | null;
+}> {
+  const tenant = await getTenantById(domain.tenant_id);
+  const transport = tenant?.outbound_transport || 'ses';
+  const existing = safeParseDNSRecords(domain.dns_records);
+  let dkimSelector = domain.dkim_selector || null;
+  let dkimPrivateKey = domain.dkim_private_key || null;
+  let dkimPublicKey: string | null = null;
+  let sesDkimTokens = extractSesDkimTokens(existing);
+
+  if (transport === 'smtp') {
+    if (!dkimPrivateKey) {
+      const pair = generateDkimKeyPair();
+      dkimSelector = pair.selector;
+      dkimPrivateKey = pair.privateKeyPem;
+      dkimPublicKey = pair.publicKeyBase64;
+    } else {
+      dkimPublicKey = publicKeyFromPrivate(dkimPrivateKey);
+    }
+  } else if (process.env.AWS_ACCESS_KEY_ID) {
+    try {
+      const tokens = await getDomainDkimTokens(domain.domain);
+      if (tokens.length > 0) {
+        sesDkimTokens = tokens;
+      }
+    } catch (error) {
+      console.warn('Could not refresh SES DKIM tokens:', error);
+    }
+  }
+
+  return {
+    records: generateSendingDnsRecords({
+      domain: domain.domain,
+      outboundTransport: transport,
+      sesVerificationToken: domain.verification_token,
+      sesDkimTokens,
+      smtpMxHost: tenant?.smtp_upstream?.host,
+      dkimSelector,
+      dkimPublicKey,
+    }),
+    dkimSelector,
+    dkimPrivateKey,
+  };
 }

@@ -105,7 +105,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    await deleteApiKey(id, user.id);
+    await deleteApiKey(id, user.id, user.tenantId);
 
     return cors(NextResponse.json({
       success: true,

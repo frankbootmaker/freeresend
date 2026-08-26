@@ -1,5 +1,9 @@
 # FreeResend
 
+This Bootmaker fork is a **multi-tenant outbound email** platform. Start with [`docs/README.md`](docs/README.md).
+
+Upstream project: a self-hosted, open-source alternative to Resend for sending transactional emails.
+
 **A self-hosted, open-source alternative to Resend for sending transactional emails.**
 
 FreeResend allows you to host your own email service using Amazon SES and optionally Digital Ocean for DNS management. It provides a Resend-compatible API so you can use it as a drop-in replacement.

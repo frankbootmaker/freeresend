@@ -1,0 +1,59 @@
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: oklch(13% 0.018 155);
+  --surface: oklch(19% 0.026 153);
+  --surface-2: oklch(23% 0.028 153);
+  --fg: oklch(94% 0.014 110);
+  --muted: oklch(70% 0.022 145);
+  --border: oklch(34% 0.03 151);
+  --accent: oklch(88% 0.23 125);
+  --accent-ink: oklch(17% 0.04 140);
+  --danger: oklch(69% 0.17 25);
+  --display: var(--font-display-file), 'Iowan Old Style', 'Palatino Linotype', Palatino,
+    Georgia, serif;
+  --body: var(--font-body-file), 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
+  --mono: var(--font-mono-file), 'SFMono-Regular', 'SF Mono', Consolas, monospace;
+  --font-display: var(--display);
+  --font-body: var(--body);
+  --font-mono: var(--mono);
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: oklch(96% 0.014 116);
+  --surface: oklch(99% 0.008 115);
+  --surface-2: oklch(92% 0.019 128);
+  --fg: oklch(18% 0.027 155);
+  --muted: oklch(46% 0.03 151);
+  --border: oklch(78% 0.03 145);
+  --accent: oklch(77% 0.19 126);
+  --accent-ink: oklch(15% 0.038 150);
+  --danger: oklch(52% 0.18 25);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+  border-radius: 0;
+}
+
+a {
+  color: inherit;
+}

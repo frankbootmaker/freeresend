@@ -9,6 +9,7 @@ import {
   VerifyDomainDkimCommand,
   GetIdentityDkimAttributesCommand,
 } from "@aws-sdk/client-ses";
+import { generateSendingDnsRecords } from "./dns-records";
 
 const sesClient = new SESClient({
   region: process.env.AWS_REGION || "us-east-1",
@@ -251,47 +252,11 @@ export function generateDNSRecords(
   verificationToken: string,
   dkimTokens: string[] = []
 ) {
-  const records = [
-    {
-      type: "TXT",
-      name: `_amazonses.${domain}`,
-      value: verificationToken,
-      ttl: 300,
-      description: "SES Domain Verification",
-    },
-    {
-      type: "MX",
-      name: domain,
-      value: "10 inbound-smtp.us-east-1.amazonaws.com.", // Trailing dot required by Digital Ocean
-      ttl: 300,
-      description: "SES Inbound Email",
-    },
-    {
-      type: "TXT",
-      name: domain,
-      value: "v=spf1 include:amazonses.com ~all",
-      ttl: 300,
-      description: "SPF Record for SES",
-    },
-    {
-      type: "TXT",
-      name: `_dmarc.${domain}`,
-      value: "v=DMARC1; p=quarantine; rua=mailto:dmarc@" + domain,
-      ttl: 300,
-      description: "DMARC Policy",
-    },
-  ];
-
-  // Add DKIM CNAME records
-  dkimTokens.forEach((token) => {
-    records.push({
-      type: "CNAME",
-      name: `${token}._domainkey.${domain}`,
-      value: `${token}.dkim.amazonses.com.`, // Trailing dot required
-      ttl: 300,
-      description: `DKIM Record (${token.substring(0, 8)}...)`,
-    });
+  return generateSendingDnsRecords({
+    domain,
+    outboundTransport: "ses",
+    sesVerificationToken: verificationToken,
+    sesDkimTokens: dkimTokens,
+    sesRegion: process.env.AWS_REGION || "us-east-1",
   });
-
-  return records;
 }

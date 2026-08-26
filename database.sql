@@ -1,140 +1,170 @@
--- FreeResend Database Schema
+-- FreeResend multi-tenant schema (fresh install)
 
--- Users table
+CREATE TABLE IF NOT EXISTS tenants (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  slug VARCHAR(80) UNIQUE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  status VARCHAR(50) DEFAULT 'active',
+  billing_email VARCHAR(255),
+  monthly_email_quota INTEGER DEFAULT 100000,
+  inbound_transport VARCHAR(20) NOT NULL DEFAULT 'https',
+  outbound_transport VARCHAR(20) NOT NULL DEFAULT 'ses',
+  ses_config JSONB,
+  smtp_upstream JSONB,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT tenants_inbound_check CHECK (inbound_transport IN ('https', 'smtp', 'both')),
+  CONSTRAINT tenants_transport_check CHECK (outbound_transport IN ('ses', 'smtp')),
+  CONSTRAINT tenants_status_check CHECK (
+    status IN ('pending_verification', 'active', 'suspended')
+  )
+);
+
 CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   name VARCHAR(255),
+  is_platform_admin BOOLEAN NOT NULL DEFAULT FALSE,
+  email_verified_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Domains table
+CREATE TABLE IF NOT EXISTS tenant_memberships (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL DEFAULT 'owner',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (tenant_id, user_id),
+  CONSTRAINT membership_role_check CHECK (role IN ('owner', 'admin', 'member'))
+);
+
 CREATE TABLE IF NOT EXISTS domains (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   domain VARCHAR(255) UNIQUE NOT NULL,
-  status VARCHAR(50) DEFAULT 'pending', -- pending, verified, failed
+  status VARCHAR(50) DEFAULT 'pending',
   ses_identity_arn VARCHAR(255),
   ses_configuration_set VARCHAR(255),
   do_domain_id VARCHAR(255),
   dns_records JSONB DEFAULT '[]',
+  dns_checked_at TIMESTAMP WITH TIME ZONE,
   verification_token VARCHAR(255),
-  smtp_credentials JSONB, -- Stores encrypted SMTP username/password
+  dkim_selector VARCHAR(63),
+  dkim_private_key TEXT,
+  smtp_credentials JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- API Keys table
 CREATE TABLE IF NOT EXISTS api_keys (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
   domain_id UUID REFERENCES domains(id) ON DELETE CASCADE,
   key_name VARCHAR(255) NOT NULL,
   key_hash VARCHAR(255) NOT NULL,
-  key_prefix VARCHAR(20) NOT NULL, -- First few chars of the key for identification
-  permissions JSONB DEFAULT '["send"]', -- ["send", "receive", "webhooks"]
+  key_prefix VARCHAR(40) NOT NULL,
+  permissions JSONB DEFAULT '["send"]',
   last_used_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id, key_name)
+  UNIQUE (tenant_id, key_name)
 );
 
--- Email logs table
 CREATE TABLE IF NOT EXISTS email_logs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   api_key_id UUID REFERENCES api_keys(id) ON DELETE SET NULL,
   domain_id UUID REFERENCES domains(id) ON DELETE CASCADE,
   message_id VARCHAR(255),
   from_email VARCHAR(255) NOT NULL,
-  to_emails JSONB NOT NULL, -- Array of email addresses
+  to_emails JSONB NOT NULL,
   cc_emails JSONB DEFAULT '[]',
   bcc_emails JSONB DEFAULT '[]',
   subject VARCHAR(500),
   html_content TEXT,
   text_content TEXT,
   attachments JSONB DEFAULT '[]',
-  status VARCHAR(50) DEFAULT 'pending', -- pending, sent, failed, delivered, bounced, complained
+  status VARCHAR(50) DEFAULT 'pending',
   ses_message_id VARCHAR(255),
   error_message TEXT,
+  channel VARCHAR(20) DEFAULT 'https',
   webhook_data JSONB,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Webhook events table
 CREATE TABLE IF NOT EXISTS webhook_events (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email_log_id UUID REFERENCES email_logs(id) ON DELETE CASCADE,
-  event_type VARCHAR(50) NOT NULL, -- sent, delivered, bounced, complained, etc.
+  event_type VARCHAR(50) NOT NULL,
   event_data JSONB NOT NULL,
   processed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Waitlist signups table
-CREATE TABLE IF NOT EXISTS waitlist_signups (
+CREATE TABLE IF NOT EXISTS mcp_tokens (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  estimated_volume INTEGER,
-  current_provider VARCHAR(100),
-  referral_source VARCHAR(100),
-  user_agent TEXT,
-  ip_address INET,
-  utm_source VARCHAR(100),
-  utm_medium VARCHAR(100),
-  utm_campaign VARCHAR(100),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  key_hash VARCHAR(255) NOT NULL,
+  key_prefix VARCHAR(40) NOT NULL,
+  scopes JSONB DEFAULT '["read"]',
+  last_used_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS idx_domains_user_id ON domains(user_id);
-CREATE INDEX IF NOT EXISTS idx_domains_domain ON domains(domain);
-CREATE INDEX IF NOT EXISTS idx_api_keys_user_id ON api_keys(user_id);
-CREATE INDEX IF NOT EXISTS idx_api_keys_domain_id ON api_keys(domain_id);
-CREATE INDEX IF NOT EXISTS idx_api_keys_key_hash ON api_keys(key_hash);
-CREATE INDEX IF NOT EXISTS idx_email_logs_api_key_id ON email_logs(api_key_id);
-CREATE INDEX IF NOT EXISTS idx_email_logs_domain_id ON email_logs(domain_id);
-CREATE INDEX IF NOT EXISTS idx_email_logs_message_id ON email_logs(message_id);
-CREATE INDEX IF NOT EXISTS idx_email_logs_created_at ON email_logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_webhook_events_email_log_id ON webhook_events(email_log_id);
-CREATE INDEX IF NOT EXISTS idx_webhook_events_processed ON webhook_events(processed);
-CREATE INDEX IF NOT EXISTS idx_waitlist_signups_email ON waitlist_signups(email);
-CREATE INDEX IF NOT EXISTS idx_waitlist_signups_created_at ON waitlist_signups(created_at);
-CREATE INDEX IF NOT EXISTS idx_waitlist_signups_utm_source ON waitlist_signups(utm_source);
+CREATE TABLE IF NOT EXISTS invites (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  role VARCHAR(20) NOT NULL DEFAULT 'member',
+  token_hash VARCHAR(255) NOT NULL,
+  invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 
--- Trigger function to automatically update updated_at timestamps
+CREATE INDEX IF NOT EXISTS idx_memberships_user ON tenant_memberships(user_id);
+CREATE INDEX IF NOT EXISTS idx_memberships_tenant ON tenant_memberships(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_domains_tenant ON domains(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_domains_domain ON domains(domain);
+CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
+CREATE INDEX IF NOT EXISTS idx_email_logs_tenant_created ON email_logs(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(tenant_id, status);
+CREATE INDEX IF NOT EXISTS idx_mcp_tokens_prefix ON mcp_tokens(key_prefix);
+
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
+  NEW.updated_at = NOW();
+  RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Create triggers for updated_at automation
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_domains_updated_at BEFORE UPDATE ON domains 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_tenants_updated_at ON tenants;
+CREATE TRIGGER update_tenants_updated_at BEFORE UPDATE ON tenants
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_api_keys_updated_at BEFORE UPDATE ON api_keys 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_domains_updated_at ON domains;
+CREATE TRIGGER update_domains_updated_at BEFORE UPDATE ON domains
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_email_logs_updated_at BEFORE UPDATE ON email_logs 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_api_keys_updated_at ON api_keys;
+CREATE TRIGGER update_api_keys_updated_at BEFORE UPDATE ON api_keys
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_waitlist_signups_updated_at BEFORE UPDATE ON waitlist_signups 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Initial data: Create default admin user (password: changeme123)
--- Note: Change this password after first login!
-INSERT INTO users (email, password_hash, name) 
-VALUES (
-  'admin@freeresend.com', 
-  '$2b$10$rHOuGCOB2xzvf1YqnHjlUuB9AKnp.xeL0JOV5E7zlM1QIFhW7qYGS', 
-  'Admin User'
-) ON CONFLICT (email) DO NOTHING;
+DROP TRIGGER IF EXISTS update_email_logs_updated_at ON email_logs;
+CREATE TRIGGER update_email_logs_updated_at BEFORE UPDATE ON email_logs
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

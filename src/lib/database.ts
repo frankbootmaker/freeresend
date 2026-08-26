@@ -1,15 +1,14 @@
 import { Pool, PoolClient } from "pg";
 
 // PostgreSQL connection pool
+const useSsl = process.env.DATABASE_SSL === 'true';
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-    ca: undefined,
-  },
-  max: 5, // Maximum number of clients in the pool (reduced from 20)
-  idleTimeoutMillis: 10000, // Close idle clients after 10 seconds (reduced from 30s)
-  connectionTimeoutMillis: 5000, // Return an error after 5 seconds if connection could not be established
+  ssl: useSsl ? { rejectUnauthorized: false } : false,
+  max: 5,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 5000,
 });
 
 // Export the pool for direct access if needed
@@ -50,12 +49,14 @@ export interface User {
   email: string;
   password_hash: string;
   name?: string;
+  is_platform_admin?: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export interface Domain {
   id: string;
+  tenant_id: string;
   user_id: string;
   domain: string;
   status: "pending" | "verified" | "failed";
@@ -64,6 +65,9 @@ export interface Domain {
   ses_configuration_set?: string;
   do_domain_id?: string;
   dns_records: unknown[];
+  dns_checked_at?: string | null;
+  dkim_selector?: string | null;
+  dkim_private_key?: string | null;
   smtp_credentials?: {
     username: string;
     password: string;
@@ -76,6 +80,7 @@ export interface Domain {
 
 export interface ApiKey {
   id: string;
+  tenant_id: string;
   user_id: string;
   domain_id: string;
   key_name: string;
@@ -89,6 +94,7 @@ export interface ApiKey {
 
 export interface EmailLog {
   id: string;
+  tenant_id: string;
   api_key_id?: string;
   domain_id: string;
   message_id?: string;
