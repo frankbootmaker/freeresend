@@ -1,6 +1,6 @@
 # FreeResend Kubernetes Deployment
 
-Deploy FreeResend to Digital Ocean Kubernetes cluster with domain www.freeresend.com.
+Deploy RelayHorizon to a Kubernetes cluster. Prefer Compose/Dokploy ([docs/dokploy.md](../docs/dokploy.md)).
 
 ## Prerequisites
 
@@ -9,7 +9,7 @@ Deploy FreeResend to Digital Ocean Kubernetes cluster with domain www.freeresend
 - Docker logged in to Digital Ocean Container Registry
 - cert-manager installed for SSL certificates
 - nginx-ingress-controller installed
-- Domain www.freeresend.com pointing to your cluster
+- A hostname pointing to your cluster
 
 ## Quick Deployment
 
@@ -48,14 +48,14 @@ kubectl get ingress -n freeresend
 - `secret.template.yaml` - Template for environment variables and secrets (copy to secret.yaml)
 - `deployment.yaml` - FreeResend application deployment
 - `service.yaml` - Internal service for pods
-- `ingress.yaml` - HTTPS ingress for www.freeresend.com
+- `ingress.yaml` - HTTPS ingress for your hostname
 - `hpa.yaml` - Horizontal pod autoscaler (2-10 replicas)
 
 ## Environment Variables
 
 Update `secret.yaml` with your actual values:
 
-- `NEXTAUTH_URL` - https://www.freeresend.com
+- `NEXTAUTH_URL` - your public HTTPS origin
 - `NEXTAUTH_SECRET` - JWT secret key
 - `DATABASE_URL` - PostgreSQL connection string
 - `AWS_REGION` - AWS SES region
@@ -101,9 +101,7 @@ kubectl scale deployment freeresend --replicas=5 -n freeresend
 
 ## SSL Certificate
 
-The ingress automatically provisions SSL certificates via cert-manager for:
-- www.freeresend.com  
-- freeresend.com
+The ingress automatically provisions SSL certificates via cert-manager for your configured hostname.
 
 ## Troubleshooting
 

@@ -4,14 +4,14 @@ import { ArrowRight, CheckCircle2, ExternalLink, ServerCog, ShieldCheck, Workflo
 import { deploymentReview, launchKit, sesProductionGuide } from "@/config/launch-kit";
 
 export const metadata: Metadata = {
-  title: "FreeResend Self-Hosted Launch Kit",
+  title: "RelayHorizon Self-Hosted Launch Kit",
   description:
-    "A practical deployment checklist for launching FreeResend with Amazon SES, DNS authentication, webhooks, monitoring, and rollback steps.",
+    "A practical deployment checklist for launching RelayHorizon with Amazon SES, DNS authentication, webhooks, monitoring, and rollback steps.",
   openGraph: {
-    title: "FreeResend Self-Hosted Launch Kit",
+    title: "RelayHorizon Self-Hosted Launch Kit",
     description:
-      "Deploy FreeResend with a practical SES, DNS, webhook, monitoring, and rollback checklist.",
-    url: "https://www.freeresend.com/launch-kit",
+      "Deploy RelayHorizon with a practical SES, DNS, webhook, monitoring, and rollback checklist.",
+    url: "/launch-kit",
     type: "website",
   },
 };
@@ -30,7 +30,7 @@ const sections = [
   {
     icon: Workflow,
     title: "Launch and rollback",
-    copy: "Use smoke tests, monitoring checks, API-key rotation notes, and rollback steps before pointing production apps at FreeResend.",
+    copy: "Use smoke tests, monitoring checks, API-key rotation notes, and rollback steps before pointing production apps at RelayHorizon.",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function LaunchKitPage() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <nav className="mb-10 flex items-center justify-between">
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            FreeResend
+            RelayHorizon
           </Link>
           <div className="flex items-center gap-4">
             <Link href={sesProductionGuide.productUrl} className="text-sm font-medium text-gray-600 hover:text-gray-900">
@@ -63,10 +63,10 @@ export default function LaunchKitPage() {
               Optional {launchKit.price} supporter kit
             </div>
             <h1 className="text-4xl font-bold leading-tight text-gray-900 sm:text-5xl">
-              Ship FreeResend without missing the SES and DNS details.
+              Ship RelayHorizon without missing the SES and DNS details.
             </h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">
-              The open-source FreeResend repo stays MIT-licensed and free to self-host. This launch kit gives you a
+              The open-source RelayHorizon repo stays MIT-licensed and free to self-host. This launch kit gives you a
               practical checklist for the parts that usually slow down production email rollouts: authentication records,
               SES limits, webhook events, smoke tests, and rollback planning.
             </p>
@@ -129,7 +129,7 @@ export default function LaunchKitPage() {
             <div>
               <h2 className="text-2xl font-bold">Need implementation help instead of a checklist?</h2>
               <p className="mt-2 text-gray-300">
-                Start with a narrow {deploymentReview.price} review of your FreeResend deployment plan before committing
+                Start with a narrow {deploymentReview.price} review of your RelayHorizon deployment plan before committing
                 to custom work.
               </p>
             </div>

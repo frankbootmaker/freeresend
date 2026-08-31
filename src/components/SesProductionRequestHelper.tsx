@@ -52,7 +52,7 @@ export default function SesProductionRequestHelper() {
             SES production request helper
           </h1>
           <p className="mt-4 leading-7 text-gray-600">
-            Draft the Amazon SES production access request from public rollout details before a FreeResend launch.
+            Draft the Amazon SES production access request from public rollout details before a RelayHorizon launch.
           </p>
 
           <div className="mt-7 grid gap-4">
@@ -103,7 +103,7 @@ export default function SesProductionRequestHelper() {
             <TextArea
               id="bounceHandling"
               label="Bounce handling"
-              placeholder="SNS webhook into FreeResend bounce handler"
+              placeholder="SNS webhook into RelayHorizon bounce handler"
               value={input.bounceHandling}
               onChange={(value) => updateInput("bounceHandling", value)}
             />

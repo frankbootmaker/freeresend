@@ -1,3 +1,4 @@
+import { DEFAULT_SES_CONFIGURATION_SET } from '@/lib/brand';
 import { query } from '@/lib/database';
 import {
   listenPortsFromStored,
@@ -190,7 +191,7 @@ export function resolvePlatformSettings(
     sesConfigurationSet: firstNonEmpty(
       row?.ses_configuration_set,
       env.SES_CONFIGURATION_SET,
-      'outpost-prod',
+      DEFAULT_SES_CONFIGURATION_SET,
     ),
     smtpEnabled,
     smtpHost,

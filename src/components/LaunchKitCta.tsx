@@ -16,7 +16,7 @@ export default function LaunchKitCta({ compact = false }: LaunchKitCtaProps) {
             Optional supporter kit
           </div>
           <h2 className={compact ? "text-2xl font-bold text-gray-900" : "text-3xl font-bold text-gray-900"}>
-            Deploy FreeResend with fewer missed setup steps.
+            Deploy RelayHorizon with fewer missed setup steps.
           </h2>
           <p className="mt-3 text-gray-600">
             The MIT project remains free. The {launchKit.price} launch kit is an optional checklist for teams that want a tighter

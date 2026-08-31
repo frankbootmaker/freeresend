@@ -1,6 +1,6 @@
 # Product Overview
 
-FreeResend is a self-hosted, open-source alternative to Resend for sending transactional emails. It provides a 100% Resend-compatible API that serves as a drop-in replacement.
+RelayHorizon is a self-hosted, open-source alternative to Resend for sending transactional emails (a FreeResend fork). It provides a 100% Resend-compatible API that serves as a drop-in replacement.
 
 ## Core Features
 

@@ -1,4 +1,4 @@
--- Apply to existing OutPost databases created before ingress + DNS checks.
+-- Apply to existing RelayHorizon databases created before ingress + DNS checks.
 
 ALTER TABLE tenants
   ADD COLUMN IF NOT EXISTS inbound_transport VARCHAR(20) NOT NULL DEFAULT 'https';

@@ -4,14 +4,14 @@ import { AlertTriangle, CheckCircle2, ExternalLink, MailCheck, Radar, ShieldChec
 import { deploymentReview, launchKit, sesProductionGuide } from "@/config/launch-kit";
 
 export const metadata: Metadata = {
-  title: "FreeResend Deployment Review",
+  title: "RelayHorizon Deployment Review",
   description:
-    "A concise manual review of one FreeResend self-hosted deployment plan covering DNS, SES, webhooks, and launch risk.",
+    "A concise manual review of one RelayHorizon self-hosted deployment plan covering DNS, SES, webhooks, and launch risk.",
   openGraph: {
-    title: "FreeResend Deployment Review",
+    title: "RelayHorizon Deployment Review",
     description:
-      "Get a narrow FreeResend self-hosting review before sending production email.",
-    url: "https://www.freeresend.com/deployment-review",
+      "Get a narrow RelayHorizon self-hosting review before sending production email.",
+    url: "/deployment-review",
     type: "website",
   },
 };
@@ -40,7 +40,7 @@ export default function DeploymentReviewPage() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <nav className="mb-10 flex items-center justify-between">
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            FreeResend
+            RelayHorizon
           </Link>
           <div className="flex items-center gap-4">
             <Link href={sesProductionGuide.productUrl} className="text-sm font-medium text-gray-600 hover:text-gray-900">
@@ -61,7 +61,7 @@ export default function DeploymentReviewPage() {
               Catch the SES and DNS mistakes before customers see them.
             </h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">
-              Send one FreeResend deployment URL, GitHub issue, or rollout note through Stripe checkout. You get a
+              Send one RelayHorizon deployment URL, GitHub issue, or rollout note through Stripe checkout. You get a
               concise review focused on email-authentication risk, SES readiness, webhook coverage, and the next fixes to make.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

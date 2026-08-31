@@ -4,7 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Deployment Review Received",
-  description: "Confirmation page for the FreeResend Deployment Review.",
+  description: "Confirmation page for the RelayHorizon Deployment Review.",
   robots: {
     index: false,
     follow: false,
@@ -39,7 +39,7 @@ export default function DeploymentReviewThanksPage() {
               href="/"
               className="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-emerald-700"
             >
-              Back to FreeResend
+              Back to RelayHorizon
             </Link>
           </div>
         </section>

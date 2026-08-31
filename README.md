@@ -1,22 +1,20 @@
-# FreeResend
+# RelayHorizon
 
-This Bootmaker fork is a **multi-tenant outbound email** platform. Start with [`docs/README.md`](docs/README.md).
+This Bootmaker fork is a **multi-tenant outbound email** platform branded **RelayHorizon** by Nethorizon. Start with [`docs/README.md`](docs/README.md).
 
-Upstream project: a self-hosted, open-source alternative to Resend for sending transactional emails.
+Upstream project: [FreeResend](https://github.com/eibrahim/freeresend), a self-hosted, open-source alternative to Resend.
 
-**A self-hosted, open-source alternative to Resend for sending transactional emails.**
-
-FreeResend allows you to host your own email service using Amazon SES and optionally Digital Ocean for DNS management. It provides a Resend-compatible API so you can use it as a drop-in replacement.
+RelayHorizon lets you host your own email service using Amazon SES or an SMTP relay. It provides a Resend-compatible API so you can use it as a drop-in replacement.
 
 > 📰 **Stay updated**: Get the latest frontend development insights delivered weekly with [**Frontend Weekly**](https://www.frontendweekly.co/) - curated by the author of FreeResend!
 
-> 🧭 **Need a production rollout checklist?** FreeResend stays MIT-licensed and free to self-host. The optional [$12 Self-Hosted Launch Kit](https://www.freeresend.com/launch-kit) gives you a DNS, SES, webhook, smoke-test, and rollback checklist while supporting the project. You can also [buy it directly on Stripe](https://buy.stripe.com/4gMeVc3bdaJ20y7crTaMU00).
+> 🧭 **Need a production rollout checklist?** See the in-app [Launch Kit](/launch-kit).
 
-> 🔎 **Want a second set of eyes before launch?** The optional [$12 FreeResend Deployment Review](https://www.freeresend.com/deployment-review) is a narrow manual review of one self-hosted rollout plan. Stripe collects your deployment URL or GitHub issue and main SES/DNS concern. You can also [book it directly on Stripe](https://buy.stripe.com/3cIcN49zBcRagx5dvXaMU01).
+> 🔎 **Want a second set of eyes before launch?** See the in-app [Deployment Review](/deployment-review).
 
-> 📬 **Checking DNS before SES launch?** Run the free [Email DNS Readiness Checker](https://www.freeresend.com/tools/email-dns-checker) for SPF, DMARC, DKIM, and MX records before sending production traffic.
+> 📬 **Checking DNS before SES launch?** Run the [Email DNS Readiness Checker](/tools/email-dns-checker).
 
-> 📨 **Need SES production access?** Use the free [SES Production Request Helper](https://www.freeresend.com/tools/ses-production-request-helper) to draft a reviewer-friendly request without sharing secrets or customer data.
+> 📨 **Need SES production access?** Use the [SES Production Request Helper](/tools/ses-production-request-helper).
 
 ## Features
 
@@ -135,9 +133,9 @@ If you want automatic DNS record creation:
 2. Add your domains to Digital Ocean's DNS management
 3. Set the `DO_API_TOKEN` environment variable
 
-## Using FreeResend with Resend SDK
+## Using RelayHorizon with Resend SDK
 
-FreeResend is **100% compatible** with the [Resend Node.js SDK](https://github.com/resend/resend-node)!
+RelayHorizon is **100% compatible** with the [Resend Node.js SDK](https://github.com/resend/resend-node)!
 
 ### Method 1: Environment Variable (Recommended)
 
@@ -152,7 +150,7 @@ Then use Resend exactly as before:
 ```javascript
 import { Resend } from "resend";
 
-// No changes needed - FreeResend API key works with Resend SDK!
+// No changes needed - RelayHorizon API key works with Resend SDK!
 const resend = new Resend("your-freeresend-api-key");
 
 const { data, error } = await resend.emails.send({
@@ -213,7 +211,7 @@ const response = await fetch("https://your-freeresend-domain.com/api/emails", {
 
 ## Domain Setup Process
 
-1. **Add domain** in the FreeResend dashboard
+1. **Add domain** in the RelayHorizon dashboard
 2. **DNS Records** will be automatically created (if Digital Ocean is configured) or displayed for manual setup:
 
    - **TXT record** - `_amazonses.yourdomain.com` for SES domain verification
@@ -224,11 +222,11 @@ const response = await fetch("https://your-freeresend-domain.com/api/emails", {
 
 3. **Verify domain** - Click "Check Verification" once DNS records are live
 4. **Create API key** - Generate API keys for your verified domain
-5. **Start sending** - Use the API key with FreeResend or Resend SDK
+5. **Start sending** - Use the API key with RelayHorizon or Resend SDK
 
 ## Testing Your Setup
 
-FreeResend includes test scripts to verify your installation:
+RelayHorizon includes test scripts to verify your installation:
 
 ### Quick Test
 
@@ -277,10 +275,10 @@ Both scripts will:
 - ✅ Make sure your IAM policy includes **DKIM permissions**: `ses:VerifyDomainDkim` and `ses:GetIdentityDkimAttributes`
 - ✅ Verify your AWS account is out of SES sandbox mode
 
-**Q: Resend SDK not working with FreeResend**
+**Q: Resend SDK not working with RelayHorizon**
 
 - ✅ Set environment variable: `export RESEND_BASE_URL="https://your-domain.com/api"`
-- ✅ Use FreeResend API key (starts with `frs_`), not Resend API key
+- ✅ Use a RelayHorizon API key (starts with `frs_`), not a Resend API key
 
 ## Production Deployment
 
@@ -307,7 +305,7 @@ CMD ["npm", "start"]
 
 ### Vercel Deployment
 
-FreeResend can be deployed on Vercel with some configuration:
+RelayHorizon can be deployed on Vercel with some configuration:
 
 1. Connect your GitHub repo to Vercel
 2. Set environment variables in Vercel dashboard
@@ -414,10 +412,10 @@ MIT License - see LICENSE file for details.
 ## Support
 
 - 📖 **Documentation**: Check SETUP.md for detailed setup instructions
-- 🧭 **Launch Kit**: Optional [$12 self-hosted deployment checklist](https://www.freeresend.com/launch-kit)
-- 🔎 **Deployment Review**: Optional [$12 one-page review of your SES, DNS, webhook, and launch-risk plan](https://www.freeresend.com/deployment-review)
-- 📬 **DNS Checker**: Free [email DNS readiness checker](https://www.freeresend.com/tools/email-dns-checker) for SPF, DMARC, DKIM, and MX records
-- 📨 **SES Request Helper**: Free [SES production access request draft helper](https://www.freeresend.com/tools/ses-production-request-helper) for a safe, public-data-only AWS support request
+- 🧭 **Launch Kit**: In-app [self-hosted deployment checklist](/launch-kit)
+- 🔎 **Deployment Review**: In-app [SES, DNS, webhook, and launch-risk plan](/deployment-review)
+- 📬 **DNS Checker**: [Email DNS readiness checker](/tools/email-dns-checker)
+- 📨 **SES Request Helper**: [SES production access request helper](/tools/ses-production-request-helper)
 - 🐛 **Issues**: Report bugs via [GitHub Issues](https://github.com/eibrahim/freeresend/issues)
 - 💡 **Feature Requests**: Suggest improvements via GitHub Issues
 - 🚀 **Professional Support**: Custom development and enterprise support available via [EliteCoders](https://elitecoders.co/)

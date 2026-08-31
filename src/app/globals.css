@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import './freeresend-tokens.css';
-@import './outpost-option-2.css';
+@import './relayhorizon-tokens.css';
+@import './relayhorizon-option-2.css';
 
 @theme inline {
   --color-background: var(--bg);

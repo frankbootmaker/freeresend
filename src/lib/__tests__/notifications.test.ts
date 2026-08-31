@@ -22,7 +22,7 @@ function resolvedFromEnv() {
     sesRegion: 'us-east-1',
     sesAccessKeyId: '',
     sesSecretAccessKey: '',
-    sesConfigurationSet: 'outpost-prod',
+    sesConfigurationSet: 'relayhorizon-prod',
     smtpEnabled: false,
     smtpHost: '',
     smtpPort: 587,
@@ -38,7 +38,7 @@ describe('Notifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.ADMIN_EMAIL = 'admin@test.com';
-    process.env.FROM_EMAIL = 'info@freeresend.com';
+    process.env.FROM_EMAIL = 'info@localhost';
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
     mockGetSettings.mockImplementation(async () => resolvedFromEnv());
   });
@@ -70,7 +70,7 @@ describe('Notifications', () => {
       await sendWaitlistNotification(mockNotificationData);
 
       expect(mockSendEmail).toHaveBeenCalledWith({
-        from: 'FreeResend Notifications <info@freeresend.com>',
+        from: 'RelayHorizon Notifications <info@localhost>',
         to: ['admin@test.com'],
         subject: '🚀 New Waitlist Signup: user@example.com',
         html: expect.stringContaining('user@example.com'),
@@ -140,7 +140,7 @@ describe('Notifications', () => {
       await sendWaitlistNotification(mockNotificationData);
 
       const emailCall = mockSendEmail.mock.calls[0][0];
-      expect(emailCall.from).toBe('FreeResend Notifications <info@freeresend.com>');
+      expect(emailCall.from).toBe('RelayHorizon Notifications <info@localhost>');
     });
 
     it('uses configured FROM_EMAIL when available', async () => {
@@ -150,7 +150,7 @@ describe('Notifications', () => {
       await sendWaitlistNotification(mockNotificationData);
 
       const emailCall = mockSendEmail.mock.calls[0][0];
-      expect(emailCall.from).toBe('FreeResend Notifications <custom@example.com>');
+      expect(emailCall.from).toBe('RelayHorizon Notifications <custom@example.com>');
     });
   });
 
@@ -161,11 +161,11 @@ describe('Notifications', () => {
       await sendWelcomeEmail('user@example.com', 'signup-id-456');
 
       expect(mockSendEmail).toHaveBeenCalledWith({
-        from: 'FreeResend <info@freeresend.com>',
+        from: 'RelayHorizon <info@localhost>',
         to: ['user@example.com'],
-        subject: 'Welcome to the FreeResend Waitlist! 🚀',
+        subject: 'Welcome to the RelayHorizon Waitlist! 🚀',
         html: expect.stringContaining('You\'re on the waitlist!'),
-        text: expect.stringContaining('You\'re on the FreeResend waitlist!'),
+        text: expect.stringContaining('You\'re on the RelayHorizon waitlist!'),
         tags: {
           type: 'waitlist_welcome',
           signup_id: 'signup-id-456',
@@ -196,7 +196,7 @@ describe('Notifications', () => {
       await sendWelcomeEmail('user@example.com', 'signup-id-456');
 
       const emailCall = mockSendEmail.mock.calls[0][0];
-      expect(emailCall.from).toBe('FreeResend <welcome@example.com>');
+      expect(emailCall.from).toBe('RelayHorizon <welcome@example.com>');
     });
   });
 

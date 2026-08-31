@@ -5,17 +5,17 @@ import DeploymentReviewCta from '../../components/DeploymentReviewCta';
 import LaunchKitCta from '../../components/LaunchKitCta';
 
 export const metadata: Metadata = {
-  title: 'Pricing Calculator - FreeResend',
-  description: 'Compare Resend vs FreeResend pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
+  title: 'Pricing Calculator - RelayHorizon',
+  description: 'Compare Resend vs RelayHorizon pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
   openGraph: {
-    title: 'Pricing Calculator - FreeResend',
-    description: 'Compare Resend vs FreeResend pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
+    title: 'Pricing Calculator - RelayHorizon',
+    description: 'Compare Resend vs RelayHorizon pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pricing Calculator - FreeResend',
-    description: 'Compare Resend vs FreeResend pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
+    title: 'Pricing Calculator - RelayHorizon',
+    description: 'Compare Resend vs RelayHorizon pricing for your email volume. See how much you can save with self-hosted email infrastructure.',
   },
 };
 
@@ -29,7 +29,7 @@ export default function PricingPage() {
             Pricing <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Calculator</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Compare Resend vs FreeResend costs for your email volume. 
+            Compare Resend vs RelayHorizon costs for your email volume. 
             See exactly how much you can save with self-hosted email infrastructure.
           </p>
         </div>
@@ -90,14 +90,14 @@ export default function PricingPage() {
             Ready to Start Saving?
           </h2>
           <p className="text-xl text-blue-100 mb-6">
-            Get started with FreeResend in under 5 minutes
+            Get started with RelayHorizon in under 5 minutes
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/"
               className="bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors font-semibold"
             >
-              Try FreeResend Free
+              Try RelayHorizon Free
             </Link>
             <a
               href="https://github.com/eibrahim/freeresend"
@@ -147,7 +147,7 @@ export default function PricingPage() {
 
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                FreeResend Formula
+                RelayHorizon Formula
               </h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <code className="text-sm text-gray-800 block mb-2">
@@ -173,10 +173,10 @@ export default function PricingPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Why is FreeResend cheaper?
+                  Why is RelayHorizon cheaper?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  FreeResend uses your own Amazon SES account, eliminating markup. 
+                  RelayHorizon uses your own Amazon SES account, eliminating markup. 
                   You pay AWS rates directly plus a small flat fee for the service.
                 </p>
               </div>
@@ -196,7 +196,7 @@ export default function PricingPage() {
                   What about deliverability?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  FreeResend uses Amazon SES, which has excellent deliverability. 
+                  RelayHorizon uses Amazon SES, which has excellent deliverability. 
                   You get the same infrastructure as major email services.
                 </p>
               </div>
@@ -208,7 +208,7 @@ export default function PricingPage() {
                   Do I need AWS experience?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  No! FreeResend handles SES setup automatically, including 
+                  No! RelayHorizon handles SES setup automatically, including 
                   domain verification and DKIM configuration.
                 </p>
               </div>
@@ -218,7 +218,7 @@ export default function PricingPage() {
                   What about support?
                 </h3>
                 <p className="text-gray-600 text-sm">
-                  FreeResend is open source with community support. 
+                  RelayHorizon is open source with community support. 
                   Enterprise support available through EliteCoders.
                 </p>
               </div>
@@ -228,7 +228,7 @@ export default function PricingPage() {
                   Can I self-host it?
                 </h3>
                 <p className="text-gray-600 text-small">
-                  Absolutely! FreeResend is designed for self-hosting with Docker, 
+                  Absolutely! RelayHorizon is designed for self-hosting with Docker, 
                   Vercel, or any Node.js hosting platform.
                 </p>
               </div>

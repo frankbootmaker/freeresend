@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { updateTenantRouting } from '@/lib/tenants';
+import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 import { resolveSmtpPublicPorts } from '@/lib/smtp-listen';
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
           tlsConfigured: Boolean(
             platform.smtpIngressTlsCert && platform.smtpIngressTlsKey,
           ),
-          username: 'outpost',
+          username: SMTP_SUBMISSION_USERNAME,
           passwordHint: 'Use a RelayHorizon API key as the SMTP password',
         },
         ses: {

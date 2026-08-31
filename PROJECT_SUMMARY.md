@@ -172,7 +172,7 @@ FreeResend implements the same API contract as Resend:
 ```javascript
 // Just change the baseURL - everything else works the same
 const resend = new Resend("your-api-key", {
-  baseURL: "https://your-freeresend.com/api",
+  baseURL: "https://your-relayhorizon.example/api",
 });
 ```
 

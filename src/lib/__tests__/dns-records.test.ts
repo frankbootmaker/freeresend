@@ -40,7 +40,7 @@ describe('sending DNS records', () => {
       domain: 'acme.test',
       outboundTransport: 'smtp',
       smtpMxHost: 'smtp.provider.example',
-      dkimSelector: 'outpost',
+      dkimSelector: 'relayhorizon',
       dkimPublicKey: 'MIIBIjAN',
     });
     expect(records.find((record) => record.purpose === 'mx')?.name).toBe(
@@ -53,7 +53,7 @@ describe('sending DNS records', () => {
       /amazonses/,
     );
     expect(records.find((record) => record.purpose === 'dkim')?.name).toBe(
-      'outpost._domainkey.acme.test',
+      'relayhorizon._domainkey.acme.test',
     );
     expect(records.find((record) => record.purpose === 'ses_verify')).toBeUndefined();
   });

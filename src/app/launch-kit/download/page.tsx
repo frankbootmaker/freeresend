@@ -6,8 +6,8 @@ import LaunchKitPrintButton from "@/components/LaunchKitPrintButton";
 import { launchKit } from "@/config/launch-kit";
 
 export const metadata: Metadata = {
-  title: "FreeResend Launch Kit Checklist",
-  description: "Printable FreeResend deployment checklist for SES, DNS, webhooks, monitoring, and rollout validation.",
+  title: "RelayHorizon Launch Kit Checklist",
+  description: "Printable RelayHorizon deployment checklist for SES, DNS, webhooks, monitoring, and rollout validation.",
   robots: {
     index: false,
     follow: false,
@@ -30,7 +30,7 @@ const groups = [
     items: [
       "Verify the sender domain in SES before creating application API keys.",
       "Publish SES TXT verification, DKIM CNAME records, SPF, and DMARC records.",
-      "Wait for DNS propagation, then use the FreeResend dashboard to re-check domain verification.",
+      "Wait for DNS propagation, then use the RelayHorizon dashboard to re-check domain verification.",
       "Send test messages to at least two external inbox providers and confirm the sender authentication headers pass.",
       "Record the exact production sender addresses that applications are allowed to use.",
     ],
@@ -40,7 +40,7 @@ const groups = [
     items: [
       "Run the production build and confirm `/api/health` returns a healthy response.",
       "Create one production API key per application or environment that will send email.",
-      "Update one low-risk application first with `RESEND_BASE_URL` pointing at FreeResend.",
+      "Update one low-risk application first with `RESEND_BASE_URL` pointing at RelayHorizon.",
       "Send transactional smoke tests for plain text, HTML, and failure cases before broad rollout.",
       "Keep the prior email provider credentials available until logs show production traffic is stable.",
     ],
@@ -49,7 +49,7 @@ const groups = [
     title: "4. Monitoring and rollback",
     items: [
       "Watch SES send, bounce, complaint, and delivery metrics during the first production hour.",
-      "Confirm SES webhook events are reaching FreeResend and failed deliveries appear in logs.",
+      "Confirm SES webhook events are reaching RelayHorizon and failed deliveries appear in logs.",
       "Set alerts for elevated bounce or complaint rates before increasing traffic.",
       "Document the rollback variable changes for every application that was migrated.",
       "Rotate any test or leaked API keys after rollout validation is complete.",
@@ -75,10 +75,10 @@ export default async function LaunchKitDownloadPage({
         <header className="border-b border-gray-200 pb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">FreeResend</p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">RelayHorizon</p>
               <h1 className="mt-2 text-3xl font-bold">{launchKit.name}</h1>
               <p className="mt-3 max-w-2xl text-gray-600">
-                A production checklist for launching the MIT-licensed FreeResend project with Amazon SES, authenticated
+                A production checklist for launching the MIT-licensed RelayHorizon project with Amazon SES, authenticated
                 sender domains, webhook events, and safe rollback coverage.
               </p>
             </div>
@@ -112,7 +112,7 @@ export default async function LaunchKitDownloadPage({
             Launch complete when
           </h2>
           <p className="mt-2 text-green-900 print:text-gray-800">
-            Production applications can send through FreeResend, authenticated headers pass, delivery events are logged,
+            Production applications can send through RelayHorizon, authenticated headers pass, delivery events are logged,
             and rollback steps are documented for every migrated sender.
           </p>
         </section>

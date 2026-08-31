@@ -264,7 +264,7 @@ export default function PricingCalculator({
             <div className="border-t border-gray-200 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-medium text-gray-700">
-                  FreeResend Pricing Parameters
+                  RelayHorizon Pricing Parameters
                 </h3>
                 <button
                   onClick={() => setShowDetails(!showDetails)}

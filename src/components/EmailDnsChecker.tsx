@@ -133,7 +133,7 @@ export default function EmailDnsChecker() {
             Email DNS readiness checker
           </h1>
           <p className="mt-4 leading-7 text-gray-600">
-            Check SPF, DMARC, MX, and one DKIM selector before moving a FreeResend or Amazon SES domain into production.
+            Check SPF, DMARC, MX, and one DKIM selector before moving a RelayHorizon or Amazon SES domain into production.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-7 space-y-4">
@@ -189,7 +189,7 @@ export default function EmailDnsChecker() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
-                  {result?.domain ?? "FreeResend"}
+                  {result?.domain ?? "RelayHorizon"}
                 </p>
                 <h2 className="mt-2 text-2xl font-bold text-gray-900">{resultTitle}</h2>
                 <p className="mt-2 leading-7 text-gray-600">

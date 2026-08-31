@@ -43,7 +43,7 @@ kubectl get services -n freeresend
 kubectl get ingress -n freeresend
 
 echo "✅ FreeResend deployment completed!"
-echo "🌐 Application will be available at: https://www.freeresend.com"
+echo "🌐 Application will be available at your configured hostname"
 echo ""
 echo "📋 Useful commands:"
 echo "  kubectl get pods -n freeresend"

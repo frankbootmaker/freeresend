@@ -1,5 +1,5 @@
 export const launchKit = {
-  name: "FreeResend Self-Hosted Launch Kit",
+  name: "RelayHorizon Self-Hosted Launch Kit",
   price: "$12",
   productUrl: "/launch-kit",
   downloadUrl: "/launch-kit/download?purchase=success",
@@ -16,7 +16,7 @@ export const launchKit = {
 } as const;
 
 export const deploymentReview = {
-  name: "FreeResend Deployment Review",
+  name: "RelayHorizon Deployment Review",
   price: "$12",
   productUrl: "/deployment-review",
   thanksUrl: "/deployment-review/thanks",
@@ -35,11 +35,11 @@ export const deploymentReview = {
 export const sesProductionGuide = {
   name: "SES Production Readiness Guide",
   productUrl: "/guides/ses-production-readiness",
-  canonicalUrl: "https://www.freeresend.com/guides/ses-production-readiness",
+  canonicalUrl: "/guides/ses-production-readiness",
 } as const;
 
 export const sesRequestHelper = {
   name: "SES Production Request Helper",
   productUrl: "/tools/ses-production-request-helper",
-  canonicalUrl: "https://www.freeresend.com/tools/ses-production-request-helper",
+  canonicalUrl: "/tools/ses-production-request-helper",
 } as const;

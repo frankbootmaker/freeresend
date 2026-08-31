@@ -2,7 +2,7 @@
 
 Snapshot of the product as it stands in this repository. **RelayHorizon** is a self-hosted, multi-tenant **outbound** email platform: a fork of [FreeResend](https://github.com/eibrahim/freeresend), branded RelayHorizon by Nethorizon. Incoming mailboxes and inbound MX are out of scope.
 
-The product was previously called OutPost. It was renamed so it is not confused with Authentik Outposts. Compatibility slugs stay as they are: SMTP username `outpost`, default DKIM selector `outpost`, SES configuration-set fallback `outpost-prod`.
+Defaults: SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration-set fallback `relayhorizon-prod`. API keys still use the `frs_` prefix.
 
 This note is a status summary. Operational detail lives in the rest of [docs](README.md).
 

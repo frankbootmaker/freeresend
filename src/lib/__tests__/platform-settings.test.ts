@@ -58,7 +58,7 @@ describe('resolvePlatformSettings', () => {
         smtp_username: 'db-user',
         smtp_password: 'db-pass',
         alert_email: 'ops@db.test',
-        alert_from: 'outpost@db.test',
+        alert_from: 'relayhorizon@db.test',
       },
       env,
     );
@@ -68,7 +68,7 @@ describe('resolvePlatformSettings', () => {
     expect(resolved.smtpHost).toBe('smtp.db.example');
     expect(resolved.smtpPort).toBe(465);
     expect(resolved.alertEmail).toBe('ops@db.test');
-    expect(resolved.alertFrom).toBe('outpost@db.test');
+    expect(resolved.alertFrom).toBe('relayhorizon@db.test');
   });
 
   it('uses ADMIN_EMAIL and FROM_EMAIL when dedicated alert vars are missing', () => {
@@ -79,7 +79,7 @@ describe('resolvePlatformSettings', () => {
     expect(resolved.alertEmail).toBe('admin@env.test');
     expect(resolved.alertFrom).toBe('noreply@env.test');
     expect(resolved.sesRegion).toBe('us-east-1');
-    expect(resolved.sesConfigurationSet).toBe('outpost-prod');
+    expect(resolved.sesConfigurationSet).toBe('relayhorizon-prod');
     expect(resolved.smtpEnabled).toBe(false);
   });
 });
@@ -90,7 +90,7 @@ describe('toPublicPlatformSettings', () => {
       sesRegion: 'eu-central-1',
       sesAccessKeyId: 'AKIAEXAMPLE',
       sesSecretAccessKey: 'secret',
-      sesConfigurationSet: 'outpost-prod',
+      sesConfigurationSet: 'relayhorizon-prod',
       smtpEnabled: true,
       smtpHost: 'smtp.example',
       smtpPort: 587,

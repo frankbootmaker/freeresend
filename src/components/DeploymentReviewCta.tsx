@@ -19,7 +19,7 @@ export default function DeploymentReviewCta({ compact = false }: DeploymentRevie
             Want a second set of eyes before you send production email?
           </h2>
           <p className="mt-3 text-gray-600">
-            Buy a {deploymentReview.price} manual review for one FreeResend deployment plan. Stripe collects your
+            Buy a {deploymentReview.price} manual review for one RelayHorizon deployment plan. Stripe collects your
             deployment URL or GitHub issue and the main SES/DNS concern; do not send credentials.
           </p>
         </div>

@@ -15,14 +15,14 @@ import {
 import { deploymentReview, launchKit, sesProductionGuide, sesRequestHelper } from "@/config/launch-kit";
 
 export const metadata: Metadata = {
-  title: "FreeResend SES Production Readiness Guide",
+  title: "RelayHorizon SES Production Readiness Guide",
   description:
-    "A practical SES, DNS, webhook, monitoring, and rollback checklist for teams preparing a FreeResend deployment for production email.",
+    "A practical SES, DNS, webhook, monitoring, and rollback checklist for teams preparing a RelayHorizon deployment for production email.",
   alternates: {
     canonical: sesProductionGuide.canonicalUrl,
   },
   openGraph: {
-    title: "FreeResend SES Production Readiness Guide",
+    title: "RelayHorizon SES Production Readiness Guide",
     description:
       "Check SES sandbox status, DNS authentication, bounce handling, webhooks, and launch risk before sending production email.",
     url: sesProductionGuide.canonicalUrl,
@@ -46,7 +46,7 @@ const readinessSteps = [
   {
     icon: Workflow,
     title: "Wire bounce and complaint events",
-    copy: "Use SNS or EventBridge to feed FreeResend webhook handling, then test the path before any customer-facing transactional mail depends on it.",
+    copy: "Use SNS or EventBridge to feed RelayHorizon webhook handling, then test the path before any customer-facing transactional mail depends on it.",
     checks: ["Bounce path tested", "Complaint path tested", "Suppression updates observable"],
   },
   {
@@ -77,7 +77,7 @@ export default function SesProductionReadinessPage() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <nav className="mb-10 flex items-center justify-between">
           <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            FreeResend
+            RelayHorizon
           </Link>
           <div className="flex items-center gap-4 text-sm font-medium">
             <Link href="/tools/email-dns-checker" className="text-gray-600 hover:text-gray-900">
@@ -98,10 +98,10 @@ export default function SesProductionReadinessPage() {
               Free production checklist
             </div>
             <h1 className="text-4xl font-bold leading-tight text-gray-900 sm:text-5xl">
-              Get FreeResend ready for production SES traffic.
+              Get RelayHorizon ready for production SES traffic.
             </h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">
-              Use this guide before pointing a real application at FreeResend. It focuses on the launch details that
+              Use this guide before pointing a real application at RelayHorizon. It focuses on the launch details that
               usually create the first production incident: SES sandbox access, DNS authentication, webhook coverage,
               smoke tests, monitoring, and rollback ownership.
             </p>
@@ -212,7 +212,7 @@ export default function SesProductionReadinessPage() {
               <p className="text-sm font-medium uppercase tracking-wide text-emerald-300">Need a second set of eyes?</p>
               <h2 className="mt-2 text-2xl font-bold">Turn the checklist into a paid deployment review.</h2>
               <p className="mt-3 max-w-2xl text-gray-300">
-                The {deploymentReview.price} review covers one FreeResend deployment plan and returns a concise
+                The {deploymentReview.price} review covers one RelayHorizon deployment plan and returns a concise
                 priority report across DNS, SES state, webhook handling, smoke tests, and rollback risk.
               </p>
             </div>

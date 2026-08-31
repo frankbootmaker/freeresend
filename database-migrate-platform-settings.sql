@@ -1,4 +1,4 @@
--- Apply to existing OutPost databases created before platform settings.
+-- Apply to existing RelayHorizon databases created before platform settings.
 
 CREATE TABLE IF NOT EXISTS platform_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',

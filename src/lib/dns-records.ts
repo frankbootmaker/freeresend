@@ -1,5 +1,6 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { promises as dns } from 'node:dns';
+import { DEFAULT_DKIM_SELECTOR } from './brand';
 
 export type DnsPurpose = 'mx' | 'spf' | 'dkim' | 'dmarc' | 'ses_verify';
 export type DnsRecordStatus = 'pending' | 'valid' | 'invalid';
@@ -31,7 +32,7 @@ export function skipDnsVerification(): boolean {
 }
 
 export function generateDkimKeyPair(
-  selector = 'outpost',
+  selector = DEFAULT_DKIM_SELECTOR,
 ): DkimKeyPair {
   const { publicKey, privateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
@@ -157,7 +158,7 @@ export function generateSendingDnsRecords(input: {
         'SPF on the sending domain — authorize the SMTP upstream, not Amazon SES',
       required: true,
     });
-    const selector = input.dkimSelector || 'outpost';
+    const selector = input.dkimSelector || DEFAULT_DKIM_SELECTOR;
     const publicKey = input.dkimPublicKey || '';
     records.push({
       type: 'TXT',

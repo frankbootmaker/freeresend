@@ -41,7 +41,7 @@ SMTP submission (how apps talk *to* RelayHorizon):
 npm run smtp
 ```
 
-Username `outpost`, password = API key, port **2525**. Compose: `docker compose --profile smtp up -d smtp`.
+Username `relayhorizon`, password = API key, port **2525**. Compose: `docker compose --profile smtp up -d smtp`.
 
 ## Full Compose web
 

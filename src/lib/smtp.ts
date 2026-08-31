@@ -67,7 +67,7 @@ export async function createSmtpCredentials(domain: string): Promise<SmtpCredent
       UserName: userName,
       Tags: [
         { Key: "Domain", Value: domain },
-        { Key: "Service", Value: "FreeResend" },
+        { Key: "Service", Value: "RelayHorizon" },
         { Key: "Purpose", Value: "SMTP" }
       ]
     }));

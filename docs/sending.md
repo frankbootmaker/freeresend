@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 ```
 
-SMTP submission uses username `outpost` and the API key as the password. Closed channels return an error (HTTPS `403`, SMTP `535`/`550`).
+SMTP submission uses username `relayhorizon` and the API key as the password. Closed channels return an error (HTTPS `403`, SMTP `535`/`550`).
 
 `from` must match a **verified** domain on the same tenant as the API key.
 

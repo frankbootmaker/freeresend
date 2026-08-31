@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_SES_CONFIGURATION_SET } from '@/lib/brand';
 import { usePrefs } from '@/contexts/PrefsContext';
 
 type Ingress = 'https' | 'smtp' | 'both';
@@ -41,7 +42,7 @@ export default function SendingTab() {
   });
   const [ses, setSes] = useState({
     region: 'eu-central-1',
-    configurationSet: 'outpost-prod',
+    configurationSet: DEFAULT_SES_CONFIGURATION_SET,
   });
   const [platformRelay, setPlatformRelay] = useState({
     enabled: false,
@@ -74,7 +75,7 @@ export default function SendingTab() {
       if (res.data.ses) {
         setSes({
           region: res.data.ses.region,
-          configurationSet: res.data.ses.configurationSet || 'outpost-prod',
+          configurationSet: res.data.ses.configurationSet || DEFAULT_SES_CONFIGURATION_SET,
         });
       }
       if (res.data.platformSmtpRelay) {

@@ -6,7 +6,7 @@ import { deploymentReview, launchKit, sesProductionGuide, sesRequestHelper } fro
 export const metadata: Metadata = {
   title: "SES Production Request Helper",
   description:
-    "Draft a safe Amazon SES production access request for a FreeResend launch without sharing secrets or customer data.",
+    "Draft a safe Amazon SES production access request for a RelayHorizon launch without sharing secrets or customer data.",
   alternates: {
     canonical: sesRequestHelper.canonicalUrl,
   },
@@ -24,7 +24,7 @@ export default function SesProductionRequestHelperPage() {
       <div className="border-b border-gray-100 bg-white/80 backdrop-blur-sm">
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link href="/" className="text-sm font-semibold text-gray-700 hover:text-gray-950">
-            FreeResend
+            RelayHorizon
           </Link>
           <div className="flex items-center gap-4 text-sm font-medium">
             <Link href={launchKit.productUrl} className="text-gray-600 hover:text-gray-950">

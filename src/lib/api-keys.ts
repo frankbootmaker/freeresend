@@ -33,7 +33,7 @@ export async function generateApiKey(
   // Generate a secure API key with prefix
   const keyId = nanoid(8);
   const keySecret = nanoid(32);
-  const apiKey = `frs_${keyId}_${keySecret}`; // frs = FreeResend
+  const apiKey = `frs_${keyId}_${keySecret}`; // frs_ prefix is unchanged so existing keys keep working
 
   // Hash the key for storage
   const keyHash = await bcrypt.hash(apiKey, 10);

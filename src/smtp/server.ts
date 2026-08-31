@@ -1,6 +1,7 @@
 import { SMTPServer, type SMTPServerOptions } from 'smtp-server';
 import { simpleParser } from 'mailparser';
 import { loadEnvConfig } from '@next/env';
+import { SMTP_EHLO_NAME } from '../lib/brand';
 import { verifyApiKey } from '../lib/api-keys';
 import { dispatchWithApiKey, SendDispatchError } from '../lib/send-email';
 import { getResolvedPlatformSettings } from '../lib/platform-settings';
@@ -56,7 +57,7 @@ function baseOptions(
   'secure' | 'key' | 'cert' | 'disabledCommands' | 'allowInsecureAuth'
 > {
   return {
-    name: 'outpost',
+    name: SMTP_EHLO_NAME,
     banner: 'RelayHorizon SMTP submission',
     authOptional: false,
     size: 10 * 1024 * 1024,

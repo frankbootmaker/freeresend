@@ -1,6 +1,6 @@
-# FreeResend Setup Guide
+# RelayHorizon Setup Guide
 
-This guide will help you set up FreeResend from scratch.
+This guide will help you set up RelayHorizon from scratch. Prefer [`docs/docker.md`](docs/docker.md) and [`docs/dokploy.md`](docs/dokploy.md).
 
 ## 1. Prerequisites Setup
 
@@ -137,7 +137,7 @@ curl -X POST http://localhost:3000/api/emails \
     "from": "test@yourdomain.com",
     "to": ["recipient@example.com"],
     "subject": "Test Email",
-    "html": "<h1>Hello from FreeResend!</h1>"
+    "html": "<h1>Hello from RelayHorizon!</h1>"
   }'
 ```
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RelayHorizon (this FreeResend fork) is a self-hosted, open-source alternative to Resend for sending transactional emails. It provides a 100% Resend-compatible API using Amazon SES or SMTP relay for delivery, with optional Digital Ocean DNS automation for domain setup. The customer-facing brand is RelayHorizon (formerly OutPost).
+RelayHorizon (this FreeResend fork) is a self-hosted, open-source alternative to Resend for sending transactional emails. It provides a 100% Resend-compatible API using Amazon SES or SMTP relay for delivery, with optional Digital Ocean DNS automation for domain setup. The customer-facing brand is RelayHorizon. SMTP username `relayhorizon`, DKIM selector `relayhorizon`, and SES configuration-set fallback `relayhorizon-prod`. API keys still use the `frs_` prefix.
 
 **Key Technologies:**
 - Next.js 15 (App Router)
