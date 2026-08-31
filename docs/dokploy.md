@@ -37,11 +37,11 @@ Postgres is bound to `127.0.0.1:5436` on the VPS. Remove the postgres `ports` bl
 1. Deploy and wait until `postgres` is healthy, then `web`.
 2. `POST https://<host>/api/setup` once. Store `mcpToken` if the response includes it.
 3. Sign in at `/portal` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
-4. **Configuration** — **Basics** (platform sender), SES credentials or the platform SMTP relay. Optional **OIDC** (Authentik): paste issuer/client credentials and the callback URL `/api/auth/oidc/callback`. Enable JIT only if a first Authentik sign-in should create a local user.
+4. **Configuration** — **Basics** (platform sender), SES credentials or the platform SMTP relay. Optional **OIDC** (Authentik or another IdP): paste issuer/client credentials, callback URL `/api/auth/oidc/callback`, and an optional sign-in button label. Enable JIT only if a first IdP sign-in should create a local user.
 5. **Health** — database, SES/SMTP, and backup sidecar heartbeat.
 6. Provision one customer, publish MX/SPF/DKIM/DMARC, send a test.
 
-Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`), including `database-migrate-oidc.sql`, `database-migrate-user-profile.sql`, and `database-migrate-password-reset.sql`.
+Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`), including `database-migrate-oidc.sql`, `database-migrate-oidc-button-label.sql`, `database-migrate-user-profile.sql`, and `database-migrate-password-reset.sql`.
 
 ## After the first send
 

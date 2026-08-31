@@ -28,14 +28,23 @@ export default function LoginForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [oidcEnabled, setOidcEnabled] = useState(false);
+  const [oidcButtonLabel, setOidcButtonLabel] = useState('');
   const { login } = useAuth();
   const { t } = usePrefs();
   const router = useRouter();
 
   useEffect(() => {
     api.getOidcStatus()
-      .then((res) => setOidcEnabled(Boolean(res.data?.enabled)))
-      .catch(() => setOidcEnabled(false));
+      .then((res) => {
+        setOidcEnabled(Boolean(res.data?.enabled));
+        setOidcButtonLabel(
+          typeof res.data?.buttonLabel === 'string' ? res.data.buttonLabel.trim() : '',
+        );
+      })
+      .catch(() => {
+        setOidcEnabled(false);
+        setOidcButtonLabel('');
+      });
   }, []);
 
   useEffect(() => {
@@ -147,7 +156,7 @@ export default function LoginForm({
           </button>
           {oidcEnabled && (
             <a className="button" href="/api/auth/oidc/start">
-              {t.login.continueOidc}
+              {oidcButtonLabel || t.login.continueOidc}
             </a>
           )}
           <button

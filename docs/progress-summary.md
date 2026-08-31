@@ -45,7 +45,7 @@ Stored in `platform_settings` (row `id = 'default'`). Env vars remain fallbacks 
 - **SMTP relay** — enable, host, port, TLS, username, password. Shared outbound client for tenants without their own upstream.
 - **Basics** — platform sender for password resets, waitlist, and welcome mail. Fallback chain: saved `platform_from`, then `PLATFORM_FROM`, then the alert From address, then `FROM_EMAIL`.
 - **Monitoring / alerts** — destination and from address for operational notices (waitlist and similar). Fallback chain: saved value, then `ALERT_EMAIL` / `ADMIN_EMAIL` and `ALERT_FROM` / `FROM_EMAIL`.
-- **OIDC** — enable Authentik (or another OpenID Connect provider), issuer, client ID/secret, JIT account creation, optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env fallbacks: `OIDC_*`.
+- **OIDC** — enable Authentik (or another OpenID Connect provider), issuer, client ID/secret, optional sign-in button label, JIT account creation, optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env fallbacks: `OIDC_*`.
 
 Existing databases need every `database-migrate-*.sql` once (`platform-settings`, `oidc`, `user-profile`, and the others). New installs get columns from `database.sql`.
 

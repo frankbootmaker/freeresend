@@ -13,6 +13,7 @@ export async function GET() {
       enabled: Boolean(
         settings.oidcEnabled && settings.oidcIssuer && settings.oidcClientId,
       ),
+      buttonLabel: settings.oidcButtonLabel || '',
     },
   });
 }

@@ -31,5 +31,8 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.login.forgotPassword).toMatch(/forgot/i);
     expect(dictionaries.de.login.forgotPassword).toMatch(/passwort/i);
     expect(dictionaries.hu.login.forgotPassword).toMatch(/jelszó/i);
+    expect(dictionaries.en.login.title).toBe('Sign in');
+    expect(dictionaries.en.register.useExisting).toMatch(/already have an account/i);
+    expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);
   });
 });

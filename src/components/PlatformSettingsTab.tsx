@@ -162,6 +162,7 @@ export default function PlatformSettingsTab({
   const [oidcClientSecretConfigured, setOidcClientSecretConfigured] = useState(false);
   const [oidcJitEnabled, setOidcJitEnabled] = useState(false);
   const [oidcAdminGroup, setOidcAdminGroup] = useState('');
+  const [oidcButtonLabel, setOidcButtonLabel] = useState('');
   const [oidcRedirectUri, setOidcRedirectUri] = useState('');
   const [testVia, setTestVia] = useState<'ses' | 'smtp'>('ses');
   const [testSending, setTestSending] = useState(false);
@@ -216,6 +217,7 @@ export default function PlatformSettingsTab({
         setOidcClientSecretConfigured(Boolean(settings.oidcClientSecretConfigured));
         setOidcJitEnabled(Boolean(settings.oidcJitEnabled));
         setOidcAdminGroup(settings.oidcAdminGroup || '');
+        setOidcButtonLabel(settings.oidcButtonLabel || '');
         setOidcRedirectUri(
           typeof window !== 'undefined'
             ? `${window.location.origin}/api/auth/oidc/callback`
@@ -309,6 +311,7 @@ export default function PlatformSettingsTab({
         oidcClientSecret,
         oidcJitEnabled,
         oidcAdminGroup,
+        oidcButtonLabel,
       });
       const settings = res.data.settings;
       setSesAccessKeyId('');
@@ -327,6 +330,7 @@ export default function PlatformSettingsTab({
       setOidcClientId(settings.oidcClientId || '');
       setOidcJitEnabled(Boolean(settings.oidcJitEnabled));
       setOidcAdminGroup(settings.oidcAdminGroup || '');
+      setOidcButtonLabel(settings.oidcButtonLabel || '');
       setPlatformFrom(settings.platformFrom || '');
       applyTlsSettings(settings, {
         setIngressTlsConfigured,
@@ -1011,9 +1015,20 @@ export default function PlatformSettingsTab({
                 autoComplete="off"
               />
             </div>
+            <div className="field">
+              <label>{t.settings.oidcButtonLabel}</label>
+              <input
+                value={oidcButtonLabel}
+                onChange={(e) => setOidcButtonLabel(e.target.value)}
+                placeholder={t.login.continueOidc}
+                autoComplete="off"
+                maxLength={80}
+              />
+            </div>
           </div>
           <p className="cardlead">{t.settings.oidcIssuerHint}</p>
           <p className="cardlead">{t.settings.oidcAdminGroupHint}</p>
+          <p className="cardlead">{t.settings.oidcButtonLabelHint}</p>
           <label className="field-label">{t.settings.oidcJit}</label>
           <div className="seg" role="radiogroup" aria-label={t.settings.oidcJit}>
             <SegButton active={oidcJitEnabled} onClick={() => setOidcJitEnabled(true)}>

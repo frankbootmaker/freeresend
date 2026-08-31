@@ -58,6 +58,7 @@ const schema = z.object({
   oidcClientSecret: z.string().optional(),
   oidcJitEnabled: z.boolean().optional(),
   oidcAdminGroup: z.string().optional(),
+  oidcButtonLabel: z.string().max(80).optional(),
   platformFrom: optionalEmail,
 });
 

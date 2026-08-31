@@ -82,8 +82,18 @@ const ADMIN: Record<Locale, Guide> = {
           'Basics sets the platform sender used for password resets, waitlist notices, and welcome mail. Leave it blank to fall back to the alert From address.',
           'Set SES credentials, an optional platform SMTP relay, inbound SMTP TLS, alert addresses, and Authentik/OIDC sign-in.',
           'For OIDC, paste the issuer, client ID, and secret from Authentik, and copy the callback URL into the provider application.',
+          'Optional sign-in button label appears on the console Sign in page when OIDC is enabled. Leave it blank for the locale default (Continue with Authentik).',
           'JIT accounts creates a local user on first sign-in. Leave it off to allow only people already in Users. An optional group grants portal administrator access.',
           'Empty fields or ******** keep a stored secret.',
+        ],
+      },
+      {
+        id: 'sign-in',
+        title: 'Sign in',
+        paragraphs: [
+          'One Sign in page for everyone. Platform administrators open this portal; tenant members open their organization console.',
+          'Forgot password sends a one-hour reset link using the platform sender from Basics.',
+          'Create an organization on the landing page for self-signup, or provision customers from this portal.',
         ],
       },
       {
@@ -165,8 +175,18 @@ const ADMIN: Record<Locale, Guide> = {
           'Unter Grundlagen legen Sie den Plattform-Absender für Passwort-Zurücksetzen, Warteliste und Willkommen fest. Leer bedeutet Alert-Absender.',
           'SES-Zugangsdaten, optionales Plattform-SMTP-Relais, eingehendes SMTP-TLS, Alert-Adressen und Authentik/OIDC-Anmeldung.',
           'Für OIDC Issuer, Client-ID und Secret aus Authentik eintragen und die Callback-URL in die Provider-Anwendung kopieren.',
+          'Optionaler Anmelde-Schaltflächentext erscheint auf der Anmeldeseite, wenn OIDC aktiv ist. Leer lassen für die Sprachvorgabe (Weiter mit Authentik).',
           'JIT-Konten legt beim ersten Anmelden ein lokales Konto an. Ausgeschaltet bleiben nur Personen aus Benutzer. Eine optionale Gruppe gibt Portaladministratorrechte.',
           'Leere Felder oder ******** behalten das gespeicherte Geheimnis.',
+        ],
+      },
+      {
+        id: 'sign-in',
+        title: 'Anmelden',
+        paragraphs: [
+          'Eine Anmeldeseite für alle. Plattformadministratoren öffnen dieses Portal; Mandantenmitglieder ihre Organisation.',
+          'Passwort vergessen sendet einen einstündigen Link mit dem Plattform-Absender aus Grundlagen.',
+          'Organisation auf der Landingpage selbst anlegen, oder Kunden hier im Portal provisionieren.',
         ],
       },
       {
@@ -248,8 +268,18 @@ const ADMIN: Record<Locale, Guide> = {
           'Az Alapoknál állítsa be a platform feladót a jelszó-visszaállításhoz, várólistához és üdvözlő levelekhez. Üresen a riasztási feladót használja.',
           'SES-hitelesítő adatok, opcionális platform SMTP-relé, bejövő SMTP TLS, riasztási címek és Authentik/OIDC-belépés.',
           'OIDC-nál írja be az Authentik issuer, client ID és secret értékeit, a callback URL-t másolja a provider alkalmazásba.',
+          'Opcionális belépő gomb felirat jelenik meg a konzol belépő oldalán, ha az OIDC be van kapcsolva. Üresen a nyelvi alapértelmezés (Folytatás Authentikkal).',
           'A JIT-fiók az első belépéskor helyi felhasználót hoz létre. Kikapcsolva csak a Felhasználókban már meglévők léphetnek be. Opcionális csoport portáladminisztrátori jogot ad.',
           'Üres mező vagy ******** megtartja a tárolt titkot.',
+        ],
+      },
+      {
+        id: 'sign-in',
+        title: 'Belépés',
+        paragraphs: [
+          'Egy belépő oldal mindenkinek. A platformadminisztrátorok ezt a portált, a bérlőtagok a szervezetüket nyitják meg.',
+          'Az elfelejtett jelszó egyórás linket küld az Alapok platform feladójával.',
+          'Szervezetet a nyitóoldalon hozhat létre, vagy ügyfeleket itt a portálon provisionálhat.',
         ],
       },
       {

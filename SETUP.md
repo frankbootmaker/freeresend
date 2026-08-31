@@ -34,7 +34,7 @@ This guide will help you set up RelayHorizon from scratch. Prefer [`docs/docker.
    # Existing databases: apply every database-migrate-*.sql
    ```
 
-Optional Authentik / OIDC is configured later in Portal → **Configuration → OIDC** (issuer, client ID/secret, JIT). The platform sender for password-reset mail is **Configuration → Basics** (`PLATFORM_FROM` as env fallback). See `.env.local.example`.
+Optional Authentik / OIDC is configured later in Portal → **Configuration → OIDC** (issuer, client ID/secret, optional sign-in button label, JIT). The platform sender for password-reset mail is **Configuration → Basics** (`PLATFORM_FROM` as env fallback). See `.env.local.example`.
 
 ### AWS SES Setup
 

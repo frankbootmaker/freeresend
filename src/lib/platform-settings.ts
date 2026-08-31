@@ -65,6 +65,7 @@ export type PlatformSettingsRow = {
   oidc_client_secret?: string | null;
   oidc_jit_enabled?: boolean | null;
   oidc_admin_group?: string | null;
+  oidc_button_label?: string | null;
   platform_from?: string | null;
 };
 
@@ -109,6 +110,7 @@ export type ResolvedPlatformSettings = {
   oidcClientSecret: string;
   oidcJitEnabled: boolean;
   oidcAdminGroup: string;
+  oidcButtonLabel: string;
   platformFrom: string;
 };
 
@@ -142,6 +144,7 @@ export type PlatformSettingsPatch = {
   oidcClientSecret?: string;
   oidcJitEnabled?: boolean;
   oidcAdminGroup?: string;
+  oidcButtonLabel?: string;
   platformFrom?: string;
 };
 
@@ -180,6 +183,7 @@ export type PublicPlatformSettings = {
   oidcClientSecretConfigured: boolean;
   oidcJitEnabled: boolean;
   oidcAdminGroup: string;
+  oidcButtonLabel: string;
   oidcRedirectUri: string;
   platformFrom: string;
 };
@@ -290,6 +294,10 @@ export function resolvePlatformSettings(
     oidcClientSecret: firstNonEmpty(row?.oidc_client_secret, env.OIDC_CLIENT_SECRET),
     oidcJitEnabled: boolFrom(row?.oidc_jit_enabled, env.OIDC_JIT_ENABLED),
     oidcAdminGroup: firstNonEmpty(row?.oidc_admin_group, env.OIDC_ADMIN_GROUP),
+    oidcButtonLabel: firstNonEmpty(
+      row?.oidc_button_label,
+      env.OIDC_BUTTON_LABEL,
+    ),
     platformFrom: firstNonEmpty(row?.platform_from, env.PLATFORM_FROM),
   };
 }
@@ -356,6 +364,7 @@ export function toPublicPlatformSettings(
     oidcClientSecretConfigured: Boolean(resolved.oidcClientSecret),
     oidcJitEnabled: resolved.oidcJitEnabled,
     oidcAdminGroup: resolved.oidcAdminGroup,
+    oidcButtonLabel: resolved.oidcButtonLabel,
     oidcRedirectUri: oidcRedirectUri(
       (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, ''),
     ),
@@ -537,6 +546,7 @@ export async function updatePlatformSettings(
     || patch.oidcClientSecret !== undefined
     || patch.oidcJitEnabled !== undefined
     || patch.oidcAdminGroup !== undefined
+    || patch.oidcButtonLabel !== undefined
   );
   if (oidcTouched) {
     await query(
@@ -546,7 +556,8 @@ export async function updatePlatformSettings(
         oidc_client_id = $3,
         oidc_client_secret = $4,
         oidc_jit_enabled = $5,
-        oidc_admin_group = $6
+        oidc_admin_group = $6,
+        oidc_button_label = $7
        WHERE id = 'default'`,
       [
         patch.oidcEnabled !== undefined
@@ -559,6 +570,7 @@ export async function updatePlatformSettings(
           ? Boolean(patch.oidcJitEnabled)
           : Boolean(current?.oidc_jit_enabled),
         keepText(patch.oidcAdminGroup, current?.oidc_admin_group),
+        keepText(patch.oidcButtonLabel, current?.oidc_button_label),
       ],
     );
   }

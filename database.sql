@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   oidc_client_secret TEXT,
   oidc_jit_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   oidc_admin_group TEXT,
+  oidc_button_label TEXT,
   platform_from TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

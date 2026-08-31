@@ -13,9 +13,14 @@ Work on `main` since 1.9.0. The console top-bar notes show the same list.
 - Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs)
 - Console profile menu with optional picture upload
 - Portal Configuration → OIDC for Authentik (or another OpenID Connect provider), with a JIT account-creation toggle and optional administrator group
+- Configurable OIDC sign-in button label in Portal Configuration → OIDC
 - Forgot-password flow on the sign-in page, with a one-hour reset link
 - Portal Configuration → Basics for the platform sender address used for system mail
 - Shared RelayHorizon HTML frame for platform system mail (waitlist, password reset, config test)
+
+### Changed
+
+- Sign-in and self-signup copy clarify the shared console login versus creating a new organization
 
 ### Fixed
 

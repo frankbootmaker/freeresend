@@ -7,12 +7,12 @@ import { PrefsProvider } from '@/contexts/PrefsContext';
 
 jest.mock('../LoginForm', () => ({
   __esModule: true,
-  default: () => <h2>Operator sign in</h2>,
+  default: () => <h2>Sign in</h2>,
 }));
 
 jest.mock('../RegisterForm', () => ({
   __esModule: true,
-  default: () => <h2>Initialize account</h2>,
+  default: () => <h2>Create your organization</h2>,
 }));
 
 function renderLanding() {
@@ -51,7 +51,7 @@ describe('LandingPage', () => {
     renderLanding();
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     expect(
-      screen.getByRole('heading', { name: /operator sign in/i }),
+      screen.getByRole('heading', { name: /^sign in$/i }),
     ).toBeInTheDocument();
   });
 

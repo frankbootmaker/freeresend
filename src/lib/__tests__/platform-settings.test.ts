@@ -133,6 +133,7 @@ describe('toPublicPlatformSettings', () => {
       oidcClientSecret: 'oidc-secret',
       oidcJitEnabled: true,
       oidcAdminGroup: 'relayhorizon-admins',
+      oidcButtonLabel: 'Continue with company SSO',
       platformFrom: 'noreply@example.com',
     });
     expect(publicSettings.smtpIngressIspconfigUser).toBe('remote');
@@ -163,6 +164,7 @@ describe('toPublicPlatformSettings', () => {
     expect(publicSettings.oidcJitEnabled).toBe(true);
     expect(publicSettings.oidcClientSecretConfigured).toBe(true);
     expect(publicSettings).not.toHaveProperty('oidcClientSecret');
+    expect(publicSettings.oidcButtonLabel).toBe('Continue with company SSO');
     expect(publicSettings.platformFrom).toBe('noreply@example.com');
   });
 });

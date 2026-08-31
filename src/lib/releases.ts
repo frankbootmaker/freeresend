@@ -22,7 +22,7 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-01',
     summary:
-      'Work on main since 1.9.0: Guide tabs, profile pictures, Authentik/OIDC, and password reset.',
+      'Work on main since 1.9.0: guides, profile, OIDC (custom button label), password reset, and branded system mail.',
     changes: [
       {
         kind: 'added',
@@ -38,6 +38,10 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'added',
+        text: 'Configurable OIDC sign-in button label in Portal Configuration → OIDC.',
+      },
+      {
+        kind: 'added',
         text: 'Forgot-password flow on the sign-in page, with a one-hour reset link.',
       },
       {
@@ -47,6 +51,10 @@ export const RELEASES: Release[] = [
       {
         kind: 'added',
         text: 'Shared RelayHorizon HTML frame for platform system mail (waitlist, password reset, config test).',
+      },
+      {
+        kind: 'changed',
+        text: 'Sign-in and self-signup copy clarify the shared console login versus creating a new organization.',
       },
       {
         kind: 'fixed',
