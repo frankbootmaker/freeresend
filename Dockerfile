@@ -29,5 +29,5 @@ CMD ["node", "server.js"]
 FROM builder AS smtp
 WORKDIR /app
 ENV NODE_ENV=production
-EXPOSE 2525
+EXPOSE 2525 587 465
 CMD ["npx", "tsx", "src/smtp/server.ts"]

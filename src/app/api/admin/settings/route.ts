@@ -30,6 +30,14 @@ const schema = z.object({
   smtpPassword: z.string().optional(),
   alertEmail: optionalEmail,
   alertFrom: optionalEmail,
+  smtpListenPorts: z.array(z.union([
+    z.literal(2525),
+    z.literal(587),
+    z.literal(465),
+  ])).min(1).optional(),
+  smtpIngressTlsMode: z.enum(['off', 'starttls', 'required']).optional(),
+  smtpIngressTlsCert: z.string().optional(),
+  smtpIngressTlsKey: z.string().optional(),
 });
 
 export async function OPTIONS() {

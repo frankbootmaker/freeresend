@@ -347,13 +347,30 @@ button.brand:hover {
 }
 
 input,
-select {
+select,
+textarea {
   min-height: 40px;
   border: 1px solid var(--border);
   background: var(--bg);
   padding: 0 10px;
   width: 100%;
   color: inherit;
+}
+
+textarea {
+  min-height: 96px;
+  padding: 8px 10px;
+  font: 11px/1.45 var(--mono);
+  resize: vertical;
+}
+
+.field-label {
+  display: block;
+  font: 600 11px var(--body);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 4px 0 6px;
 }
 
 .password-field {

@@ -99,7 +99,15 @@ describe('toPublicPlatformSettings', () => {
       smtpPassword: 'pw',
       alertEmail: 'ops@example.com',
       alertFrom: 'alerts@example.com',
+      smtpListenPorts: [587, 2525],
+      smtpIngressTlsMode: 'off',
+      smtpIngressTlsCert: 'CERT',
+      smtpIngressTlsKey: 'KEY',
     });
+    expect(publicSettings.smtpListenPorts).toEqual([587, 2525]);
+    expect(publicSettings.smtpIngressTlsConfigured).toBe(true);
+    expect(publicSettings).not.toHaveProperty('smtpIngressTlsCert');
+    expect(publicSettings).not.toHaveProperty('smtpIngressTlsKey');
     expect(publicSettings.sesAccessKeyConfigured).toBe(true);
     expect(publicSettings.sesSecretConfigured).toBe(true);
     expect(publicSettings.smtpPasswordConfigured).toBe(true);

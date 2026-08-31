@@ -45,13 +45,15 @@ services:
       target: smtp
     ports:
       - "2525:2525"
+      - "587:587"
+      - "465:465"
     env_file:
       - .env.local
     environment:
       DATABASE_URL: postgresql://freeresend:freeresend@postgres:5432/freeresend
       DATABASE_SSL: "false"
       SMTP_LISTEN_HOST: 0.0.0.0
-      SMTP_LISTEN_PORT: "2525"
+      SMTP_LISTEN_PORTS: "2525,587"
     depends_on:
       postgres:
         condition: service_healthy

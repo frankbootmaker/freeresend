@@ -1,4 +1,10 @@
 import { query } from '@/lib/database';
+import {
+  listenPortsFromStored,
+  parseTlsMode,
+  serializeListenPorts,
+  type SmtpIngressTlsMode,
+} from '@/lib/smtp-ingress';
 
 export const SECRET_MASK = '********';
 
@@ -16,6 +22,10 @@ export type PlatformSettingsRow = {
   smtp_password: string | null;
   alert_email: string | null;
   alert_from: string | null;
+  smtp_listen_ports?: string | null;
+  smtp_ingress_tls_mode?: string | null;
+  smtp_ingress_tls_cert?: string | null;
+  smtp_ingress_tls_key?: string | null;
 };
 
 export type ResolvedPlatformSettings = {
@@ -31,6 +41,10 @@ export type ResolvedPlatformSettings = {
   smtpPassword: string;
   alertEmail: string;
   alertFrom: string;
+  smtpListenPorts: number[];
+  smtpIngressTlsMode: SmtpIngressTlsMode;
+  smtpIngressTlsCert: string;
+  smtpIngressTlsKey: string;
 };
 
 export type PlatformSettingsPatch = {
@@ -46,6 +60,10 @@ export type PlatformSettingsPatch = {
   smtpPassword?: string;
   alertEmail?: string;
   alertFrom?: string;
+  smtpListenPorts?: number[];
+  smtpIngressTlsMode?: SmtpIngressTlsMode;
+  smtpIngressTlsCert?: string;
+  smtpIngressTlsKey?: string;
 };
 
 export type PublicPlatformSettings = {
@@ -61,6 +79,9 @@ export type PublicPlatformSettings = {
   smtpPasswordConfigured: boolean;
   alertEmail: string;
   alertFrom: string;
+  smtpListenPorts: number[];
+  smtpIngressTlsMode: SmtpIngressTlsMode;
+  smtpIngressTlsConfigured: boolean;
 };
 
 type EnvSource = Record<string, string | undefined>;
@@ -117,6 +138,18 @@ export function resolvePlatformSettings(
       env.ALERT_FROM,
       env.FROM_EMAIL,
     ),
+    smtpListenPorts: listenPortsFromStored(row?.smtp_listen_ports, env),
+    smtpIngressTlsMode: parseTlsMode(
+      firstNonEmpty(row?.smtp_ingress_tls_mode, env.SMTP_TLS_MODE, 'off'),
+    ),
+    smtpIngressTlsCert: firstNonEmpty(
+      row?.smtp_ingress_tls_cert,
+      env.SMTP_TLS_CERT,
+    ),
+    smtpIngressTlsKey: firstNonEmpty(
+      row?.smtp_ingress_tls_key,
+      env.SMTP_TLS_KEY,
+    ),
   };
 }
 
@@ -136,6 +169,11 @@ export function toPublicPlatformSettings(
     smtpPasswordConfigured: Boolean(resolved.smtpPassword),
     alertEmail: resolved.alertEmail,
     alertFrom: resolved.alertFrom,
+    smtpListenPorts: resolved.smtpListenPorts,
+    smtpIngressTlsMode: resolved.smtpIngressTlsMode,
+    smtpIngressTlsConfigured: Boolean(
+      resolved.smtpIngressTlsCert && resolved.smtpIngressTlsKey,
+    ),
   };
 }
 
@@ -202,9 +240,12 @@ export async function updatePlatformSettings(
     `INSERT INTO platform_settings (
       id, ses_region, ses_access_key_id, ses_secret_access_key,
       ses_configuration_set, smtp_enabled, smtp_host, smtp_port, smtp_secure,
-      smtp_username, smtp_password, alert_email, alert_from
+      smtp_username, smtp_password, alert_email, alert_from,
+      smtp_listen_ports, smtp_ingress_tls_mode, smtp_ingress_tls_cert,
+      smtp_ingress_tls_key
     ) VALUES (
-      'default', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+      'default', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+      $13, $14, $15, $16
     )
     ON CONFLICT (id) DO UPDATE SET
       ses_region = EXCLUDED.ses_region,
@@ -218,7 +259,11 @@ export async function updatePlatformSettings(
       smtp_username = EXCLUDED.smtp_username,
       smtp_password = EXCLUDED.smtp_password,
       alert_email = EXCLUDED.alert_email,
-      alert_from = EXCLUDED.alert_from`,
+      alert_from = EXCLUDED.alert_from,
+      smtp_listen_ports = EXCLUDED.smtp_listen_ports,
+      smtp_ingress_tls_mode = EXCLUDED.smtp_ingress_tls_mode,
+      smtp_ingress_tls_cert = EXCLUDED.smtp_ingress_tls_cert,
+      smtp_ingress_tls_key = EXCLUDED.smtp_ingress_tls_key`,
     [
       keepText(patch.sesRegion, current?.ses_region),
       keepSecret(patch.sesAccessKeyId, current?.ses_access_key_id),
@@ -238,6 +283,13 @@ export async function updatePlatformSettings(
       keepSecret(patch.smtpPassword, current?.smtp_password),
       keepText(patch.alertEmail, current?.alert_email),
       keepText(patch.alertFrom, current?.alert_from),
+      patch.smtpListenPorts !== undefined
+        ? serializeListenPorts(patch.smtpListenPorts)
+        : current?.smtp_listen_ports || null,
+      patch.smtpIngressTlsMode
+        || parseTlsMode(current?.smtp_ingress_tls_mode),
+      keepSecret(patch.smtpIngressTlsCert, current?.smtp_ingress_tls_cert),
+      keepSecret(patch.smtpIngressTlsKey, current?.smtp_ingress_tls_key),
     ],
   );
 

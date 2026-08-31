@@ -183,6 +183,10 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   smtp_password TEXT,
   alert_email TEXT,
   alert_from TEXT,
+  smtp_listen_ports TEXT,
+  smtp_ingress_tls_mode TEXT DEFAULT 'off',
+  smtp_ingress_tls_cert TEXT,
+  smtp_ingress_tls_key TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

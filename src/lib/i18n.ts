@@ -225,6 +225,19 @@ type Dict = {
     smtpLead: string;
     smtpEnabled: string;
     smtpDisabled: string;
+    ingressTitle: string;
+    ingressLead: string;
+    listenPorts: string;
+    port2525: string;
+    port587: string;
+    port465: string;
+    ingressTls: string;
+    tlsOff: string;
+    tlsStarttls: string;
+    tlsRequired: string;
+    tlsCert: string;
+    tlsKey: string;
+    tlsHint: string;
     alertTitle: string;
     alertLead: string;
     alertEmail: string;
@@ -438,7 +451,7 @@ const en: Dict = {
     routeTitle: 'Active route / acme-production',
     routeHttps: 'HTTPS API :443',
     routeTenant: 'acme-labs',
-    routeSmtp: 'SMTP :2525',
+    routeSmtp: 'SMTP :587',
     routeEgress: 'SES eu-central-1',
     nodeIngress: 'INGRESS',
     nodeTenant: 'TENANT',
@@ -545,7 +558,7 @@ const en: Dict = {
     ingress: 'How apps submit',
     ingressAria: 'Ingress',
     httpsHint: 'Resend-compatible POST /api/emails',
-    smtpIngressHint: 'SMTP submission on port 2525',
+    smtpIngressHint: 'SMTP submission on 587 (also 2525). Username outpost, password is an API key.',
     bothHint: 'Accept both HTTPS and SMTP',
     smtpSubmit: 'SMTP submission',
     smtpSubmitHint: 'Username is outpost. Password is an API key.',
@@ -617,6 +630,21 @@ const en: Dict = {
       'Shared outbound relay for tenants that choose SMTP and do not set their own upstream.',
     smtpEnabled: 'Enabled',
     smtpDisabled: 'Disabled',
+    ingressTitle: 'SMTP submission',
+    ingressLead:
+      'Ports the inbound listener binds. 587 uses STARTTLS when a certificate is set; 465 is implicit TLS. 2525 stays useful for local clients. Save, then keep the SMTP process running — it reloads these settings.',
+    listenPorts: 'Listen ports',
+    port2525: '2525',
+    port587: '587',
+    port465: '465',
+    ingressTls: 'Inbound TLS',
+    tlsOff: 'Off',
+    tlsStarttls: 'STARTTLS',
+    tlsRequired: 'Required',
+    tlsCert: 'Certificate (PEM)',
+    tlsKey: 'Private key (PEM)',
+    tlsHint:
+      'Paste a certificate and key, or set SMTP_TLS_CERT_PATH and SMTP_TLS_KEY_PATH (Let’s Encrypt fullchain + privkey).',
     alertTitle: 'Monitoring and alerts',
     alertLead:
       'Operational notices, including waitlist and delivery alerts, go to this address.',
@@ -833,7 +861,7 @@ const de: Dict = {
     routeTitle: 'Aktive Route / acme-production',
     routeHttps: 'HTTPS API :443',
     routeTenant: 'acme-labs',
-    routeSmtp: 'SMTP :2525',
+    routeSmtp: 'SMTP :587',
     routeEgress: 'SES eu-central-1',
     nodeIngress: 'INGRESS',
     nodeTenant: 'MANDANT',
@@ -940,7 +968,8 @@ const de: Dict = {
     ingress: 'Eingang',
     ingressAria: 'Eingang',
     httpsHint: 'Resend-kompatibel POST /api/emails',
-    smtpIngressHint: 'SMTP-Submission auf Port 2525',
+    smtpIngressHint:
+      'SMTP-Submission auf 587 (auch 2525). Benutzername outpost, Passwort ist ein API-Schlüssel.',
     bothHint: 'HTTPS und SMTP akzeptieren',
     smtpSubmit: 'SMTP-Submission',
     smtpSubmitHint: 'Benutzername ist outpost. Passwort ist ein API-Schlüssel.',
@@ -1013,6 +1042,21 @@ const de: Dict = {
       'Gemeinsames Ausgangs-Relay für Mandanten mit SMTP ohne eigenen Upstream.',
     smtpEnabled: 'Aktiv',
     smtpDisabled: 'Inaktiv',
+    ingressTitle: 'SMTP-Submission',
+    ingressLead:
+      'Ports des Eingangs-Listeners. 587 nutzt STARTTLS mit Zertifikat; 465 ist implizites TLS. 2525 eignet sich lokal. Speichern, SMTP-Prozess weiterlaufen lassen — er lädt neu.',
+    listenPorts: 'Hörende Ports',
+    port2525: '2525',
+    port587: '587',
+    port465: '465',
+    ingressTls: 'Eingangs-TLS',
+    tlsOff: 'Aus',
+    tlsStarttls: 'STARTTLS',
+    tlsRequired: 'Pflicht',
+    tlsCert: 'Zertifikat (PEM)',
+    tlsKey: 'Privater Schlüssel (PEM)',
+    tlsHint:
+      'Zertifikat und Schlüssel einfügen oder SMTP_TLS_CERT_PATH und SMTP_TLS_KEY_PATH setzen (Let’s Encrypt fullchain + privkey).',
     alertTitle: 'Überwachung und Alarmierung',
     alertLead:
       'Betriebshinweise, inklusive Warteliste und Zustellalarme, gehen an diese Adresse.',
@@ -1229,7 +1273,7 @@ const hu: Dict = {
     routeTitle: 'Aktív útvonal / acme-production',
     routeHttps: 'HTTPS API :443',
     routeTenant: 'acme-labs',
-    routeSmtp: 'SMTP :2525',
+    routeSmtp: 'SMTP :587',
     routeEgress: 'SES eu-central-1',
     nodeIngress: 'BEJÖVŐ',
     nodeTenant: 'BÉRLŐ',
@@ -1336,7 +1380,8 @@ const hu: Dict = {
     ingress: 'Bejövő út',
     ingressAria: 'Bejövő út',
     httpsHint: 'Resend-kompatibilis POST /api/emails',
-    smtpIngressHint: 'SMTP beküldés a 2525-ös porton',
+    smtpIngressHint:
+      'SMTP beküldés a 587-es porton (2525 is). Felhasználónév: outpost, jelszó: API-kulcs.',
     bothHint: 'HTTPS és SMTP is elfogadott',
     smtpSubmit: 'SMTP beküldés',
     smtpSubmitHint: 'A felhasználónév outpost. A jelszó egy API-kulcs.',
@@ -1409,6 +1454,21 @@ const hu: Dict = {
       'Közös kimenő relé azoknak a bérlőknek, akik SMTP-t választanak saját upstream nélkül.',
     smtpEnabled: 'Bekapcsolva',
     smtpDisabled: 'Kikapcsolva',
+    ingressTitle: 'SMTP-beküldés',
+    ingressLead:
+      'A bemeneti listener portjai. 587 STARTTLS-t használ tanúsítvánnyal; 465 implicit TLS. A 2525 helyi tesztre jó. Mentés után a SMTP-folyamat újratölti.',
+    listenPorts: 'Figyelt portok',
+    port2525: '2525',
+    port587: '587',
+    port465: '465',
+    ingressTls: 'Bejövő TLS',
+    tlsOff: 'Ki',
+    tlsStarttls: 'STARTTLS',
+    tlsRequired: 'Kötelező',
+    tlsCert: 'Tanúsítvány (PEM)',
+    tlsKey: 'Privát kulcs (PEM)',
+    tlsHint:
+      'Illesszen be tanúsítványt és kulcsot, vagy állítsa be a SMTP_TLS_CERT_PATH és SMTP_TLS_KEY_PATH változókat.',
     alertTitle: 'Felügyelet és riasztás',
     alertLead:
       'Üzemeltetési értesítések, beleértve a várólistát és a kézbesítési riasztásokat, ide mennek.',

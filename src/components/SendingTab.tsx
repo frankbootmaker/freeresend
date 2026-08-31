@@ -36,7 +36,8 @@ export default function SendingTab() {
   const [error, setError] = useState('');
   const [smtpIngress, setSmtpIngress] = useState({
     host: 'localhost',
-    port: 2525,
+    port: 587,
+    ports: [587, 2525],
   });
   const [ses, setSes] = useState({
     region: 'eu-central-1',
@@ -61,9 +62,13 @@ export default function SendingTab() {
         setSecure(tenant.smtp_upstream.secure);
       }
       if (res.data.smtpIngress) {
+        const ports = Array.isArray(res.data.smtpIngress.ports)
+          ? res.data.smtpIngress.ports
+          : [res.data.smtpIngress.port];
         setSmtpIngress({
           host: res.data.smtpIngress.host,
           port: res.data.smtpIngress.port,
+          ports,
         });
       }
       if (res.data.ses) {
@@ -132,6 +137,7 @@ export default function SendingTab() {
                 {t.sending.both}
               </SegButton>
             </div>
+            <p className="cardlead">{t.sending.smtpIngressHint}</p>
             <div className="formgrid">
               <div className="field">
                 <label>{t.sending.publicApiUrl}</label>
@@ -143,7 +149,10 @@ export default function SendingTab() {
               </div>
               <div className="field">
                 <label>{t.sending.smtpPort}</label>
-                <input readOnly value={String(smtpIngress.port)} />
+                <input
+                  readOnly
+                  value={smtpIngress.ports.join(', ')}
+                />
               </div>
               <div className="field">
                 <label>{t.sending.tlsMode}</label>

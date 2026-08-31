@@ -4,6 +4,7 @@ import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { updateTenantRouting } from '@/lib/tenants';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
+import { resolveSmtpPublicPorts } from '@/lib/smtp-listen';
 
 const schema = z.object({
   inboundTransport: z.enum(['https', 'smtp', 'both']).optional(),
@@ -54,7 +55,11 @@ export async function GET(request: NextRequest) {
         },
         smtpIngress: {
           host: process.env.SMTP_PUBLIC_HOST || 'localhost',
-          port: Number(process.env.SMTP_PUBLIC_PORT || 2525),
+          ...resolveSmtpPublicPorts(process.env, platform.smtpListenPorts),
+          tlsMode: platform.smtpIngressTlsMode,
+          tlsConfigured: Boolean(
+            platform.smtpIngressTlsCert && platform.smtpIngressTlsKey,
+          ),
           username: 'outpost',
           passwordHint: 'Use a RelayHorizon API key as the SMTP password',
         },

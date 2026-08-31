@@ -45,6 +45,13 @@ export default function PlatformSettingsTab() {
   const [smtpUsername, setSmtpUsername] = useState('');
   const [smtpPassword, setSmtpPassword] = useState('');
   const [smtpPasswordConfigured, setSmtpPasswordConfigured] = useState(false);
+  const [listenPorts, setListenPorts] = useState<number[]>([2525, 587]);
+  const [ingressTlsMode, setIngressTlsMode] = useState<
+    'off' | 'starttls' | 'required'
+  >('off');
+  const [ingressTlsCert, setIngressTlsCert] = useState('');
+  const [ingressTlsKey, setIngressTlsKey] = useState('');
+  const [ingressTlsConfigured, setIngressTlsConfigured] = useState(false);
   const [alertEmail, setAlertEmail] = useState('');
   const [alertFrom, setAlertFrom] = useState('');
   const [testFrom, setTestFrom] = useState('');
@@ -71,6 +78,13 @@ export default function PlatformSettingsTab() {
         setSmtpSecure(settings.smtpSecure !== false);
         setSmtpUsername(settings.smtpUsername || '');
         setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
+        setListenPorts(
+          Array.isArray(settings.smtpListenPorts) && settings.smtpListenPorts.length
+            ? settings.smtpListenPorts
+            : [2525, 587],
+        );
+        setIngressTlsMode(settings.smtpIngressTlsMode || 'off');
+        setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
         setTestFrom((current) => current || settings.alertFrom || '');
@@ -109,14 +123,21 @@ export default function PlatformSettingsTab() {
         smtpPassword,
         alertEmail,
         alertFrom,
+        smtpListenPorts: listenPorts,
+        smtpIngressTlsMode: ingressTlsMode,
+        smtpIngressTlsCert,
+        smtpIngressTlsKey,
       });
       const settings = res.data.settings;
       setSesAccessKeyId('');
       setSesSecretAccessKey('');
       setSmtpPassword('');
+      setIngressTlsCert('');
+      setIngressTlsKey('');
       setSesAccessKeyConfigured(Boolean(settings.sesAccessKeyConfigured));
       setSesSecretConfigured(Boolean(settings.sesSecretConfigured));
       setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
+      setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
       setSaveMessage(t.settings.saved);
     } catch (err: unknown) {
       setSaveError(
@@ -154,6 +175,18 @@ export default function PlatformSettingsTab() {
 
   const secretPlaceholder = (configured: boolean) =>
     configured ? t.settings.secretSet : undefined;
+
+  const toggleListenPort = (port: number) => {
+    setListenPorts((current) => {
+      if (current.includes(port)) {
+        if (current.length === 1) return current;
+        return current.filter((value) => value !== port);
+      }
+      return [...current, port];
+    });
+  };
+
+  const tlsReady = ingressTlsConfigured || Boolean(ingressTlsCert.trim());
 
   return (
     <>
@@ -274,6 +307,87 @@ export default function PlatformSettingsTab() {
           </div>
         </section>
       </div>
+      <section className="card settings-alerts">
+        <header className="cardhead">
+          <h2>{t.settings.ingressTitle}</h2>
+        </header>
+        <div className="cardbody">
+          <p className="cardlead">{t.settings.ingressLead}</p>
+          <label className="field-label">{t.settings.listenPorts}</label>
+          <div className="seg" role="group" aria-label={t.settings.listenPorts}>
+            <SegButton
+              active={listenPorts.includes(2525)}
+              onClick={() => toggleListenPort(2525)}
+            >
+              {t.settings.port2525}
+            </SegButton>
+            <SegButton
+              active={listenPorts.includes(587)}
+              onClick={() => toggleListenPort(587)}
+            >
+              {t.settings.port587}
+            </SegButton>
+            <SegButton
+              active={listenPorts.includes(465)}
+              onClick={() => toggleListenPort(465)}
+              disabled={!tlsReady}
+              title={tlsReady ? undefined : t.settings.tlsHint}
+            >
+              {t.settings.port465}
+            </SegButton>
+          </div>
+          <label className="field-label">{t.settings.ingressTls}</label>
+          <div className="seg" role="radiogroup" aria-label={t.settings.ingressTls}>
+            <SegButton
+              active={ingressTlsMode === 'off'}
+              onClick={() => {
+                setIngressTlsMode('off');
+                setListenPorts((current) => {
+                  const next = current.filter((port) => port !== 465);
+                  return next.length ? next : [2525, 587];
+                });
+              }}
+            >
+              {t.settings.tlsOff}
+            </SegButton>
+            <SegButton
+              active={ingressTlsMode === 'starttls'}
+              onClick={() => setIngressTlsMode('starttls')}
+            >
+              {t.settings.tlsStarttls}
+            </SegButton>
+            <SegButton
+              active={ingressTlsMode === 'required'}
+              onClick={() => setIngressTlsMode('required')}
+            >
+              {t.settings.tlsRequired}
+            </SegButton>
+          </div>
+          <p className="cardlead">{t.settings.tlsHint}</p>
+          <div className="formgrid">
+            <div className="field">
+              <label>{t.settings.tlsCert}</label>
+              <textarea
+                value={ingressTlsCert}
+                onChange={(e) => setIngressTlsCert(e.target.value)}
+                placeholder={secretPlaceholder(ingressTlsConfigured)}
+                rows={5}
+                spellCheck={false}
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.tlsKey}</label>
+              <textarea
+                value={ingressTlsKey}
+                onChange={(e) => setIngressTlsKey(e.target.value)}
+                placeholder={secretPlaceholder(ingressTlsConfigured)}
+                rows={5}
+                spellCheck={false}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="card settings-alerts">
         <header className="cardhead">
           <h2>{t.settings.alertTitle}</h2>
