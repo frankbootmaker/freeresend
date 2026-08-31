@@ -14,5 +14,8 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.hu.landing.fact4Title).toMatch(/kimenet/i);
     expect(dictionaries.de.keys.create).toMatch(/schlüssel/i);
     expect(dictionaries.hu.logs.title).toMatch(/esemény/i);
+    expect(dictionaries.en.changelog.title).toMatch(/release/i);
+    expect(dictionaries.de.changelog.close).toMatch(/schließen/i);
+    expect(dictionaries.hu.changelog.current).toMatch(/telepítés/i);
   });
 });

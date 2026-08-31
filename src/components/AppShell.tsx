@@ -2,8 +2,10 @@
 
 import { type ReactNode, useState } from 'react';
 import { usePrefs } from '@/contexts/PrefsContext';
+import { displayVersion } from '@/lib/releases';
 import OpsBrand from './ops/OpsBrand';
 import OpsPrefs from './ops/OpsPrefs';
+import ReleaseNotes from './ReleaseNotes';
 
 export type ShellNavItem = {
   id: string;
@@ -47,6 +49,7 @@ export default function AppShell({
 }) {
   const { t } = usePrefs();
   const [drawer, setDrawer] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   return (
     <main className="app" data-drawer-open={drawer ? 'true' : 'false'}>
@@ -93,7 +96,14 @@ export default function AppShell({
         <span className="crumb">
           {t.nav.crumbPrefix} <b>{crumb.toUpperCase()}</b>
         </span>
-        <span className="right">v1.8.2</span>
+        <button
+          type="button"
+          className="ver"
+          onClick={() => setNotesOpen(true)}
+          aria-label={t.changelog.openNotes}
+        >
+          {displayVersion()}
+        </button>
       </header>
       <div className="subhead">
         <h1>{title}</h1>
@@ -122,6 +132,7 @@ export default function AppShell({
         </nav>
       )}
       <div className="main">{children}</div>
+      {notesOpen ? <ReleaseNotes onClose={() => setNotesOpen(false)} /> : null}
     </main>
   );
 }

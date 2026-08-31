@@ -1,4 +1,4 @@
-# RelayHorizon — what is built (29 August 2026)
+# RelayHorizon — what is built (1 September 2026)
 
 Snapshot of the product as it stands in this repository. **RelayHorizon** is a self-hosted, multi-tenant **outbound** email platform: a fork of [FreeResend](https://github.com/eibrahim/freeresend), branded RelayHorizon by Nethorizon. Incoming mailboxes and inbound MX are out of scope.
 
@@ -59,14 +59,14 @@ Existing databases need `database-migrate-platform-settings.sql` once. New insta
 
 - Auth, tenant routing (`GET`/`PATCH /api/tenant`), domains, API keys, email logs, Resend-compatible `POST /api/emails`.
 - Admin: customers plus `GET`/`PATCH /api/admin/settings`.
-- MCP JSON-RPC at `/mcp`: `list_tenants` (platform token), `get_tenant_settings`, `get_tenant_traffic`. No write tools yet (`send_email`, `setup_customer`, …).
+- MCP JSON-RPC at `/mcp`: platform tools include `list_tenants`, `setup_customer`, `get_platform_health`, `list_platform_admins`. Shared tools include tenant settings, traffic, domains, and email logs. HTTPS send still uses an `frs_` API key.
 
 ## What is intentionally not built yet
 
 - Incoming mail / hosting mailboxes.
-- Public SMTP submission on port **587** with Let’s Encrypt (listener today is **2525**).
-- MCP write tools.
 - Bounce/complaint webhook mail to the alert address (avoided so far to prevent noise and loops).
+
+Version history: [CHANGELOG.md](../CHANGELOG.md). The console top bar shows `v` plus `APP_VERSION` from `src/lib/releases.ts`.
 
 ## Local run
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { APP_VERSION } from '@/lib/releases';
 import { verifyMcpToken } from '@/lib/mcp-tokens';
 import { callMcpTool, toolsForAgent } from '@/lib/mcp-server';
 
@@ -28,7 +29,7 @@ function rpcError(
 export async function GET() {
   return NextResponse.json({
     name: 'RelayHorizon',
-    version: '1.0.0',
+    version: APP_VERSION,
     protocol: 'mcp',
     transport: 'json-rpc-http',
     tools: {
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (method === 'initialize') {
       return rpcResult(id, {
         protocolVersion: '2024-11-05',
-        serverInfo: { name: 'RelayHorizon', version: '1.0.0' },
+        serverInfo: { name: 'RelayHorizon', version: APP_VERSION },
         capabilities: { tools: {} },
       });
     }

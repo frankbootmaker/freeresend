@@ -1,3 +1,5 @@
+import { APP_VERSION } from './releases';
+
 export const LIVENESS_SERVICE = 'RelayHorizon';
 
 export type LivenessResult = {
@@ -15,7 +17,7 @@ export function livenessFromPing(input: {
   version?: string;
   now?: Date;
 }): LivenessResult {
-  const version = input.version ?? process.env.npm_package_version ?? '1.0.0';
+  const version = input.version ?? process.env.npm_package_version ?? APP_VERSION;
   const timestamp = (input.now ?? new Date()).toISOString();
 
   if (input.ok) {

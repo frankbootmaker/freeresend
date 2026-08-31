@@ -133,6 +133,16 @@ type Dict = {
     backToTenant: (name: string) => string;
     backToConsole: string;
   };
+  changelog: {
+    title: string;
+    lead: string;
+    close: string;
+    current: string;
+    added: string;
+    changed: string;
+    fixed: string;
+    openNotes: string;
+  };
   sending: {
     kicker: string;
     title: string;
@@ -701,6 +711,16 @@ const en: Dict = {
     platformCrumb: 'PLATFORM',
     backToTenant: (name) => `← ${name} tenant`,
     backToConsole: '← Tenant console',
+  },
+  changelog: {
+    title: 'Release notes',
+    lead: 'What changed in this installation. Newest first.',
+    close: 'Close',
+    current: 'This installation',
+    added: 'Added',
+    changed: 'Changed',
+    fixed: 'Fixed',
+    openNotes: 'Open release notes',
   },
   sending: {
     kicker: 'Tenant / sending',
@@ -1292,6 +1312,16 @@ const de: Dict = {
     platformCrumb: 'PLATTFORM',
     backToTenant: (name) => `← ${name} Mandant`,
     backToConsole: '← Mandantenkonsole',
+  },
+  changelog: {
+    title: 'Versionshinweise',
+    lead: 'Änderungen in dieser Installation. Neueste zuerst.',
+    close: 'Schließen',
+    current: 'Diese Installation',
+    added: 'Neu',
+    changed: 'Geändert',
+    fixed: 'Behoben',
+    openNotes: 'Versionshinweise öffnen',
   },
   sending: {
     kicker: 'Mandant / Versand',
@@ -1886,6 +1916,16 @@ const hu: Dict = {
     platformCrumb: 'PLATFORM',
     backToTenant: (name) => `← ${name} bérlő`,
     backToConsole: '← Bérlőkonzol',
+  },
+  changelog: {
+    title: 'Kiadási jegyzetek',
+    lead: 'A telepítés változásai. A legújabb elöl.',
+    close: 'Bezárás',
+    current: 'Ez a telepítés',
+    added: 'Új',
+    changed: 'Változott',
+    fixed: 'Javítva',
+    openNotes: 'Kiadási jegyzetek megnyitása',
   },
   sending: {
     kicker: 'Bérlő / küldés',
