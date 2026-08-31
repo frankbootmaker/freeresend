@@ -132,6 +132,7 @@ type Dict = {
     platformCrumb: string;
     backToTenant: (name: string) => string;
     backToConsole: string;
+    guide: string;
   };
   changelog: {
     title: string;
@@ -711,6 +712,7 @@ const en: Dict = {
     platformCrumb: 'PLATFORM',
     backToTenant: (name) => `← ${name} tenant`,
     backToConsole: '← Tenant console',
+    guide: 'Guide',
   },
   changelog: {
     title: 'Release notes',
@@ -1312,6 +1314,7 @@ const de: Dict = {
     platformCrumb: 'PLATTFORM',
     backToTenant: (name) => `← ${name} Mandant`,
     backToConsole: '← Mandantenkonsole',
+    guide: 'Handbuch',
   },
   changelog: {
     title: 'Versionshinweise',
@@ -1916,6 +1919,7 @@ const hu: Dict = {
     platformCrumb: 'PLATFORM',
     backToTenant: (name) => `← ${name} bérlő`,
     backToConsole: '← Bérlőkonzol',
+    guide: 'Útmutató',
   },
   changelog: {
     title: 'Kiadási jegyzetek',

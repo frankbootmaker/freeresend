@@ -17,5 +17,8 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.changelog.title).toMatch(/release/i);
     expect(dictionaries.de.changelog.close).toMatch(/schließen/i);
     expect(dictionaries.hu.changelog.current).toMatch(/telepítés/i);
+    expect(dictionaries.en.nav.guide).toBe('Guide');
+    expect(dictionaries.de.nav.guide).toMatch(/handbuch/i);
+    expect(dictionaries.hu.nav.guide).toMatch(/útmutató/i);
   });
 });

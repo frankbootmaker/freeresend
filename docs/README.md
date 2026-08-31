@@ -14,7 +14,7 @@ SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration se
 6. [MCP](mcp.md)
 7. [Docker](docker.md)
 8. [Operations](operations.md) — platform logs, dump/restore, S3 offsite
-9. [Admin guide](admin-guide.md)
+9. [Admin guide](admin-guide.md) — also in the portal **Guide** tab; tenant **Guide** is in the sending console
 10. [Security](security.md)
 11. [Changelog](../CHANGELOG.md) — console version history (click **v…** in the top bar)
 

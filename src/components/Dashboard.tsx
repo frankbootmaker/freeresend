@@ -9,9 +9,10 @@ import ApiKeysTab from './ApiKeysTab';
 import AgentsTab from './AgentsTab';
 import EmailLogsTab from './EmailLogsTab';
 import SendingTab from './SendingTab';
+import GuideTab from './GuideTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'sending' | 'domains' | 'apikeys' | 'agents' | 'logs';
+type Tab = 'sending' | 'domains' | 'apikeys' | 'agents' | 'logs' | 'guide';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function Dashboard() {
     apikeys: t.nav.apiKeys,
     agents: t.nav.agents,
     logs: t.nav.logs,
+    guide: t.nav.guide,
   };
 
   const items: ShellNavItem[] = [
@@ -33,6 +35,7 @@ export default function Dashboard() {
     { id: 'apikeys', label: tabLabels.apikeys },
     { id: 'agents', label: tabLabels.agents },
     { id: 'logs', label: tabLabels.logs },
+    { id: 'guide', label: tabLabels.guide },
   ];
 
   const tenantName = tenant?.name || t.nav.tenantFallback;
@@ -65,6 +68,7 @@ export default function Dashboard() {
       {activeTab === 'apikeys' && <ApiKeysTab />}
       {activeTab === 'agents' && <AgentsTab kind="tenant" />}
       {activeTab === 'logs' && <EmailLogsTab />}
+      {activeTab === 'guide' && <GuideTab kind="tenant" />}
     </AppShell>
   );
 }

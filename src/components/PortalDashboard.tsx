@@ -13,6 +13,7 @@ import PlatformBackupsTab from './PlatformBackupsTab';
 import PlatformSettingsTab, {
   type SettingsSection,
 } from './PlatformSettingsTab';
+import GuideTab from './GuideTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
 type Tab =
@@ -22,7 +23,8 @@ type Tab =
   | 'users'
   | 'agents'
   | 'backups'
-  | 'settings';
+  | 'settings'
+  | 'guide';
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
   'ses',
@@ -61,6 +63,7 @@ export default function PortalDashboard() {
     users: t.nav.users,
     agents: t.nav.agents,
     backups: t.nav.backups,
+    guide: t.nav.guide,
   };
 
   const items: ShellNavItem[] = [
@@ -75,6 +78,7 @@ export default function PortalDashboard() {
       label: t.nav.settings,
       children: settingsChildren,
     },
+    { id: 'guide', label: tabLabels.guide },
   ];
 
   const activeId = activeTab === 'settings'
@@ -106,6 +110,7 @@ export default function PortalDashboard() {
       || id === 'users'
       || id === 'agents'
       || id === 'backups'
+      || id === 'guide'
     ) {
       setActiveTab(id);
     }
@@ -132,6 +137,7 @@ export default function PortalDashboard() {
       {activeTab === 'settings' && (
         <PlatformSettingsTab section={settingsSection} />
       )}
+      {activeTab === 'guide' && <GuideTab kind="admin" />}
     </AppShell>
   );
 }

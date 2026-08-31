@@ -4,6 +4,10 @@ RelayHorizon releases, newest first. The console version in the top bar opens th
 
 The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
+## Unreleased
+
+- Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs).
+
 ## 1.9.0 — 2026-09-01
 
 First changelog-backed RelayHorizon release: portal ops, Dokploy-ready Compose, and RelayHorizon slugs.

@@ -1,5 +1,7 @@
 # Admin guide
 
+The same walkthrough is in the portal **Guide** tab. Tenant operators use **Guide** in the sending console.
+
 1. Start Postgres and the app ([docker.md](docker.md)).
 2. `POST /api/setup` once. If the response includes `mcpToken`, store that platform MCP token immediately.
 3. Log in as the platform admin. RelayHorizon opens the **Portal** (`/portal`), not the tenant console.

@@ -699,6 +699,21 @@ textarea {
   gap: 12px;
 }
 
+.guide {
+  display: grid;
+  gap: 12px;
+}
+
+.guide .cardbody p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.guide .cardbody p:last-child {
+  margin-bottom: 0;
+}
+
 .card {
   border: 1px solid var(--border);
   background: var(--surface);
