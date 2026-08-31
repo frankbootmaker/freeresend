@@ -5,6 +5,7 @@ import { usePrefs } from '@/contexts/PrefsContext';
 import { displayVersion } from '@/lib/releases';
 import OpsBrand from './ops/OpsBrand';
 import OpsPrefs from './ops/OpsPrefs';
+import ProfileMenu from './ops/ProfileMenu';
 import ReleaseNotes from './ReleaseNotes';
 
 export type ShellNavItem = {
@@ -109,6 +110,7 @@ export default function AppShell({
         <h1>{title}</h1>
         <div className="tools">
           <OpsPrefs />
+          <ProfileMenu onSignOut={onSignOut} />
         </div>
       </div>
       {drawer && (

@@ -7,6 +7,7 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 ## Unreleased
 
 - Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs).
+- Console profile menu with optional picture upload.
 
 ## 1.9.0 — 2026-09-01
 

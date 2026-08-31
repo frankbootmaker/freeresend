@@ -49,6 +49,7 @@ export interface User {
   email: string;
   password_hash: string;
   name?: string;
+  avatar?: string | null;
   is_platform_admin?: boolean;
   created_at: string;
   updated_at: string;

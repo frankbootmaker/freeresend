@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createUser, generateJWT, buildAuthUser } from '@/lib/auth';
 import { addMembership, createTenant, getMembershipsForUser } from '@/lib/tenants';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
+import { attachProfile } from '@/lib/profile';
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     return json({
       success: true,
       data: {
-        user: authUser,
+        user: await attachProfile(authUser),
         token: generateJWT(authUser),
         tenant,
         memberships,

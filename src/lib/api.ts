@@ -99,6 +99,17 @@ class ApiClient {
     return this.request("/auth/me");
   }
 
+  async updateProfile(payload: { name?: string; avatar?: string | null }) {
+    const response = await this.request("/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+    if (response.data?.token) {
+      this.setToken(response.data.token);
+    }
+    return response;
+  }
+
   async switchTenant(tenantId: string) {
     const response = await this.request("/auth/me", {
       method: "POST",

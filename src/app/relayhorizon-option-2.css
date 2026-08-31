@@ -688,6 +688,132 @@ textarea {
   border-color: var(--accent);
 }
 
+.profile-wrap {
+  position: relative;
+}
+
+.profile-btn {
+  width: 30px;
+  height: 30px;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  font: 700 10px var(--body);
+  color: var(--accent);
+  background: var(--surface-2);
+}
+
+.profile-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  width: 260px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 10px;
+}
+
+.profile-face {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-face strong {
+  display: block;
+  font-size: 13px;
+}
+
+.profile-face img,
+.profile-initials {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  object-fit: cover;
+}
+
+.profile-initials {
+  display: grid;
+  place-items: center;
+  font: 700 14px var(--body);
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.profile-email {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+}
+
+.profile-menu .cardlead {
+  margin: 0;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profile-actions button {
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px;
+  font: 600 11px var(--body);
+}
+
+.profile-menu label {
+  display: grid;
+  gap: 4px;
+  font: 600 11px var(--body);
+  color: var(--muted);
+}
+
+.profile-menu input[type='text'] {
+  min-height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.profile-menu .primary {
+  min-height: 32px;
+  height: 32px;
+  font: 700 12px var(--body);
+}
+
+.profile-note,
+.profile-error {
+  margin: 0;
+  font-size: 12px;
+}
+
+.profile-error {
+  color: var(--danger, #c23);
+}
+
+.profile-out {
+  justify-self: start;
+  padding: 0;
+  color: var(--muted);
+}
+
 .main {
   padding: 14px;
   overflow: auto;

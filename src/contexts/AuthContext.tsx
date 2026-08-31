@@ -7,6 +7,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name?: string;
+  avatar?: string | null;
   isPlatformAdmin?: boolean;
   tenantId?: string;
   membershipRole?: string;
@@ -39,6 +40,10 @@ interface AuthContextType {
     password: string;
   }) => Promise<void>;
   switchTenant: (tenantId: string) => Promise<void>;
+  updateProfile: (payload: {
+    name?: string;
+    avatar?: string | null;
+  }) => Promise<void>;
   logout: () => void;
 }
 
@@ -104,6 +109,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const updateProfile = async (payload: {
+    name?: string;
+    avatar?: string | null;
+  }) => {
+    const response = await api.updateProfile(payload);
+    applySession({
+      user: response.data.user,
+      tenant: response.data.tenant ?? tenant,
+      memberships: response.data.memberships ?? memberships,
+    });
+  };
+
   const logout = () => {
     api.clearToken();
     api.setTenantId(null);
@@ -122,6 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         switchTenant,
+        updateProfile,
         logout,
       }}
     >

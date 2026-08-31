@@ -29,6 +29,19 @@ type Dict = {
     changeLanguage: string;
     toggleTheme: string;
   };
+  profile: {
+    menu: string;
+    title: string;
+    name: string;
+    email: string;
+    picture: string;
+    changePicture: string;
+    removePicture: string;
+    save: string;
+    saved: string;
+    failed: string;
+    pictureHint: string;
+  };
   landing: {
     login: string;
     getStarted: string;
@@ -605,6 +618,19 @@ const en: Dict = {
     light: 'Light',
     changeLanguage: 'Change language',
     toggleTheme: 'Toggle theme',
+  },
+  profile: {
+    menu: 'Open profile',
+    title: 'Profile',
+    name: 'Name',
+    email: 'Email',
+    picture: 'Picture',
+    changePicture: 'Upload picture',
+    removePicture: 'Remove picture',
+    save: 'Save name',
+    saved: 'Profile saved.',
+    failed: 'Could not save profile.',
+    pictureHint: 'Optional picture. JPEG, PNG, or WebP, stored as a small square.',
   },
   landing: {
     login: 'Sign in',
@@ -1207,6 +1233,19 @@ const de: Dict = {
     light: 'Hell',
     changeLanguage: 'Sprache ändern',
     toggleTheme: 'Darstellung umschalten',
+  },
+  profile: {
+    menu: 'Profil öffnen',
+    title: 'Profil',
+    name: 'Name',
+    email: 'E-Mail',
+    picture: 'Bild',
+    changePicture: 'Bild hochladen',
+    removePicture: 'Bild entfernen',
+    save: 'Name speichern',
+    saved: 'Profil gespeichert.',
+    failed: 'Profil konnte nicht gespeichert werden.',
+    pictureHint: 'Optionales Bild. JPEG, PNG oder WebP, als kleines Quadrat gespeichert.',
   },
   landing: {
     login: 'Anmelden',
@@ -1812,6 +1851,19 @@ const hu: Dict = {
     light: 'Világos',
     changeLanguage: 'Nyelv váltása',
     toggleTheme: 'Téma váltása',
+  },
+  profile: {
+    menu: 'Profil megnyitása',
+    title: 'Profil',
+    name: 'Név',
+    email: 'E-mail',
+    picture: 'Kép',
+    changePicture: 'Kép feltöltése',
+    removePicture: 'Kép eltávolítása',
+    save: 'Név mentése',
+    saved: 'Profil mentve.',
+    failed: 'A profil mentése nem sikerült.',
+    pictureHint: 'Opcionális kép. JPEG, PNG vagy WebP, kis négyzetként tárolva.',
   },
   landing: {
     login: 'Belépés',

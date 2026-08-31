@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { authenticateUser, generateJWT } from '@/lib/auth';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
+import { attachProfile } from '@/lib/profile';
 import { getMembershipsForUser, getTenantById } from '@/lib/tenants';
 
 const loginSchema = z.object({
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     return json({
       success: true,
       data: {
-        user,
+        user: await attachProfile(user),
         token,
         memberships,
         tenant,
