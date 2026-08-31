@@ -4,6 +4,8 @@
 
 Portal **Logs** searches `email_logs` across tenants. Retention (keep days / strip bodies) is stored on `platform_settings`. **Rotate now** or `POST /api/cron/ops` with `x-cron-secret` runs purge and strip.
 
+On Dokploy, set `CRON_SECRET` and schedule an hourly HTTPS POST to `/api/cron/ops` with header `x-cron-secret`. Without cron, use Portal → Logs → Rotate now. Offsite dump push runs on the same endpoint.
+
 `GET /api/admin/logs/ops-export?days=7` downloads a redacted JSON snapshot (health, failed/bounced/complained rows, backup stamps). Raw `web` / `smtp` stdout stays in Dokploy.
 
 ## Backups

@@ -1,30 +1,40 @@
+# Interpolation (${POSTGRES_PASSWORD}, …) reads the project `.env` or the
+# Dokploy compose environment — not `.env.local`. Use a URL-safe password
+# (letters, numbers, hyphen, underscore). Override the default in production.
+#
+# Postgres is published on loopback only so local `npm run dev` can reach
+# :5436. Remove the postgres `ports` block on Dokploy if you want no host
+# mapping. Do not attach postgres to a shared Traefik/Dokploy network.
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: freeresend
-      POSTGRES_USER: freeresend
-      POSTGRES_PASSWORD: freeresend
+      POSTGRES_DB: ${POSTGRES_DB:-freeresend}
+      POSTGRES_USER: ${POSTGRES_USER:-freeresend}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-freeresend}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5436:5432"
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5436}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U freeresend"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-freeresend}"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   web:
     build: .
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${WEB_HOST_PORT:-3000}:3000"
     env_file:
-      - .env.local
+      - path: .env.local
+        required: false
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://freeresend:freeresend@postgres:5432/freeresend
+      DATABASE_URL: postgresql://${POSTGRES_USER:-freeresend}:${POSTGRES_PASSWORD:-freeresend}@postgres:5432/${POSTGRES_DB:-freeresend}
       DATABASE_SSL: "false"
       BACKUP_DIR: /backups
     volumes:
@@ -32,14 +42,26 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
     restart: unless-stopped
 
   mailhog:
     image: mailhog/mailhog:latest
     profiles: ["dev"]
     ports:
-      - "1026:1025"
-      - "8026:8025"
+      - "127.0.0.1:1026:1025"
+      - "127.0.0.1:8026:8025"
 
   smtp:
     profiles: ["smtp"]
@@ -47,13 +69,14 @@ services:
       context: .
       target: smtp
     ports:
-      - "2525:2525"
+      - "127.0.0.1:2525:2525"
       - "587:587"
       - "465:465"
     env_file:
-      - .env.local
+      - path: .env.local
+        required: false
     environment:
-      DATABASE_URL: postgresql://freeresend:freeresend@postgres:5432/freeresend
+      DATABASE_URL: postgresql://${POSTGRES_USER:-freeresend}:${POSTGRES_PASSWORD:-freeresend}@postgres:5432/${POSTGRES_DB:-freeresend}
       DATABASE_SSL: "false"
       SMTP_LISTEN_HOST: 0.0.0.0
       SMTP_LISTEN_PORTS: "2525,587"
@@ -70,9 +93,9 @@ services:
       BACKUP_DIR: /backups
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
-      POSTGRES_USER: freeresend
-      POSTGRES_DB: freeresend
-      POSTGRES_PASSWORD: freeresend
+      POSTGRES_USER: ${POSTGRES_USER:-freeresend}
+      POSTGRES_DB: ${POSTGRES_DB:-freeresend}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-freeresend}
       BACKUP_ENABLED: "true"
       BACKUP_INTERVAL_SECONDS: "86400"
     volumes:

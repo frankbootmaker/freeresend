@@ -17,4 +17,4 @@ The product was previously called OutPost. It was renamed to avoid colliding wit
 9. [Admin guide](admin-guide.md)
 10. [Security](security.md)
 
-TLS/Let's Encrypt and the SMTP *submission* gateway (port 587) are planned for a later iteration. Dokploy notes: [dokploy.md](dokploy.md).
+Dokploy Compose deploy: [dokploy.md](dokploy.md). Public SMTP 587/465 is optional (`smtp` profile) — HTTPS API sending does not need it.
