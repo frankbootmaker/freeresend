@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { verifyJWT, type AuthUser } from './auth';
+import { readPlatformAdminFlag, verifyJWT, type AuthUser } from './auth';
 import { verifyApiKey } from './api-keys';
 import { verifyMcpToken, type McpAuth } from './mcp-tokens';
 import { getTenantById, type Tenant } from './tenants';
@@ -61,6 +61,12 @@ export async function resolveTenantSession(
 
   const user = verifyJWT(token);
   if (!user) throw new AuthError('Invalid or expired token');
+
+  const liveAdmin = await readPlatformAdminFlag(user.id);
+  if (liveAdmin === null) {
+    throw new AuthError('Invalid or expired token');
+  }
+  user.isPlatformAdmin = liveAdmin;
 
   let tenantId = user.tenantId;
   if (overrideTenant) {

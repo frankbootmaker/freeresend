@@ -147,6 +147,35 @@ class ApiClient {
     });
   }
 
+  async listPlatformUsers() {
+    return this.request('/admin/users');
+  }
+
+  async createPlatformUser(payload: {
+    email: string;
+    name?: string;
+    password?: string;
+  }) {
+    return this.request('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updatePlatformUser(
+    id: string,
+    payload: { name?: string; password?: string },
+  ) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async revokePlatformUser(id: string) {
+    return this.request(`/admin/users/${id}`, { method: 'DELETE' });
+  }
+
   async getPlatformSettings() {
     return this.request("/admin/settings");
   }

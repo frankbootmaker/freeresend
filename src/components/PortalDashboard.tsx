@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import CustomersTab from './CustomersTab';
+import PlatformUsersTab from './PlatformUsersTab';
 import PlatformHealthTab from './PlatformHealthTab';
 import PlatformLogsTab from './PlatformLogsTab';
 import PlatformBackupsTab from './PlatformBackupsTab';
@@ -13,7 +14,7 @@ import PlatformSettingsTab, {
 } from './PlatformSettingsTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'health' | 'logs' | 'customers' | 'backups' | 'settings';
+type Tab = 'health' | 'logs' | 'customers' | 'users' | 'backups' | 'settings';
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
   'ses',
@@ -49,6 +50,7 @@ export default function PortalDashboard() {
     health: t.nav.health,
     logs: t.nav.logs,
     customers: t.nav.customers,
+    users: t.nav.users,
     backups: t.nav.backups,
   };
 
@@ -56,6 +58,7 @@ export default function PortalDashboard() {
     { id: 'health', label: tabLabels.health },
     { id: 'logs', label: tabLabels.logs },
     { id: 'customers', label: tabLabels.customers },
+    { id: 'users', label: tabLabels.users },
     { id: 'backups', label: tabLabels.backups },
     {
       id: 'settings',
@@ -90,6 +93,7 @@ export default function PortalDashboard() {
       id === 'health'
       || id === 'logs'
       || id === 'customers'
+      || id === 'users'
       || id === 'backups'
     ) {
       setActiveTab(id);
@@ -111,6 +115,7 @@ export default function PortalDashboard() {
       {activeTab === 'health' && <PlatformHealthTab />}
       {activeTab === 'logs' && <PlatformLogsTab />}
       {activeTab === 'customers' && <CustomersTab />}
+      {activeTab === 'users' && <PlatformUsersTab />}
       {activeTab === 'backups' && <PlatformBackupsTab />}
       {activeTab === 'settings' && (
         <PlatformSettingsTab section={settingsSection} />

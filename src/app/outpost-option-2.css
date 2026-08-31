@@ -42,6 +42,17 @@ a.brand {
   text-decoration: underline;
 }
 
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-actions input {
+  min-width: 140px;
+}
+
 .provision-action {
   background: transparent;
   border-color: transparent;

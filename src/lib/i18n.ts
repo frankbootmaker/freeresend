@@ -113,6 +113,7 @@ type Dict = {
     apiKeys: string;
     logs: string;
     customers: string;
+    users: string;
     health: string;
     backups: string;
     settings: string;
@@ -212,6 +213,32 @@ type Dict = {
     state: string;
     bothIngress: string;
     passwordPlaceholder: string;
+  };
+  users: {
+    addTitle: string;
+    addLead: string;
+    name: string;
+    namePlaceholder: string;
+    email: string;
+    password: string;
+    passwordPlaceholder: string;
+    addAction: string;
+    adding: string;
+    created: string;
+    promoted: string;
+    registry: string;
+    empty: string;
+    added: string;
+    you: string;
+    setPassword: string;
+    newPassword: string;
+    savePassword: string;
+    passwordUpdated: string;
+    cancel: string;
+    revoke: string;
+    revoking: string;
+    revoked: string;
+    failed: string;
   };
   portal: {
     kicker: string;
@@ -631,6 +658,7 @@ const en: Dict = {
     apiKeys: 'API Keys',
     logs: 'Logs',
     customers: 'Customers',
+    users: 'Users',
     health: 'Health',
     backups: 'Backups',
     settings: 'Configuration',
@@ -732,6 +760,33 @@ const en: Dict = {
     state: 'State',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Initial credential',
+  },
+  users: {
+    addTitle: 'Add platform user',
+    addLead:
+      'Create a new operator or grant portal access to an existing account.',
+    name: 'Name',
+    namePlaceholder: 'Ada Lovelace',
+    email: 'Email',
+    password: 'Password',
+    passwordPlaceholder: 'Required for a new account, 8+ characters',
+    addAction: 'Add user',
+    adding: 'Adding…',
+    created: 'Platform user created. They can sign in to the portal.',
+    promoted: 'Existing account granted portal access.',
+    registry: 'Platform users',
+    empty: 'No platform administrators yet.',
+    added: 'Added',
+    you: 'you',
+    setPassword: 'Password',
+    newPassword: 'New password',
+    savePassword: 'Save',
+    passwordUpdated: 'Password updated.',
+    cancel: 'Cancel',
+    revoke: 'Revoke',
+    revoking: 'Revoking…',
+    revoked: 'Platform access revoked.',
+    failed: 'User update failed',
   },
   portal: {
     kicker: 'Nethorizon / portal',
@@ -1168,6 +1223,7 @@ const de: Dict = {
     apiKeys: 'API-Schlüssel',
     logs: 'Protokolle',
     customers: 'Kunden',
+    users: 'Benutzer',
     health: 'Status',
     backups: 'Backups',
     settings: 'Konfiguration',
@@ -1271,6 +1327,33 @@ const de: Dict = {
     state: 'Status',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Anfangs-Zugangsdaten',
+  },
+  users: {
+    addTitle: 'Plattformbenutzer hinzufügen',
+    addLead:
+      'Neuen Operator anlegen oder einem bestehenden Konto Portalzugang geben.',
+    name: 'Name',
+    namePlaceholder: 'Ada Lovelace',
+    email: 'E-Mail',
+    password: 'Passwort',
+    passwordPlaceholder: 'Pflicht für ein neues Konto, mindestens 8 Zeichen',
+    addAction: 'Benutzer hinzufügen',
+    adding: 'Wird hinzugefügt…',
+    created: 'Plattformbenutzer angelegt. Anmeldung im Portal ist möglich.',
+    promoted: 'Bestehendes Konto hat jetzt Portalzugang.',
+    registry: 'Plattformbenutzer',
+    empty: 'Noch keine Plattformadministratoren.',
+    added: 'Hinzugefügt',
+    you: 'Sie',
+    setPassword: 'Passwort',
+    newPassword: 'Neues Passwort',
+    savePassword: 'Speichern',
+    passwordUpdated: 'Passwort aktualisiert.',
+    cancel: 'Abbrechen',
+    revoke: 'Entziehen',
+    revoking: 'Wird entzogen…',
+    revoked: 'Plattformzugang entzogen.',
+    failed: 'Benutzeränderung fehlgeschlagen',
   },
   portal: {
     kicker: 'Nethorizon / Portal',
@@ -1707,6 +1790,7 @@ const hu: Dict = {
     apiKeys: 'API-kulcsok',
     logs: 'Naplók',
     customers: 'Ügyfelek',
+    users: 'Felhasználók',
     health: 'Állapot',
     backups: 'Mentések',
     settings: 'Konfiguráció',
@@ -1810,6 +1894,33 @@ const hu: Dict = {
     state: 'Állapot',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Kezdő jelszó',
+  },
+  users: {
+    addTitle: 'Platformfelhasználó hozzáadása',
+    addLead:
+      'Új operátor létrehozása, vagy portálhozzáférés meglévő fióknak.',
+    name: 'Név',
+    namePlaceholder: 'Ada Lovelace',
+    email: 'E-mail',
+    password: 'Jelszó',
+    passwordPlaceholder: 'Új fióknál kötelező, legalább 8 karakter',
+    addAction: 'Felhasználó hozzáadása',
+    adding: 'Hozzáadás…',
+    created: 'Platformfelhasználó létrejött. Bejelentkezhet a portálra.',
+    promoted: 'A meglévő fiók megkapta a portálhozzáférést.',
+    registry: 'Platformfelhasználók',
+    empty: 'Még nincs platformadminisztrátor.',
+    added: 'Hozzáadva',
+    you: 'ön',
+    setPassword: 'Jelszó',
+    newPassword: 'Új jelszó',
+    savePassword: 'Mentés',
+    passwordUpdated: 'A jelszó frissült.',
+    cancel: 'Mégse',
+    revoke: 'Visszavonás',
+    revoking: 'Visszavonás…',
+    revoked: 'A platformhozzáférés visszavonva.',
+    failed: 'A felhasználó frissítése sikertelen',
   },
   portal: {
     kicker: 'Nethorizon / portál',

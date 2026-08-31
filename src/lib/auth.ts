@@ -151,6 +151,17 @@ export async function getUserById(id: string): Promise<AuthUser | null> {
   return buildAuthUser(id);
 }
 
+export async function readPlatformAdminFlag(
+  userId: string,
+): Promise<boolean | null> {
+  const result = await query(
+    'SELECT is_platform_admin FROM users WHERE id = $1',
+    [userId],
+  );
+  if (result.rows.length === 0) return null;
+  return Boolean(result.rows[0].is_platform_admin);
+}
+
 export async function initializeDefaultUser(): Promise<{
   created: boolean;
   mcpToken?: string;

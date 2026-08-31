@@ -14,7 +14,7 @@ Operators provision **tenants** (customers). Each tenant sends mail through a Re
 
 | Surface | Who | What it does |
 | --- | --- | --- |
-| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Configuration** sets installation-level SES, a shared SMTP relay, and alert addresses. |
+| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Users** adds or revokes other platform administrators. **Configuration** sets installation-level SES, a shared SMTP relay, and alert addresses. |
 | **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys**, **Logs**. Platform admins can switch back to the portal. |
 
 UI language: English, German, Hungarian. Theme toggle is in the shell.
