@@ -3,6 +3,8 @@ import { collectStandardMetrics, reportStats } from "@/lib/stats-reporter";
 import { collectUmamiMetrics, UMAMI_METRIC_DEFINITIONS } from "@/lib/stats-umami";
 import { collectStripeMetrics, STRIPE_METRIC_DEFINITIONS } from "@/lib/stats-stripe";
 import { customMetrics, metricDefinitions } from "@/config/stats";
+import { rotatePlatformLogs } from "@/lib/platform-logs";
+import { pushPendingDumps } from "@/lib/backup-offsite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,6 +22,15 @@ export async function POST(req: Request) {
 
   const dryRun = new URL(req.url).searchParams.get("dry") === "1";
 
+  const rotate = await rotatePlatformLogs().catch((error: Error) => ({
+    error: error.message,
+  }));
+  const offsite = await pushPendingDumps().catch((error: Error) => ({
+    error: error.message,
+    pushed: [] as string[],
+    skipped: false,
+  }));
+
   const dashboardUrl = process.env.STATS_DASHBOARD_URL;
   const slug = process.env.STATS_APP_SLUG;
   const secret = process.env.STATS_PUSH_SECRET;
@@ -29,6 +40,8 @@ export async function POST(req: Request) {
       ok: true,
       skipped: true,
       reason: "STATS_DASHBOARD_URL / STATS_APP_SLUG / STATS_PUSH_SECRET not all set",
+      rotate,
+      offsite,
     });
   }
 

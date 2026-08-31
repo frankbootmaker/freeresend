@@ -6,12 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import CustomersTab from './CustomersTab';
 import PlatformHealthTab from './PlatformHealthTab';
+import PlatformLogsTab from './PlatformLogsTab';
+import PlatformBackupsTab from './PlatformBackupsTab';
 import PlatformSettingsTab, {
   type SettingsSection,
 } from './PlatformSettingsTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'health' | 'customers' | 'settings';
+type Tab = 'health' | 'logs' | 'customers' | 'backups' | 'settings';
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
   'ses',
@@ -43,9 +45,18 @@ export default function PortalDashboard() {
     { id: 'settings-test', label: t.settings.testTitle },
   ];
 
+  const tabLabels: Record<Exclude<Tab, 'settings'>, string> = {
+    health: t.nav.health,
+    logs: t.nav.logs,
+    customers: t.nav.customers,
+    backups: t.nav.backups,
+  };
+
   const items: ShellNavItem[] = [
-    { id: 'health', label: t.nav.health },
-    { id: 'customers', label: t.nav.customers },
+    { id: 'health', label: tabLabels.health },
+    { id: 'logs', label: tabLabels.logs },
+    { id: 'customers', label: tabLabels.customers },
+    { id: 'backups', label: tabLabels.backups },
     {
       id: 'settings',
       label: t.nav.settings,
@@ -60,9 +71,7 @@ export default function PortalDashboard() {
   const title = activeTab === 'settings'
     ? settingsChildren.find((item) => item.id === activeId)?.label
       || t.nav.settings
-    : activeTab === 'health'
-      ? t.nav.health
-      : t.nav.customers;
+    : tabLabels[activeTab];
 
   const select = (id: string) => {
     if (id === 'settings') {
@@ -77,7 +86,12 @@ export default function PortalDashboard() {
       }
       return;
     }
-    if (id === 'health' || id === 'customers') {
+    if (
+      id === 'health'
+      || id === 'logs'
+      || id === 'customers'
+      || id === 'backups'
+    ) {
       setActiveTab(id);
     }
   };
@@ -95,7 +109,9 @@ export default function PortalDashboard() {
       onSignOut={logout}
     >
       {activeTab === 'health' && <PlatformHealthTab />}
+      {activeTab === 'logs' && <PlatformLogsTab />}
       {activeTab === 'customers' && <CustomersTab />}
+      {activeTab === 'backups' && <PlatformBackupsTab />}
       {activeTab === 'settings' && (
         <PlatformSettingsTab section={settingsSection} />
       )}

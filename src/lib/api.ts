@@ -253,6 +253,158 @@ class ApiClient {
   async getEmail(id: string) {
     return this.request(`/emails/${id}`);
   }
+
+  async getPlatformLogs(
+    params: Record<string, string | number | undefined> = {},
+  ) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== '') {
+        searchParams.append(key, String(value));
+      }
+    });
+    const query = searchParams.toString();
+    return this.request(`/admin/logs${query ? `?${query}` : ''}`);
+  }
+
+  async getPlatformLog(id: string) {
+    return this.request(`/admin/logs/${id}`);
+  }
+
+  async getLogRetention() {
+    return this.request('/admin/logs/retention');
+  }
+
+  async updateLogRetention(payload: {
+    keepDays: number;
+    stripBodyDays: number;
+  }) {
+    return this.request('/admin/logs/retention', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async rotatePlatformLogs() {
+    return this.request('/admin/logs/rotate', { method: 'POST' });
+  }
+
+  async downloadOpsExport(days = 7) {
+    await this.downloadBlob(
+      `/admin/logs/ops-export?days=${days}`,
+      `relayhorizon-ops-log-${days}d.json`,
+    );
+  }
+
+  async getBackups() {
+    return this.request('/admin/backups');
+  }
+
+  async exportBackup() {
+    return this.request('/admin/backups/export', { method: 'POST' });
+  }
+
+  async downloadBackup(name: string) {
+    await this.downloadBlob(
+      `/admin/backups/${encodeURIComponent(name)}`,
+      name,
+    );
+  }
+
+  async deleteBackup(name: string) {
+    return this.request(`/admin/backups/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async importBackup(file: File, confirm: string) {
+    const form = new FormData();
+    form.append('file', file);
+    form.append('confirm', confirm);
+    return this.requestForm('/admin/backups/import', form);
+  }
+
+  async updateBackupSchedule(payload: {
+    enabled: boolean;
+    intervalSeconds: number;
+  }) {
+    return this.request('/admin/backups/schedule', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateBackupRetention(payload: {
+    keepDaily: number;
+    keepWeekly: number;
+    keepMonthly: number;
+    autoRotate: boolean;
+  }) {
+    return this.request('/admin/backups/retention', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateBackupOffsite(payload: Record<string, unknown>) {
+    return this.request('/admin/backups/offsite', {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async testBackupOffsite() {
+    return this.request('/admin/backups/offsite/test', { method: 'POST' });
+  }
+
+  async pushBackupOffsite(name?: string) {
+    return this.request('/admin/backups/offsite/push', {
+      method: 'POST',
+      body: JSON.stringify(name ? { name } : {}),
+    });
+  }
+
+  private authHeaders(json = true): Record<string, string> {
+    const headers: Record<string, string> = {};
+    if (json) headers['Content-Type'] = 'application/json';
+    if (this.token) headers.Authorization = `Bearer ${this.token}`;
+    if (this.tenantId) headers['X-Tenant-Id'] = this.tenantId;
+    return headers;
+  }
+
+  private async requestForm(endpoint: string, form: FormData) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: this.authHeaders(false),
+      body: form,
+    });
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Network error' }));
+      throw new Error(error.error || 'Request failed');
+    }
+    return response.json();
+  }
+
+  private async downloadBlob(endpoint: string, filename: string) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      headers: this.authHeaders(false),
+    });
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: 'Network error' }));
+      throw new Error(error.error || 'Download failed');
+    }
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 }
 
 export const api = new ApiClient();

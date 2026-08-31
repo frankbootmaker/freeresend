@@ -13,7 +13,8 @@ The product was previously called OutPost. It was renamed to avoid colliding wit
 5. [API](api.md)
 6. [MCP](mcp.md)
 7. [Docker](docker.md)
-8. [Admin guide](admin-guide.md)
-9. [Security](security.md)
+8. [Operations](operations.md) — platform logs, dump/restore, S3 offsite
+9. [Admin guide](admin-guide.md)
+10. [Security](security.md)
 
 TLS/Let's Encrypt and the SMTP *submission* gateway (port 587) are planned for a later iteration. Dokploy notes: [dokploy.md](dokploy.md).

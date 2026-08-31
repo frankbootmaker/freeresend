@@ -1,0 +1,71 @@
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+
+export const RETENTION_FILE = 'retention.json';
+
+export type BackupRetentionPolicy = {
+  keepDaily: number;
+  keepWeekly: number;
+  keepMonthly: number;
+  autoRotate: boolean;
+};
+
+function clampInt(value: unknown, min: number, max: number, fallback: number) {
+  const n = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(n)));
+}
+
+export function envRetentionDefaults(
+  env: Record<string, string | undefined> = process.env,
+): BackupRetentionPolicy {
+  return {
+    keepDaily: clampInt(env.BACKUP_KEEP_DAILY, 1, 90, 7),
+    keepWeekly: clampInt(env.BACKUP_KEEP_WEEKLY, 0, 52, 4),
+    keepMonthly: clampInt(env.BACKUP_KEEP_MONTHLY, 0, 36, 3),
+    autoRotate: (env.BACKUP_AUTO_ROTATE ?? 'true') !== 'false',
+  };
+}
+
+export async function readRetentionPolicy(
+  backupDir: string,
+  envDefaults: BackupRetentionPolicy = envRetentionDefaults(),
+): Promise<{ policy: BackupRetentionPolicy; source: 'file' | 'env' }> {
+  try {
+    const raw = await fs.readFile(path.join(backupDir, RETENTION_FILE), 'utf8');
+    const parsed = JSON.parse(raw) as Partial<BackupRetentionPolicy>;
+    return {
+      source: 'file',
+      policy: {
+        keepDaily: clampInt(parsed.keepDaily, 1, 90, envDefaults.keepDaily),
+        keepWeekly: clampInt(parsed.keepWeekly, 0, 52, envDefaults.keepWeekly),
+        keepMonthly: clampInt(parsed.keepMonthly, 0, 36, envDefaults.keepMonthly),
+        autoRotate:
+          typeof parsed.autoRotate === 'boolean'
+            ? parsed.autoRotate
+            : envDefaults.autoRotate,
+      },
+    };
+  } catch {
+    return { source: 'env', policy: { ...envDefaults } };
+  }
+}
+
+export async function writeRetentionPolicy(
+  backupDir: string,
+  policy: BackupRetentionPolicy,
+): Promise<BackupRetentionPolicy> {
+  await fs.mkdir(backupDir, { recursive: true });
+  const normalized: BackupRetentionPolicy = {
+    keepDaily: clampInt(policy.keepDaily, 1, 90, 7),
+    keepWeekly: clampInt(policy.keepWeekly, 0, 52, 4),
+    keepMonthly: clampInt(policy.keepMonthly, 0, 36, 3),
+    autoRotate: Boolean(policy.autoRotate),
+  };
+  await fs.writeFile(
+    path.join(backupDir, RETENTION_FILE),
+    `${JSON.stringify(normalized, null, 2)}\n`,
+    'utf8',
+  );
+  return normalized;
+}

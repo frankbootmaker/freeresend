@@ -114,6 +114,7 @@ type Dict = {
     logs: string;
     customers: string;
     health: string;
+    backups: string;
     settings: string;
     signOut: string;
     switchTenant: string;
@@ -303,6 +304,7 @@ type Dict = {
     database: string;
     ses: string;
     smtp: string;
+    backup: string;
     ok: string;
     warn: string;
     down: string;
@@ -318,6 +320,12 @@ type Dict = {
     detailSmtpOff: string;
     detailSmtpNoHost: string;
     detailNotChecked: string;
+    detailBackupFresh: string;
+    detailBackupStale: string;
+    detailBackupFailed: string;
+    detailBackupMissing: string;
+    detailBackupSchedulerMissing: string;
+    lastDump: (when: string) => string;
     volume24h: string;
     volume7d: string;
     total: string;
@@ -447,6 +455,80 @@ type Dict = {
     noSubject: string;
     loadFailed: string;
   };
+  portalLogs: {
+    searchTitle: string;
+    searchLead: string;
+    anyTenant: string;
+    retainTitle: string;
+    retainLead: string;
+    keepDays: string;
+    stripDays: string;
+    saveRetention: string;
+    rotateNow: string;
+    exportOps: string;
+    retentionSaved: string;
+    rotated: (purged: number, stripped: number) => string;
+    lastRotate: (when: string, purged: number, stripped: number) => string;
+    failed: string;
+  };
+  backups: {
+    statusTitle: string;
+    statusLead: string;
+    lastSuccess: string;
+    scheduler: string;
+    schedulerMissing: string;
+    lastOffsite: string;
+    stale: string;
+    exportNow: string;
+    exported: string;
+    scheduleTitle: string;
+    scheduleEnabled: string;
+    interval: string;
+    saveSchedule: string;
+    scheduleSaved: string;
+    on: string;
+    off: string;
+    retentionTitle: string;
+    keepDaily: string;
+    keepWeekly: string;
+    keepMonthly: string;
+    autoRotate: string;
+    saveRetention: string;
+    retentionSaved: string;
+    artifactsTitle: string;
+    emptyTitle: string;
+    emptyBody: string;
+    artifact: string;
+    size: string;
+    modified: string;
+    download: string;
+    push: string;
+    delete: string;
+    deleted: string;
+    pushed: string;
+    importTitle: string;
+    importLead: string;
+    importFile: string;
+    confirmReplace: string;
+    importNow: string;
+    imported: string;
+    offsiteTitle: string;
+    offsiteLead: string;
+    offsiteEnabled: string;
+    endpoint: string;
+    region: string;
+    bucket: string;
+    prefix: string;
+    accessKey: string;
+    secretKey: string;
+    pathStyle: string;
+    saveOffsite: string;
+    offsiteSaved: string;
+    testOffsite: string;
+    testOk: string;
+    pushLatest: string;
+    failed: string;
+  };
 };
 
 const en: Dict = {
@@ -550,6 +632,7 @@ const en: Dict = {
     logs: 'Logs',
     customers: 'Customers',
     health: 'Health',
+    backups: 'Backups',
     settings: 'Configuration',
     signOut: 'Sign out',
     switchTenant: 'Switch tenant',
@@ -744,7 +827,7 @@ const en: Dict = {
   },
   health: {
     title: 'Health',
-    lead: 'Database, egress, and recent delivery across all tenants.',
+    lead: 'Database, egress, backups, and recent delivery across all tenants.',
     refresh: 'Refresh',
     loading: 'Checking…',
     failed: 'Health check failed',
@@ -753,6 +836,7 @@ const en: Dict = {
     database: 'Database',
     ses: 'Amazon SES',
     smtp: 'SMTP relay',
+    backup: 'Backups',
     ok: 'OK',
     warn: 'Warn',
     down: 'Down',
@@ -768,6 +852,12 @@ const en: Dict = {
     detailSmtpOff: 'Relay is disabled',
     detailSmtpNoHost: 'Enabled without a host',
     detailNotChecked: 'Not checked',
+    detailBackupFresh: 'Last dump succeeded',
+    detailBackupStale: 'Last dump is older than the stale threshold',
+    detailBackupFailed: 'Last scheduled dump failed',
+    detailBackupMissing: 'No dump has been recorded',
+    detailBackupSchedulerMissing: 'Backup scheduler is not detected',
+    lastDump: (when) => `Last dump ${when}`,
     volume24h: 'Last 24 hours',
     volume7d: 'Last 7 days',
     total: 'Total',
@@ -898,6 +988,84 @@ const en: Dict = {
     noSubject: '(No subject)',
     loadFailed: 'Failed to load email details',
   },
+  portalLogs: {
+    searchTitle: 'Delivery search',
+    searchLead: 'Search every tenant send. Bodies are omitted from the list.',
+    anyTenant: 'Any tenant',
+    retainTitle: 'Retention and export',
+    retainLead:
+      'Purge old rows or strip HTML/text after a number of days. 0 disables that step. Container stdout stays in Dokploy.',
+    keepDays: 'Keep rows (days)',
+    stripDays: 'Strip bodies after (days)',
+    saveRetention: 'Save retention',
+    rotateNow: 'Rotate now',
+    exportOps: 'Export ops log',
+    retentionSaved: 'Retention saved.',
+    rotated: (purged, stripped) =>
+      `Rotated: ${purged} purged, ${stripped} stripped.`,
+    lastRotate: (when, purged, stripped) =>
+      `Last rotate ${when}: ${purged} purged, ${stripped} stripped.`,
+    failed: 'Could not load platform logs',
+  },
+  backups: {
+    statusTitle: 'Database backups',
+    statusLead:
+      'Full Postgres dumps. Treat them as secrets. Restore replaces this instance.',
+    lastSuccess: 'Last success',
+    scheduler: 'Scheduler',
+    schedulerMissing: 'Not detected — start the db-backup service',
+    lastOffsite: 'Last offsite push',
+    stale: 'stale',
+    exportNow: 'Export now',
+    exported: 'Dump written.',
+    scheduleTitle: 'Schedule',
+    scheduleEnabled: 'Scheduled dumps',
+    interval: 'Interval',
+    saveSchedule: 'Save schedule',
+    scheduleSaved: 'Schedule saved.',
+    on: 'On',
+    off: 'Off',
+    retentionTitle: 'Dump rotation',
+    keepDaily: 'Daily keep',
+    keepWeekly: 'Weekly keep',
+    keepMonthly: 'Monthly keep',
+    autoRotate: 'Auto-rotate',
+    saveRetention: 'Save rotation',
+    retentionSaved: 'Rotation saved.',
+    artifactsTitle: 'Local dumps',
+    emptyTitle: 'No dumps yet',
+    emptyBody: 'Export now or wait for the scheduled sidecar.',
+    artifact: 'File',
+    size: 'Size',
+    modified: 'Modified',
+    download: 'Download',
+    push: 'Push',
+    delete: 'Delete',
+    deleted: 'Dump deleted.',
+    pushed: 'Pushed offsite.',
+    importTitle: 'Restore',
+    importLead: 'Type REPLACE. This wipes the current database.',
+    importFile: 'Dump file',
+    confirmReplace: 'Confirm',
+    importNow: 'Import and replace',
+    imported: 'Database replaced. Restart web if pools stall.',
+    offsiteTitle: 'S3-compatible offsite',
+    offsiteLead: 'Optional remote copy after each export. Empty secrets keep the stored value.',
+    offsiteEnabled: 'Offsite upload',
+    endpoint: 'Endpoint',
+    region: 'Region',
+    bucket: 'Bucket',
+    prefix: 'Prefix',
+    accessKey: 'Access key',
+    secretKey: 'Secret key',
+    pathStyle: 'Path-style URL',
+    saveOffsite: 'Save offsite',
+    offsiteSaved: 'Offsite settings saved.',
+    testOffsite: 'Test connection',
+    testOk: 'Bucket reachable.',
+    pushLatest: 'Push latest',
+    failed: 'Backup request failed',
+  },
 };
 
 const de: Dict = {
@@ -1001,6 +1169,7 @@ const de: Dict = {
     logs: 'Protokolle',
     customers: 'Kunden',
     health: 'Status',
+    backups: 'Backups',
     settings: 'Konfiguration',
     signOut: 'Abmelden',
     switchTenant: 'Mandant wechseln',
@@ -1197,7 +1366,7 @@ const de: Dict = {
   },
   health: {
     title: 'Status',
-    lead: 'Datenbank, Ausgang und letzte Zustellung über alle Mandanten.',
+    lead: 'Datenbank, Ausgang, Backups und letzte Zustellung über alle Mandanten.',
     refresh: 'Aktualisieren',
     loading: 'Prüfung…',
     failed: 'Statusprüfung fehlgeschlagen',
@@ -1206,6 +1375,7 @@ const de: Dict = {
     database: 'Datenbank',
     ses: 'Amazon SES',
     smtp: 'SMTP-Relay',
+    backup: 'Backups',
     ok: 'OK',
     warn: 'Warnung',
     down: 'Aus',
@@ -1221,6 +1391,12 @@ const de: Dict = {
     detailSmtpOff: 'Relay ist deaktiviert',
     detailSmtpNoHost: 'Aktiv, aber ohne Host',
     detailNotChecked: 'Nicht geprüft',
+    detailBackupFresh: 'Letztes Dump erfolgreich',
+    detailBackupStale: 'Letztes Dump ist älter als der Schwellenwert',
+    detailBackupFailed: 'Letztes geplantes Dump fehlgeschlagen',
+    detailBackupMissing: 'Kein Dump vorhanden',
+    detailBackupSchedulerMissing: 'Backup-Planer nicht erkannt',
+    lastDump: (when) => `Letztes Dump ${when}`,
     volume24h: 'Letzte 24 Stunden',
     volume7d: 'Letzte 7 Tage',
     total: 'Gesamt',
@@ -1351,6 +1527,84 @@ const de: Dict = {
     noSubject: '(Kein Betreff)',
     loadFailed: 'E-Mail-Details konnten nicht geladen werden',
   },
+  portalLogs: {
+    searchTitle: 'Zustellsuche',
+    searchLead: 'Suche über alle Mandanten. Textkörper fehlen in der Liste.',
+    anyTenant: 'Alle Mandanten',
+    retainTitle: 'Aufbewahrung und Export',
+    retainLead:
+      'Alte Zeilen löschen oder HTML/Text nach Tagen entfernen. 0 deaktiviert den Schritt. Container-Logs bleiben in Dokploy.',
+    keepDays: 'Zeilen behalten (Tage)',
+    stripDays: 'Körper entfernen nach (Tagen)',
+    saveRetention: 'Aufbewahrung speichern',
+    rotateNow: 'Jetzt rotieren',
+    exportOps: 'Ops-Log exportieren',
+    retentionSaved: 'Aufbewahrung gespeichert.',
+    rotated: (purged, stripped) =>
+      `Rotiert: ${purged} gelöscht, ${stripped} bereinigt.`,
+    lastRotate: (when, purged, stripped) =>
+      `Letzte Rotation ${when}: ${purged} gelöscht, ${stripped} bereinigt.`,
+    failed: 'Plattform-Logs konnten nicht geladen werden',
+  },
+  backups: {
+    statusTitle: 'Datenbank-Backups',
+    statusLead:
+      'Vollständige Postgres-Dumps. Als Geheimnisse behandeln. Restore ersetzt diese Instanz.',
+    lastSuccess: 'Letzter Erfolg',
+    scheduler: 'Planer',
+    schedulerMissing: 'Nicht erkannt — db-backup starten',
+    lastOffsite: 'Letzter Offsite-Push',
+    stale: 'veraltet',
+    exportNow: 'Jetzt exportieren',
+    exported: 'Dump geschrieben.',
+    scheduleTitle: 'Zeitplan',
+    scheduleEnabled: 'Geplante Dumps',
+    interval: 'Intervall',
+    saveSchedule: 'Zeitplan speichern',
+    scheduleSaved: 'Zeitplan gespeichert.',
+    on: 'An',
+    off: 'Aus',
+    retentionTitle: 'Dump-Rotation',
+    keepDaily: 'Täglich behalten',
+    keepWeekly: 'Wöchentlich behalten',
+    keepMonthly: 'Monatlich behalten',
+    autoRotate: 'Automatisch rotieren',
+    saveRetention: 'Rotation speichern',
+    retentionSaved: 'Rotation gespeichert.',
+    artifactsTitle: 'Lokale Dumps',
+    emptyTitle: 'Noch keine Dumps',
+    emptyBody: 'Jetzt exportieren oder auf den Sidecar warten.',
+    artifact: 'Datei',
+    size: 'Größe',
+    modified: 'Geändert',
+    download: 'Download',
+    push: 'Push',
+    delete: 'Löschen',
+    deleted: 'Dump gelöscht.',
+    pushed: 'Offsite übertragen.',
+    importTitle: 'Wiederherstellen',
+    importLead: 'REPLACE eingeben. Das aktuelle Datenbank wird geleert.',
+    importFile: 'Dump-Datei',
+    confirmReplace: 'Bestätigen',
+    importNow: 'Importieren und ersetzen',
+    imported: 'Datenbank ersetzt. Web neu starten, falls Pools hängen.',
+    offsiteTitle: 'S3-kompatibles Offsite',
+    offsiteLead: 'Optionale Fernkopie nach jedem Export. Leere Geheimnisse bleiben gespeichert.',
+    offsiteEnabled: 'Offsite-Upload',
+    endpoint: 'Endpunkt',
+    region: 'Region',
+    bucket: 'Bucket',
+    prefix: 'Präfix',
+    accessKey: 'Access Key',
+    secretKey: 'Secret Key',
+    pathStyle: 'Path-Style-URL',
+    saveOffsite: 'Offsite speichern',
+    offsiteSaved: 'Offsite gespeichert.',
+    testOffsite: 'Verbindung testen',
+    testOk: 'Bucket erreichbar.',
+    pushLatest: 'Letzten pushen',
+    failed: 'Backup-Anfrage fehlgeschlagen',
+  },
 };
 
 const hu: Dict = {
@@ -1454,6 +1708,7 @@ const hu: Dict = {
     logs: 'Naplók',
     customers: 'Ügyfelek',
     health: 'Állapot',
+    backups: 'Mentések',
     settings: 'Konfiguráció',
     signOut: 'Kilépés',
     switchTenant: 'Bérlő váltása',
@@ -1650,7 +1905,7 @@ const hu: Dict = {
   },
   health: {
     title: 'Állapot',
-    lead: 'Adatbázis, kimenet és közelmúltbeli kézbesítés az összes bérlőn.',
+    lead: 'Adatbázis, kimenet, mentések és közelmúltbeli kézbesítés az összes bérlőn.',
     refresh: 'Frissítés',
     loading: 'Ellenőrzés…',
     failed: 'Az állapotellenőrzés sikertelen',
@@ -1659,6 +1914,7 @@ const hu: Dict = {
     database: 'Adatbázis',
     ses: 'Amazon SES',
     smtp: 'SMTP-relé',
+    backup: 'Mentések',
     ok: 'OK',
     warn: 'Figyelmeztetés',
     down: 'Leállt',
@@ -1674,6 +1930,12 @@ const hu: Dict = {
     detailSmtpOff: 'A relé ki van kapcsolva',
     detailSmtpNoHost: 'Bekapcsolva, de nincs gép',
     detailNotChecked: 'Nincs ellenőrizve',
+    detailBackupFresh: 'Az utolsó dump sikeres',
+    detailBackupStale: 'Az utolsó dump régebbi a küszöbnél',
+    detailBackupFailed: 'Az utolsó ütemezett dump sikertelen',
+    detailBackupMissing: 'Még nincs dump',
+    detailBackupSchedulerMissing: 'A mentésütemező nem észlelhető',
+    lastDump: (when) => `Utolsó dump: ${when}`,
     volume24h: 'Elmúlt 24 óra',
     volume7d: 'Elmúlt 7 nap',
     total: 'Összesen',
@@ -1803,6 +2065,84 @@ const hu: Dict = {
     close: 'Bezárás',
     noSubject: '(Nincs tárgy)',
     loadFailed: 'Az e-mail részletei nem tölthetők be',
+  },
+  portalLogs: {
+    searchTitle: 'Kézbesítés keresése',
+    searchLead: 'Keresés az összes bérlő küldéseiben. A lista nem tartalmaz törzset.',
+    anyTenant: 'Bármely bérlő',
+    retainTitle: 'Megőrzés és export',
+    retainLead:
+      'Régi sorok törlése vagy HTML/szöveg eltávolítása napok után. 0 kikapcsolja. A konténer-stdout a Dokployban marad.',
+    keepDays: 'Sorok megőrzése (nap)',
+    stripDays: 'Törzs törlése ennyi nap után',
+    saveRetention: 'Megőrzés mentése',
+    rotateNow: 'Forgatás most',
+    exportOps: 'Ops napló export',
+    retentionSaved: 'Megőrzés mentve.',
+    rotated: (purged, stripped) =>
+      `Forgatva: ${purged} törölve, ${stripped} tisztítva.`,
+    lastRotate: (when, purged, stripped) =>
+      `Utolsó forgatás ${when}: ${purged} törölve, ${stripped} tisztítva.`,
+    failed: 'A platformnaplók nem tölthetők be',
+  },
+  backups: {
+    statusTitle: 'Adatbázis-mentések',
+    statusLead:
+      'Teljes Postgres dumpok. Titokként kezeld. A visszaállítás lecseréli ezt a példányt.',
+    lastSuccess: 'Utolsó siker',
+    scheduler: 'Ütemező',
+    schedulerMissing: 'Nincs észlelve — indítsd a db-backup szolgáltatást',
+    lastOffsite: 'Utolsó külső feltöltés',
+    stale: 'elavult',
+    exportNow: 'Export most',
+    exported: 'Dump kész.',
+    scheduleTitle: 'Ütemezés',
+    scheduleEnabled: 'Ütemezett dumpok',
+    interval: 'Intervallum',
+    saveSchedule: 'Ütemezés mentése',
+    scheduleSaved: 'Ütemezés mentve.',
+    on: 'Be',
+    off: 'Ki',
+    retentionTitle: 'Dump forgatás',
+    keepDaily: 'Napi megtartás',
+    keepWeekly: 'Heti megtartás',
+    keepMonthly: 'Havi megtartás',
+    autoRotate: 'Automatikus forgatás',
+    saveRetention: 'Forgatás mentése',
+    retentionSaved: 'Forgatás mentve.',
+    artifactsTitle: 'Helyi dumpok',
+    emptyTitle: 'Még nincs dump',
+    emptyBody: 'Exportálj most, vagy várd a sidecar-t.',
+    artifact: 'Fájl',
+    size: 'Méret',
+    modified: 'Módosítva',
+    download: 'Letöltés',
+    push: 'Küldés',
+    delete: 'Törlés',
+    deleted: 'Dump törölve.',
+    pushed: 'Külső tárhelyre küldve.',
+    importTitle: 'Visszaállítás',
+    importLead: 'Írd be: REPLACE. Ez kiüríti a jelenlegi adatbázist.',
+    importFile: 'Dump fájl',
+    confirmReplace: 'Megerősítés',
+    importNow: 'Import és csere',
+    imported: 'Adatbázis cserélve. Indítsd újra a webet, ha a pool elakad.',
+    offsiteTitle: 'S3-kompatibilis külső tár',
+    offsiteLead: 'Opcionális távoli másolat minden export után. Üres titok megtartja a tárolt értéket.',
+    offsiteEnabled: 'Külső feltöltés',
+    endpoint: 'Végpont',
+    region: 'Régió',
+    bucket: 'Bucket',
+    prefix: 'Előtag',
+    accessKey: 'Access key',
+    secretKey: 'Secret key',
+    pathStyle: 'Path-style URL',
+    saveOffsite: 'Külső tár mentése',
+    offsiteSaved: 'Külső tár mentve.',
+    testOffsite: 'Kapcsolat teszt',
+    testOk: 'A bucket elérhető.',
+    pushLatest: 'Legutóbbi küldése',
+    failed: 'A mentési kérés sikertelen',
   },
 };
 

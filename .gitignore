@@ -43,6 +43,9 @@ next-env.d.ts
 !.yarn/releases
 !.yarn/versions
 
+# local database dumps (contain secrets)
+/backups
+
 # secrets and sensitive files
 docs/marketing/*
 k8s/secret.yaml

@@ -1,19 +1,36 @@
 import { query } from './database';
 import { getResolvedPlatformSettings } from './platform-settings';
 import { getSesSendQuota } from './ses';
+import {
+  backupDir,
+  readStamp,
+  staleAfterHours,
+} from './backups';
+import { readSchedulePolicy } from './backup-schedule';
 
 export type HealthState = 'ok' | 'warn' | 'down' | 'off';
 export type OverallHealth = 'ok' | 'degraded' | 'down';
 
+export type HealthCheckId = 'database' | 'ses' | 'smtp' | 'backup';
+
 export type HealthCheck = {
-  id: 'database' | 'ses' | 'smtp';
+  id: HealthCheckId;
   state: HealthState;
   detail: string;
   latencyMs?: number;
   region?: string;
   max24HourSend?: number;
   sentLast24Hours?: number;
+  lastSuccessAt?: string;
 };
+
+export const BACKUP_HEALTH_DETAIL = {
+  fresh: 'Last dump succeeded',
+  stale: 'Last dump is older than the stale threshold',
+  failed: 'Last scheduled dump failed',
+  missing: 'No dump has been recorded',
+  schedulerMissing: 'Backup scheduler is not detected',
+} as const;
 
 export type StatusCounts = Record<string, number>;
 
@@ -167,6 +184,68 @@ function checkSmtp(
   };
 }
 
+export function backupHealthFromStamps(input: {
+  lastSuccessAt?: string | null;
+  lastFailureAt?: string | null;
+  heartbeatAt?: string | null;
+  scheduleEnabled: boolean;
+  staleAfterHours: number;
+  now?: number;
+}): { state: HealthState; detail: string } {
+  const now = input.now ?? Date.now();
+  const successMs = input.lastSuccessAt ? Date.parse(input.lastSuccessAt) : NaN;
+  const failureMs = input.lastFailureAt ? Date.parse(input.lastFailureAt) : NaN;
+  const hasSuccess = Number.isFinite(successMs);
+  const hasFailure = Number.isFinite(failureMs);
+
+  if (hasFailure && (!hasSuccess || failureMs > successMs)) {
+    return { state: 'down', detail: BACKUP_HEALTH_DETAIL.failed };
+  }
+  if (!hasSuccess) {
+    return { state: 'warn', detail: BACKUP_HEALTH_DETAIL.missing };
+  }
+
+  const ageHours = (now - successMs) / 3_600_000;
+  if (ageHours > input.staleAfterHours) {
+    return { state: 'warn', detail: BACKUP_HEALTH_DETAIL.stale };
+  }
+  if (input.scheduleEnabled && !input.heartbeatAt) {
+    return { state: 'warn', detail: BACKUP_HEALTH_DETAIL.schedulerMissing };
+  }
+  return { state: 'ok', detail: BACKUP_HEALTH_DETAIL.fresh };
+}
+
+async function checkBackup(): Promise<HealthCheck> {
+  try {
+    const dir = backupDir();
+    const [lastSuccess, lastFailure, heartbeat, schedule] = await Promise.all([
+      readStamp(dir, 'last-success.json'),
+      readStamp(dir, 'last-failure.json'),
+      readStamp(dir, 'scheduler-heartbeat.json'),
+      readSchedulePolicy(dir),
+    ]);
+    const result = backupHealthFromStamps({
+      lastSuccessAt: lastSuccess?.at,
+      lastFailureAt: lastFailure?.at,
+      heartbeatAt: heartbeat?.at,
+      scheduleEnabled: schedule.policy.enabled,
+      staleAfterHours: staleAfterHours(),
+    });
+    return {
+      id: 'backup',
+      state: result.state,
+      detail: result.detail,
+      lastSuccessAt: lastSuccess?.at,
+    };
+  } catch (error: unknown) {
+    return {
+      id: 'backup',
+      state: 'warn',
+      detail: (error as { message?: string }).message || 'Backup check failed',
+    };
+  }
+}
+
 function emptyHealth(checks: HealthCheck[]): PlatformHealth {
   return {
     overall: overallFromChecks(checks),
@@ -185,12 +264,16 @@ function emptyHealth(checks: HealthCheck[]): PlatformHealth {
 export async function getPlatformHealth(): Promise<PlatformHealth> {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const database = await checkDatabase();
+  const [database, backup] = await Promise.all([
+    checkDatabase(),
+    checkBackup(),
+  ]);
   if (database.state === 'down') {
     return emptyHealth([
       database,
       { id: 'ses', state: 'warn', detail: 'Not checked' },
       { id: 'smtp', state: 'warn', detail: 'Not checked' },
+      backup,
     ]);
   }
 
@@ -260,7 +343,7 @@ export async function getPlatformHealth(): Promise<PlatformHealth> {
   ]);
 
   const smtp = checkSmtp(platform.smtpEnabled, platform.smtpHost);
-  const checks = [database, ses, smtp];
+  const checks = [database, ses, smtp, backup];
   const tenantCounts = countsFromRows(tenantsRes.rows);
   const domainCounts = countsFromRows(domainsRes.rows);
 

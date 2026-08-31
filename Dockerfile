@@ -16,6 +16,8 @@ RUN npm run build
 FROM base AS production
 WORKDIR /app
 
+RUN apk add --no-cache postgresql16-client
+
 ENV NODE_ENV=production
 
 COPY --from=builder /app/public ./public

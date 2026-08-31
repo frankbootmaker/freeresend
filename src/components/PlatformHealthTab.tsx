@@ -59,6 +59,7 @@ export default function PlatformHealthTab() {
   const checkTitle = (id: HealthCheck['id']) => {
     if (id === 'database') return t.health.database;
     if (id === 'ses') return t.health.ses;
+    if (id === 'backup') return t.health.backup;
     return t.health.smtp;
   };
 
@@ -71,6 +72,11 @@ export default function PlatformHealthTab() {
       'Relay is disabled': t.health.detailSmtpOff,
       'Enabled without a host': t.health.detailSmtpNoHost,
       'Not checked': t.health.detailNotChecked,
+      'Last dump succeeded': t.health.detailBackupFresh,
+      'Last dump is older than the stale threshold': t.health.detailBackupStale,
+      'Last scheduled dump failed': t.health.detailBackupFailed,
+      'No dump has been recorded': t.health.detailBackupMissing,
+      'Backup scheduler is not detected': t.health.detailBackupSchedulerMissing,
     };
     return labels[detail] || detail;
   };
@@ -165,6 +171,11 @@ export default function PlatformHealthTab() {
                     {check.latencyMs !== undefined && (
                       <p className="muted">
                         {t.health.latency(check.latencyMs)}
+                      </p>
+                    )}
+                    {check.lastSuccessAt && (
+                      <p className="muted">
+                        {t.health.lastDump(formatWhen(check.lastSuccessAt))}
                       </p>
                     )}
                     {check.region && (

@@ -138,6 +138,7 @@ CREATE INDEX IF NOT EXISTS idx_domains_domain ON domains(domain);
 CREATE INDEX IF NOT EXISTS idx_api_keys_tenant ON api_keys(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
 CREATE INDEX IF NOT EXISTS idx_email_logs_tenant_created ON email_logs(tenant_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_email_logs_created ON email_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(tenant_id, status);
 CREATE INDEX IF NOT EXISTS idx_mcp_tokens_prefix ON mcp_tokens(key_prefix);
 
@@ -205,6 +206,19 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   smtp_ingress_ispconfig_user TEXT,
   smtp_ingress_ispconfig_password TEXT,
   smtp_ingress_ispconfig_insecure BOOLEAN NOT NULL DEFAULT FALSE,
+  log_retention_days INTEGER NOT NULL DEFAULT 90,
+  log_strip_body_days INTEGER NOT NULL DEFAULT 0,
+  log_last_rotate_at TIMESTAMP WITH TIME ZONE,
+  log_last_purged INTEGER NOT NULL DEFAULT 0,
+  log_last_stripped INTEGER NOT NULL DEFAULT 0,
+  backup_s3_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  backup_s3_endpoint TEXT,
+  backup_s3_region TEXT,
+  backup_s3_bucket TEXT,
+  backup_s3_prefix TEXT,
+  backup_s3_access_key_id TEXT,
+  backup_s3_secret_access_key TEXT,
+  backup_s3_force_path_style BOOLEAN NOT NULL DEFAULT TRUE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
