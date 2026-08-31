@@ -11,7 +11,7 @@ export default function OpsBrand({ onClick, href }: OpsBrandProps) {
   const { t } = usePrefs();
   const inner = (
     <>
-      OutPost<b>.</b>
+      {t.brand}<b>.</b>
       <span className="by">{t.brandBy}</span>
     </>
   );

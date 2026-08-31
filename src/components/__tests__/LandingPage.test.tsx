@@ -34,14 +34,14 @@ describe('LandingPage', () => {
     expect(
       screen.getByRole('heading', { name: /outbound email\./i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'OutPost home' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'RelayHorizon home' })).toBeInTheDocument();
     expect(screen.getAllByText(/by nethorizon/i).length).toBeGreaterThan(0);
     expect(
       screen.getByText(/resend-compatible https, smtp ingress/i),
     ).toBeInTheDocument();
     expect(screen.getByText(/known api/i)).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: /deploy outpost/i }),
+      screen.getByRole('button', { name: /deploy relayhorizon/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });

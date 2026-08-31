@@ -21,7 +21,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'OutPost by Nethorizon — programmatic outbound email',
+  title: 'RelayHorizon by Nethorizon — programmatic outbound email',
   description:
     'Multi-tenant outbound email: Resend-compatible HTTPS API, tenant isolation, and MCP traffic tools.',
 };

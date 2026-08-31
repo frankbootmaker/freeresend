@@ -1,6 +1,6 @@
 # Architecture
 
-OutPost is a Next.js 15 app plus PostgreSQL. Compose services:
+RelayHorizon is a Next.js 15 app plus PostgreSQL. Compose services:
 
 - `web` — landing, dashboard, Resend-compatible `POST /api/emails`, JSON-RPC MCP at `/mcp`
 - `postgres` — tenant-scoped data

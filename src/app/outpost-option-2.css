@@ -1,4 +1,4 @@
-/* OutPost Option 2 — Operations (from Open Design outpost-option-2-shared.css) */
+/* RelayHorizon Option 2 — Operations (from Open Design outpost-option-2-shared.css) */
 
 body {
   font-size: 14px;
@@ -424,6 +424,7 @@ select {
 
 .rail .brand {
   padding: 0 8px 27px;
+  font-size: 18px;
 }
 
 .rail nav button,

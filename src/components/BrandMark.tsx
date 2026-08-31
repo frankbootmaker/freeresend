@@ -18,7 +18,7 @@ export default function BrandMark({ onClick, compact }: BrandMarkProps) {
         onClick={onClick}
         aria-label={t.brandHome}
       >
-        OutPost<span className="wordmark-dot">.</span>
+        {t.brand}<span className="wordmark-dot">.</span>
         <span className="brand-by">{t.brandBy}</span>
       </button>
     );
@@ -32,7 +32,7 @@ export default function BrandMark({ onClick, compact }: BrandMarkProps) {
       aria-label={t.brandHome}
     >
       <span className="brand-mark">
-        Out<span className="brand-post">Post</span>
+        {t.brand}
         <span className="wordmark-dot">.</span>
       </span>
       <span className="brand-by">{t.brandBy}</span>

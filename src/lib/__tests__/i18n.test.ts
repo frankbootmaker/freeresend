@@ -2,9 +2,9 @@ import { dictionaries } from '../i18n';
 
 describe('i18n dictionaries', () => {
   it('covers en, de, and hu landing headlines', () => {
-    expect(dictionaries.en.brand).toBe('OutPost');
-    expect(dictionaries.de.brand).toBe('OutPost');
-    expect(dictionaries.hu.brand).toBe('OutPost');
+    expect(dictionaries.en.brand).toBe('RelayHorizon');
+    expect(dictionaries.de.brand).toBe('RelayHorizon');
+    expect(dictionaries.hu.brand).toBe('RelayHorizon');
     expect(dictionaries.en.brandBy).toMatch(/Nethorizon/);
     expect(dictionaries.en.landing.headline1).toMatch(/outbound email/i);
     expect(dictionaries.de.landing.headline1).toMatch(/ausgehende/i);

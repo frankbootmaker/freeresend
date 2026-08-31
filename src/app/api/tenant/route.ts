@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
           host: process.env.SMTP_PUBLIC_HOST || 'localhost',
           port: Number(process.env.SMTP_PUBLIC_PORT || 2525),
           username: 'outpost',
-          passwordHint: 'Use an OutPost API key as the SMTP password',
+          passwordHint: 'Use a RelayHorizon API key as the SMTP password',
         },
         ses: {
           region: platform.sesRegion,

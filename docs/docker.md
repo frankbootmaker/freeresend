@@ -28,7 +28,7 @@ docker compose --profile dev up -d mailhog
 
 Then set the tenant egress switch to SMTP host `localhost` port `1026` (from the host; mapped from MailHog 1025) or `mailhog` / `1025` if the Next app also runs in Compose.
 
-SMTP submission (how apps talk *to* OutPost):
+SMTP submission (how apps talk *to* RelayHorizon):
 
 ```bash
 npm run smtp

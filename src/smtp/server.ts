@@ -33,7 +33,7 @@ async function authenticate(
 ): Promise<ApiKey> {
   const raw = resolveApiKey(username, password);
   if (!raw) {
-    throw new Error('SMTP password must be an OutPost API key (frs_…)');
+    throw new Error('SMTP password must be a RelayHorizon API key (frs_…)');
   }
   const apiKey = await verifyApiKey(raw);
   if (!apiKey) {
@@ -44,7 +44,7 @@ async function authenticate(
 
 const server = new SMTPServer({
   name: 'outpost',
-  banner: 'OutPost SMTP submission',
+  banner: 'RelayHorizon SMTP submission',
   authOptional: false,
   allowInsecureAuth: true,
   disabledCommands: ['STARTTLS'],
@@ -102,5 +102,5 @@ server.on('error', (error) => {
 });
 
 server.listen(listenPort, listenHost, () => {
-  console.log(`OutPost SMTP submission listening on ${listenHost}:${listenPort}`);
+  console.log(`RelayHorizon SMTP submission listening on ${listenHost}:${listenPort}`);
 });

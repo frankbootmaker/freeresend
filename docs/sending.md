@@ -41,7 +41,7 @@ Check records in the dashboard. Sending stays blocked until every required recor
 Each tenant has a switch:
 
 - `ses` — Amazon SES over HTTPS (platform AWS keys)
-- `smtp` — Nodemailer to `smtp_upstream` (host, port, TLS, credentials), DKIM-signed with the domain key OutPost publishes
+- `smtp` — Nodemailer to `smtp_upstream` (host, port, TLS, credentials), DKIM-signed with the domain key RelayHorizon publishes
 
 Set both switches in the dashboard **Sending** tab or `PATCH /api/tenant`.
 

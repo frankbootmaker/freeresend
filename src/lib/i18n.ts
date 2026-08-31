@@ -338,10 +338,10 @@ type Dict = {
 };
 
 const en: Dict = {
-  loading: 'Loading OutPost…',
-  brand: 'OutPost',
+  loading: 'Loading RelayHorizon…',
+  brand: 'RelayHorizon',
   brandBy: 'by Nethorizon',
-  brandHome: 'OutPost home',
+  brandHome: 'RelayHorizon home',
   prefs: {
     language: 'Language',
     theme: 'Theme',
@@ -352,7 +352,7 @@ const en: Dict = {
   },
   landing: {
     login: 'Sign in',
-    getStarted: 'Deploy OutPost',
+    getStarted: 'Deploy RelayHorizon',
     kicker: 'Option 2 — Operations',
     headline1: 'Outbound email.',
     headline2: 'Inside your perimeter.',
@@ -380,12 +380,12 @@ const en: Dict = {
     nodeTenant: 'TENANT',
     nodeEgress: 'EGRESS',
     signal: 'All systems operational',
-    footBrand: 'OutPost. by Nethorizon',
+    footBrand: 'RelayHorizon. by Nethorizon',
     publicNav: 'Public',
     sourceCredit: 'Source credit: FreeResend',
   },
   login: {
-    kickerStory: 'OutPost console',
+    kickerStory: 'RelayHorizon console',
     headline: 'Return to the sending room.',
     story:
       'Sign in to manage upstreams, domains, API keys, quotas, and delivery traffic across your tenants.',
@@ -408,7 +408,7 @@ const en: Dict = {
     hidePassword: 'Hide password',
   },
   register: {
-    kickerStory: 'OutPost console',
+    kickerStory: 'RelayHorizon console',
     headline: 'Give your outbound system a boundary.',
     story:
       'Create one isolated tenant. Choose the upstream later, rotate keys without interruption, and keep every delivery trace accountable.',
@@ -457,7 +457,7 @@ const en: Dict = {
     kicker: 'Tenant / sending',
     title: 'Sending',
     lead:
-      'Choose how applications hand mail to OutPost, then how OutPost delivers it.',
+      'Choose how applications hand mail to RelayHorizon, then how RelayHorizon delivers it.',
     quota: 'Monthly quota',
     used: (n) => `${n} used this month`,
     loading: 'Loading…',
@@ -566,7 +566,7 @@ const en: Dict = {
     domainsTitle: 'Domains',
     apiKeysTitle: 'API Keys',
     logsTitle: 'Email Logs',
-    logsLead: 'View and monitor all emails sent through your OutPost tenant.',
+    logsLead: 'View and monitor all emails sent through your RelayHorizon tenant.',
   },
   domains: {
     kicker: 'Tenant / domains',
@@ -668,10 +668,10 @@ const en: Dict = {
 };
 
 const de: Dict = {
-  loading: 'OutPost wird geladen…',
-  brand: 'OutPost',
+  loading: 'RelayHorizon wird geladen…',
+  brand: 'RelayHorizon',
   brandBy: 'von Nethorizon',
-  brandHome: 'OutPost Startseite',
+  brandHome: 'RelayHorizon Startseite',
   prefs: {
     language: 'Sprache',
     theme: 'Darstellung',
@@ -682,7 +682,7 @@ const de: Dict = {
   },
   landing: {
     login: 'Anmelden',
-    getStarted: 'OutPost bereitstellen',
+    getStarted: 'RelayHorizon bereitstellen',
     kicker: 'Option 2 — Operations',
     headline1: 'Ausgehende E-Mail.',
     headline2: 'Innerhalb Ihrer Perimeter.',
@@ -710,12 +710,12 @@ const de: Dict = {
     nodeTenant: 'MANDANT',
     nodeEgress: 'EGRESS',
     signal: 'Alle Systeme betriebsbereit',
-    footBrand: 'OutPost. von Nethorizon',
+    footBrand: 'RelayHorizon. von Nethorizon',
     publicNav: 'Öffentlich',
     sourceCredit: 'Basiert auf FreeResend von EliteCoders.',
   },
   login: {
-    kickerStory: 'OutPost-Konsole',
+    kickerStory: 'RelayHorizon-Konsole',
     headline: 'Zurück in den Versandraum.',
     story:
       'Melden Sie sich an, um Upstreams, Domains, API-Schlüssel, Kontingente und Versandverkehr Ihrer Mandanten zu verwalten.',
@@ -738,7 +738,7 @@ const de: Dict = {
     hidePassword: 'Passwort verbergen',
   },
   register: {
-    kickerStory: 'OutPost-Konsole',
+    kickerStory: 'RelayHorizon-Konsole',
     headline: 'Geben Sie dem Versand eine Grenze.',
     story:
       'Legen Sie einen isolierten Mandanten an. Den Upstream wählen Sie später, Schlüssel rotieren ohne Unterbrechung, jede Sendung bleibt nachvollziehbar.',
@@ -787,7 +787,7 @@ const de: Dict = {
     kicker: 'Mandant / Versand',
     title: 'Versand',
     lead:
-      'Wählen Sie, wie Anwendungen Post an OutPost übergeben und wie OutPost zustellt.',
+      'Wählen Sie, wie Anwendungen Post an RelayHorizon übergeben und wie RelayHorizon zustellt.',
     quota: 'Monatskontingent',
     used: (n) => `${n} in diesem Monat genutzt`,
     loading: 'Laden…',
@@ -897,7 +897,7 @@ const de: Dict = {
     domainsTitle: 'Domains',
     apiKeysTitle: 'API-Schlüssel',
     logsTitle: 'E-Mail-Protokolle',
-    logsLead: 'Alle über Ihren OutPost-Mandanten gesendeten E-Mails einsehen.',
+    logsLead: 'Alle über Ihren RelayHorizon-Mandanten gesendeten E-Mails einsehen.',
   },
   domains: {
     kicker: 'Mandant / Domains',
@@ -999,10 +999,10 @@ const de: Dict = {
 };
 
 const hu: Dict = {
-  loading: 'OutPost betöltése…',
-  brand: 'OutPost',
+  loading: 'RelayHorizon betöltése…',
+  brand: 'RelayHorizon',
   brandBy: 'a Nethorizontól',
-  brandHome: 'OutPost kezdőlap',
+  brandHome: 'RelayHorizon kezdőlap',
   prefs: {
     language: 'Nyelv',
     theme: 'Téma',
@@ -1013,12 +1013,12 @@ const hu: Dict = {
   },
   landing: {
     login: 'Belépés',
-    getStarted: 'OutPost telepítése',
+    getStarted: 'RelayHorizon telepítése',
     kicker: 'Option 2 — Operations',
     headline1: 'Kimenő e-mail.',
     headline2: 'A saját periméteren belül.',
     lede:
-      'Az OutPost a Nethorizon kimenő e-mail vezérlősíkja: Resend-kompatibilis kézbesítés, bérlőnkénti elszigetelés, választható kimenő út.',
+      'A RelayHorizon a Nethorizon kimenő e-mail vezérlősíkja: Resend-kompatibilis kézbesítés, bérlőnkénti elszigetelés, választható kimenő út.',
     createTenant: 'Bérlő létrehozása',
     openConsole: 'Konzol megnyitása',
     edition: 'Az infrastruktúra legyen olvasható, mielőtt varázslatosnak tűnik.',
@@ -1041,12 +1041,12 @@ const hu: Dict = {
     nodeTenant: 'BÉRLŐ',
     nodeEgress: 'KIMENŐ',
     signal: 'Minden rendszer működik',
-    footBrand: 'OutPost. a Nethorizontól',
+    footBrand: 'RelayHorizon. a Nethorizontól',
     publicNav: 'Nyilvános',
     sourceCredit: 'A FreeResend (EliteCoders) kódbázisán.',
   },
   login: {
-    kickerStory: 'OutPost konzol',
+    kickerStory: 'RelayHorizon konzol',
     headline: 'Vissza a küldőszobába.',
     story:
       'Jelentkezzen be a kimenő utak, domainek, API-kulcsok, kvóták és forgalom kezeléséhez.',
@@ -1069,7 +1069,7 @@ const hu: Dict = {
     hidePassword: 'Jelszó elrejtése',
   },
   register: {
-    kickerStory: 'OutPost konzol',
+    kickerStory: 'RelayHorizon konzol',
     headline: 'Adjon határt a kimenő rendszernek.',
     story:
       'Hozzon létre egy elszigetelt bérlőt. A kimenő utat később választja, a kulcsokat megszakítás nélkül forgatja, minden küldés nyomon követhető marad.',
@@ -1118,7 +1118,7 @@ const hu: Dict = {
     kicker: 'Bérlő / küldés',
     title: 'Küldés',
     lead:
-      'Válassza ki, hogyan adják be az alkalmazások a levelet, majd hogyan kézbesíti az OutPost.',
+      'Válassza ki, hogyan adják be az alkalmazások a levelet, majd hogyan kézbesíti a RelayHorizon.',
     quota: 'Havi kvóta',
     used: (n) => `${n} felhasználva ebben a hónapban`,
     loading: 'Betöltés…',
@@ -1228,7 +1228,7 @@ const hu: Dict = {
     domainsTitle: 'Domainek',
     apiKeysTitle: 'API-kulcsok',
     logsTitle: 'E-mail naplók',
-    logsLead: 'Az OutPost-bérlőn keresztül küldött levelek áttekintése.',
+    logsLead: 'A RelayHorizon-bérlőn keresztül küldött levelek áttekintése.',
   },
   domains: {
     kicker: 'Bérlő / domainek',

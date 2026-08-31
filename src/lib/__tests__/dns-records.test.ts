@@ -35,7 +35,7 @@ describe('sending DNS records', () => {
     expect(records.filter((record) => record.purpose === 'dkim')).toHaveLength(2);
   });
 
-  it('lists SMTP-aligned SPF and an OutPost DKIM TXT for SMTP egress', () => {
+  it('lists SMTP-aligned SPF and a RelayHorizon DKIM TXT for SMTP egress', () => {
     const records = generateSendingDnsRecords({
       domain: 'acme.test',
       outboundTransport: 'smtp',
