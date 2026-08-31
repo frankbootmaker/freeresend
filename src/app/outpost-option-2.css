@@ -77,9 +77,9 @@ a.brand {
 
 .by {
   display: block;
-  font: 9px var(--mono);
+  font: 600 10px var(--body);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
@@ -190,15 +190,15 @@ button.brand:hover {
 }
 
 .meta {
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   color: var(--accent);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hero h1 {
-  font: 500 clamp(48px, 6vw, 92px) / 0.95 var(--display);
-  letter-spacing: -0.045em;
+  font: 800 clamp(48px, 6vw, 92px) / 0.95 var(--display);
+  letter-spacing: -0.04em;
   margin: 18px 0 25px;
 }
 
@@ -216,9 +216,9 @@ button.brand:hover {
 }
 
 .route-map h2 {
-  font: 11px var(--mono);
+  font: 600 12px var(--body);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.06em;
   margin: 0 0 20px;
 }
 
@@ -235,7 +235,7 @@ button.brand:hover {
 }
 
 .node span {
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   color: var(--muted);
   display: block;
   margin-bottom: 7px;
@@ -250,7 +250,7 @@ button.brand:hover {
   display: flex;
   gap: 9px;
   align-items: center;
-  font: 11px var(--mono);
+  font: 600 12px var(--body);
   margin-top: 18px;
 }
 
@@ -279,7 +279,7 @@ button.brand:hover {
 
 .cap strong {
   display: block;
-  font: 18px var(--display);
+  font: 700 18px var(--display);
   margin-bottom: 7px;
 }
 
@@ -313,7 +313,7 @@ button.brand:hover {
 }
 
 .authform h1 {
-  font: 48px var(--display);
+  font: 700 48px var(--display);
   margin: 70px 0 8px;
 }
 
@@ -340,8 +340,9 @@ button.brand:hover {
 }
 
 .field label {
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
 }
 
@@ -467,7 +468,7 @@ select {
   min-height: 35px;
   padding: 0 10px;
   color: var(--muted);
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   text-decoration: none;
   background: transparent;
   border: 0;
@@ -484,7 +485,7 @@ select {
 
 .tenantbtn {
   width: 100%;
-  font: 11px var(--mono);
+  font: 600 12px var(--body);
 }
 
 .topbar {
@@ -492,7 +493,7 @@ select {
   align-items: center;
   padding: 0 16px;
   border-bottom: 1px solid var(--border);
-  font: 11px var(--mono);
+  font: 12px var(--body);
   color: var(--muted);
   background: var(--bg);
 }
@@ -517,7 +518,7 @@ select {
 }
 
 .subhead h1 {
-  font: 23px var(--display);
+  font: 700 23px var(--display);
   margin: 0;
 }
 
@@ -531,7 +532,7 @@ select {
 .theme {
   min-height: 30px;
   height: 30px;
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
 }
 
 .language-cycle {
@@ -542,7 +543,7 @@ select {
   border: 1px solid var(--border);
   background: transparent;
   color: var(--accent);
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   cursor: pointer;
 }
 
@@ -619,7 +620,7 @@ select {
 .seg button {
   height: 32px;
   min-height: 32px;
-  font-size: 11px;
+  font: 600 12px var(--body);
 }
 
 .seg .on {
@@ -654,9 +655,10 @@ td {
 }
 
 th {
-  font: 9px var(--mono);
+  font: 600 11px var(--body);
   color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 code {
@@ -681,7 +683,7 @@ code {
 }
 
 .empty h3 {
-  font: 26px var(--display);
+  font: 700 26px var(--display);
   margin: 0 0 6px;
 }
 
@@ -715,9 +717,9 @@ code {
 }
 
 .key-reveal-hint {
-  font: 10px var(--mono);
+  font: 600 11px var(--body);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--muted);
   margin: 0;
 }
@@ -913,4 +915,122 @@ code {
   inset: 0;
   z-index: 25;
   background: oklch(13% 0.016 155 / 0.45);
+}
+
+.health-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.health-toolbar .cardlead {
+  margin: 0;
+}
+
+.cardhead .health-pill {
+  margin-left: auto;
+}
+
+.health-checks {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.health-check {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 12px;
+}
+
+.health-check header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.health-check h3 {
+  margin: 0;
+  font: 600 12px var(--body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.health-check p {
+  margin: 0 0 4px;
+  font-size: 12px;
+}
+
+.health-pill {
+  font: 600 10px var(--body);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+}
+
+.health-pill.is-ok {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.health-pill.is-warn {
+  color: oklch(70% 0.14 75);
+  border-color: oklch(70% 0.14 75);
+}
+
+.health-pill.is-down {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.health-pill.is-off {
+  color: var(--muted);
+}
+
+.health-total {
+  margin: 0;
+}
+
+.health-total strong {
+  display: block;
+  font: 700 32px var(--display);
+}
+
+.health-total span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.health-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+}
+
+.health-breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.health-breakdown dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.health-breakdown dd {
+  margin: 0;
+  font: 600 12px var(--mono);
+}
+
+@media (max-width: 900px) {
+  .health-checks {
+    grid-template-columns: 1fr;
+  }
 }

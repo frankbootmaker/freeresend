@@ -10,8 +10,7 @@
   --accent: oklch(88% 0.23 125);
   --accent-ink: oklch(17% 0.04 140);
   --danger: oklch(69% 0.17 25);
-  --display: var(--font-display-file), 'Iowan Old Style', 'Palatino Linotype', Palatino,
-    Georgia, serif;
+  --display: var(--font-body-file), 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   --body: var(--font-body-file), 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   --mono: var(--font-mono-file), 'SFMono-Regular', 'SF Mono', Consolas, monospace;
   --font-display: var(--display);

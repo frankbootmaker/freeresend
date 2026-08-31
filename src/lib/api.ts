@@ -158,6 +158,21 @@ class ApiClient {
     });
   }
 
+  async getPlatformHealth() {
+    return this.request('/admin/health');
+  }
+
+  async sendPlatformTestEmail(payload: {
+    from: string;
+    to: string;
+    via: 'ses' | 'smtp';
+  }) {
+    return this.request('/admin/settings/test-email', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // Domains
   async getDomains() {
     return this.request("/domains");

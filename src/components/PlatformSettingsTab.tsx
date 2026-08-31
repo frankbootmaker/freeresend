@@ -8,13 +8,23 @@ function SegButton({
   active,
   onClick,
   children,
+  disabled,
+  title,
 }: {
   active: boolean;
   onClick: () => void;
   children: ReactNode;
+  disabled?: boolean;
+  title?: string;
 }) {
   return (
-    <button type="button" className={active ? 'on' : undefined} onClick={onClick}>
+    <button
+      type="button"
+      className={active ? 'on' : undefined}
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+    >
       {children}
     </button>
   );
@@ -37,8 +47,14 @@ export default function PlatformSettingsTab() {
   const [smtpPasswordConfigured, setSmtpPasswordConfigured] = useState(false);
   const [alertEmail, setAlertEmail] = useState('');
   const [alertFrom, setAlertFrom] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [testFrom, setTestFrom] = useState('');
+  const [testTo, setTestTo] = useState('');
+  const [testVia, setTestVia] = useState<'ses' | 'smtp'>('ses');
+  const [testSending, setTestSending] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  const [saveError, setSaveError] = useState('');
+  const [testMessage, setTestMessage] = useState('');
+  const [testError, setTestError] = useState('');
 
   useEffect(() => {
     api
@@ -57,16 +73,28 @@ export default function PlatformSettingsTab() {
         setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
+        setTestFrom((current) => current || settings.alertFrom || '');
+        setTestTo((current) => current || settings.alertEmail || '');
+        if (
+          settings.smtpEnabled
+          && (!settings.sesAccessKeyConfigured || !settings.sesSecretConfigured)
+        ) {
+          setTestVia('smtp');
+        } else {
+          setTestVia('ses');
+        }
       })
       .catch((err: unknown) => {
-        setError((err as { message?: string }).message || t.settings.saveFailed);
+        setSaveError(
+          (err as { message?: string }).message || t.settings.saveFailed,
+        );
       });
   }, [t.settings.saveFailed]);
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
+    setSaveError('');
+    setSaveMessage('');
     try {
       const res = await api.updatePlatformSettings({
         sesRegion,
@@ -89,9 +117,38 @@ export default function PlatformSettingsTab() {
       setSesAccessKeyConfigured(Boolean(settings.sesAccessKeyConfigured));
       setSesSecretConfigured(Boolean(settings.sesSecretConfigured));
       setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
-      setMessage(t.settings.saved);
+      setSaveMessage(t.settings.saved);
     } catch (err: unknown) {
-      setError((err as { message?: string }).message || t.settings.saveFailed);
+      setSaveError(
+        (err as { message?: string }).message || t.settings.saveFailed,
+      );
+    }
+  };
+
+  const sendTest = async (e: FormEvent) => {
+    e.preventDefault();
+    setTestError('');
+    setTestMessage('');
+    if (testVia === 'smtp' && !smtpEnabled) {
+      setTestVia('ses');
+      return;
+    }
+    setTestSending(true);
+    try {
+      const res = await api.sendPlatformTestEmail({
+        from: testFrom.trim(),
+        to: testTo.trim(),
+        via: testVia,
+      });
+      setTestMessage(
+        t.settings.testSent(res.data.via, res.data.messageId || ''),
+      );
+    } catch (err: unknown) {
+      setTestError(
+        (err as { message?: string }).message || t.settings.testFailed,
+      );
+    } finally {
+      setTestSending(false);
     }
   };
 
@@ -99,7 +156,8 @@ export default function PlatformSettingsTab() {
     configured ? t.settings.secretSet : undefined;
 
   return (
-    <form onSubmit={save}>
+    <>
+      <form onSubmit={save}>
       <div className="cols">
         <section className="card">
           <header className="cardhead">
@@ -158,7 +216,10 @@ export default function PlatformSettingsTab() {
               </SegButton>
               <SegButton
                 active={!smtpEnabled}
-                onClick={() => setSmtpEnabled(false)}
+                onClick={() => {
+                  setSmtpEnabled(false);
+                  setTestVia('ses');
+                }}
               >
                 {t.settings.smtpDisabled}
               </SegButton>
@@ -239,13 +300,75 @@ export default function PlatformSettingsTab() {
               />
             </div>
           </div>
-          {error && <div className="fr-error" role="alert">{error}</div>}
-          {message && <div className="fr-ok" role="status">{message}</div>}
+          {saveError && (
+            <div className="fr-error" role="alert">{saveError}</div>
+          )}
+          {saveMessage && (
+            <div className="fr-ok" role="status">{saveMessage}</div>
+          )}
           <button className="primary save" type="submit">
             {t.settings.save}
           </button>
         </div>
       </section>
     </form>
+    <form className="settings-alerts" onSubmit={sendTest}>
+      <section className="card">
+        <header className="cardhead">
+          <h2>{t.settings.testTitle}</h2>
+        </header>
+        <div className="cardbody">
+          <p className="cardlead">{t.settings.testLead}</p>
+          <div className="seg" role="radiogroup" aria-label={t.settings.testVia}>
+            <SegButton
+              active={testVia === 'ses'}
+              onClick={() => setTestVia('ses')}
+            >
+              {t.sending.amazonSes}
+            </SegButton>
+            <SegButton
+              active={testVia === 'smtp'}
+              onClick={() => setTestVia('smtp')}
+              disabled={!smtpEnabled}
+              title={smtpEnabled ? undefined : t.settings.testSmtpDisabled}
+            >
+              {t.sending.smtpRelay}
+            </SegButton>
+          </div>
+          <div className="formgrid">
+            <div className="field">
+              <label>{t.settings.testFrom}</label>
+              <input
+                type="email"
+                required
+                value={testFrom}
+                onChange={(e) => setTestFrom(e.target.value)}
+                placeholder="hello@example.com"
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.testTo}</label>
+              <input
+                type="email"
+                required
+                value={testTo}
+                onChange={(e) => setTestTo(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </div>
+          </div>
+          {testError && (
+            <div className="fr-error" role="alert">{testError}</div>
+          )}
+          {testMessage && (
+            <div className="fr-ok" role="status">{testMessage}</div>
+          )}
+          <button className="primary save" type="submit" disabled={testSending}>
+            {testSending ? t.settings.testSending : t.settings.testSend}
+          </button>
+        </div>
+      </section>
+    </form>
+    </>
   );
 }

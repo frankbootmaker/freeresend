@@ -113,6 +113,7 @@ type Dict = {
     apiKeys: string;
     logs: string;
     customers: string;
+    health: string;
     settings: string;
     signOut: string;
     switchTenant: string;
@@ -232,6 +233,69 @@ type Dict = {
     saved: string;
     saveFailed: string;
     secretSet: string;
+    testTitle: string;
+    testLead: string;
+    testVia: string;
+    testFrom: string;
+    testTo: string;
+    testSend: string;
+    testSending: string;
+    testSent: (via: string, id: string) => string;
+    testFailed: string;
+    testSmtpDisabled: string;
+  };
+  health: {
+    title: string;
+    lead: string;
+    refresh: string;
+    loading: string;
+    failed: string;
+    checkedAt: (when: string) => string;
+    checks: string;
+    database: string;
+    ses: string;
+    smtp: string;
+    ok: string;
+    warn: string;
+    down: string;
+    off: string;
+    degraded: string;
+    latency: (ms: number) => string;
+    region: (name: string) => string;
+    sesQuota: (sent: number, max: number) => string;
+    detailReachable: string;
+    detailSesOk: string;
+    detailSesMissing: string;
+    detailSesFallback: string;
+    detailSmtpOff: string;
+    detailSmtpNoHost: string;
+    detailNotChecked: string;
+    volume24h: string;
+    volume7d: string;
+    total: string;
+    sent: string;
+    delivered: string;
+    pending: string;
+    bounced: string;
+    complained: string;
+    failedStatus: string;
+    inventory: string;
+    tenants: string;
+    active: string;
+    domains: string;
+    verified: string;
+    pendingDomains: string;
+    failedDomains: string;
+    topTenants: string;
+    emptyTenants: string;
+    recentFailures: string;
+    emptyFailures: string;
+    when: string;
+    tenant: string;
+    from: string;
+    to: string;
+    subject: string;
+    status: string;
   };
   tabs: {
     domainsTitle: string;
@@ -437,6 +501,7 @@ const en: Dict = {
     apiKeys: 'API Keys',
     logs: 'Logs',
     customers: 'Customers',
+    health: 'Health',
     settings: 'Configuration',
     signOut: 'Sign out',
     switchTenant: 'Switch tenant',
@@ -561,6 +626,70 @@ const en: Dict = {
     saved: 'Platform configuration saved.',
     saveFailed: 'Save failed',
     secretSet: 'Stored — enter a new value to rotate',
+    testTitle: 'Test send',
+    testLead:
+      'Save configuration first. Choose SES or SMTP. From must be a SES-verified identity when using SES.',
+    testVia: 'Outbound',
+    testFrom: 'From',
+    testTo: 'To',
+    testSend: 'Send test email',
+    testSending: 'Sending…',
+    testSent: (via, id) => `Sent via ${via}. Message ID ${id}`,
+    testFailed: 'Test send failed',
+    testSmtpDisabled: 'Enable SMTP relay to test this path',
+  },
+  health: {
+    title: 'Health',
+    lead: 'Database, egress, and recent delivery across all tenants.',
+    refresh: 'Refresh',
+    loading: 'Checking…',
+    failed: 'Health check failed',
+    checkedAt: (when) => `Last check ${when}`,
+    checks: 'Platform checks',
+    database: 'Database',
+    ses: 'Amazon SES',
+    smtp: 'SMTP relay',
+    ok: 'OK',
+    warn: 'Warn',
+    down: 'Down',
+    off: 'Off',
+    degraded: 'Degraded',
+    latency: (ms) => `${ms} ms`,
+    region: (name) => `Region ${name}`,
+    sesQuota: (sent, max) => `SES 24h ${sent} / ${max}`,
+    detailReachable: 'Reachable',
+    detailSesOk: 'Credentials accepted',
+    detailSesMissing: 'Credentials are not configured',
+    detailSesFallback: 'Not configured — SMTP relay is the fallback',
+    detailSmtpOff: 'Relay is disabled',
+    detailSmtpNoHost: 'Enabled without a host',
+    detailNotChecked: 'Not checked',
+    volume24h: 'Last 24 hours',
+    volume7d: 'Last 7 days',
+    total: 'Total',
+    sent: 'Sent',
+    delivered: 'Delivered',
+    pending: 'Pending',
+    bounced: 'Bounced',
+    complained: 'Complained',
+    failedStatus: 'Failed',
+    inventory: 'Inventory',
+    tenants: 'Tenants',
+    active: 'Active',
+    domains: 'Domains',
+    verified: 'Verified',
+    pendingDomains: 'Pending',
+    failedDomains: 'Failed',
+    topTenants: 'Top tenants (7d)',
+    emptyTenants: 'No sends in the last 7 days.',
+    recentFailures: 'Recent failures',
+    emptyFailures: 'No failed, bounced, or complained messages.',
+    when: 'When',
+    tenant: 'Tenant',
+    from: 'From',
+    to: 'To',
+    subject: 'Subject',
+    status: 'Status',
   },
   tabs: {
     domainsTitle: 'Domains',
@@ -767,6 +896,7 @@ const de: Dict = {
     apiKeys: 'API-Schlüssel',
     logs: 'Protokolle',
     customers: 'Kunden',
+    health: 'Status',
     settings: 'Konfiguration',
     signOut: 'Abmelden',
     switchTenant: 'Mandant wechseln',
@@ -892,6 +1022,70 @@ const de: Dict = {
     saved: 'Plattformkonfiguration gespeichert.',
     saveFailed: 'Speichern fehlgeschlagen',
     secretSet: 'Gespeichert — neuen Wert eingeben zum Rotieren',
+    testTitle: 'Testversand',
+    testLead:
+      'Zuerst Konfiguration speichern. SES oder SMTP wählen. Bei SES muss der Absender eine verifizierte Identität sein.',
+    testVia: 'Ausgang',
+    testFrom: 'Von',
+    testTo: 'An',
+    testSend: 'Test-E-Mail senden',
+    testSending: 'Senden…',
+    testSent: (via, id) => `Gesendet über ${via}. Nachrichten-ID ${id}`,
+    testFailed: 'Testversand fehlgeschlagen',
+    testSmtpDisabled: 'SMTP-Relay aktivieren, um diesen Weg zu testen',
+  },
+  health: {
+    title: 'Status',
+    lead: 'Datenbank, Ausgang und letzte Zustellung über alle Mandanten.',
+    refresh: 'Aktualisieren',
+    loading: 'Prüfung…',
+    failed: 'Statusprüfung fehlgeschlagen',
+    checkedAt: (when) => `Letzte Prüfung ${when}`,
+    checks: 'Plattformprüfungen',
+    database: 'Datenbank',
+    ses: 'Amazon SES',
+    smtp: 'SMTP-Relay',
+    ok: 'OK',
+    warn: 'Warnung',
+    down: 'Aus',
+    off: 'Inaktiv',
+    degraded: 'Eingeschränkt',
+    latency: (ms) => `${ms} ms`,
+    region: (name) => `Region ${name}`,
+    sesQuota: (sent, max) => `SES 24h ${sent} / ${max}`,
+    detailReachable: 'Erreichbar',
+    detailSesOk: 'Zugangsdaten akzeptiert',
+    detailSesMissing: 'Zugangsdaten sind nicht konfiguriert',
+    detailSesFallback: 'Nicht konfiguriert — SMTP-Relay ist der Fallback',
+    detailSmtpOff: 'Relay ist deaktiviert',
+    detailSmtpNoHost: 'Aktiv, aber ohne Host',
+    detailNotChecked: 'Nicht geprüft',
+    volume24h: 'Letzte 24 Stunden',
+    volume7d: 'Letzte 7 Tage',
+    total: 'Gesamt',
+    sent: 'Gesendet',
+    delivered: 'Zugestellt',
+    pending: 'Ausstehend',
+    bounced: 'Unzustellbar',
+    complained: 'Beschwerde',
+    failedStatus: 'Fehlgeschlagen',
+    inventory: 'Bestand',
+    tenants: 'Mandanten',
+    active: 'Aktiv',
+    domains: 'Domains',
+    verified: 'Verifiziert',
+    pendingDomains: 'Ausstehend',
+    failedDomains: 'Fehlgeschlagen',
+    topTenants: 'Top-Mandanten (7T)',
+    emptyTenants: 'Keine Sendungen in den letzten 7 Tagen.',
+    recentFailures: 'Letzte Fehler',
+    emptyFailures: 'Keine fehlgeschlagenen, unzustellbaren oder Beschwerde-Nachrichten.',
+    when: 'Zeit',
+    tenant: 'Mandant',
+    from: 'Von',
+    to: 'An',
+    subject: 'Betreff',
+    status: 'Status',
   },
   tabs: {
     domainsTitle: 'Domains',
@@ -1098,6 +1292,7 @@ const hu: Dict = {
     apiKeys: 'API-kulcsok',
     logs: 'Naplók',
     customers: 'Ügyfelek',
+    health: 'Állapot',
     settings: 'Konfiguráció',
     signOut: 'Kilépés',
     switchTenant: 'Bérlő váltása',
@@ -1223,6 +1418,70 @@ const hu: Dict = {
     saved: 'A platformkonfiguráció mentve.',
     saveFailed: 'Mentés sikertelen',
     secretSet: 'Tárolva — új értéket adjon meg a cseréhez',
+    testTitle: 'Tesztküldés',
+    testLead:
+      'Előbb mentse a konfigurációt. Válasszon SES-t vagy SMTP-t. SES esetén a feladónak ellenőrzött identitásnak kell lennie.',
+    testVia: 'Kimenet',
+    testFrom: 'Feladó',
+    testTo: 'Címzett',
+    testSend: 'Teszt e-mail küldése',
+    testSending: 'Küldés…',
+    testSent: (via, id) => `Elküldve (${via}). Üzenetazonosító: ${id}`,
+    testFailed: 'A tesztküldés sikertelen',
+    testSmtpDisabled: 'A teszteléshez kapcsolja be az SMTP-relét',
+  },
+  health: {
+    title: 'Állapot',
+    lead: 'Adatbázis, kimenet és közelmúltbeli kézbesítés az összes bérlőn.',
+    refresh: 'Frissítés',
+    loading: 'Ellenőrzés…',
+    failed: 'Az állapotellenőrzés sikertelen',
+    checkedAt: (when) => `Utolsó ellenőrzés: ${when}`,
+    checks: 'Platform-ellenőrzések',
+    database: 'Adatbázis',
+    ses: 'Amazon SES',
+    smtp: 'SMTP-relé',
+    ok: 'OK',
+    warn: 'Figyelmeztetés',
+    down: 'Leállt',
+    off: 'Ki',
+    degraded: 'Korlátozott',
+    latency: (ms) => `${ms} ms`,
+    region: (name) => `Régió: ${name}`,
+    sesQuota: (sent, max) => `SES 24ó ${sent} / ${max}`,
+    detailReachable: 'Elérhető',
+    detailSesOk: 'A hitelesítő adatok elfogadva',
+    detailSesMissing: 'Nincsenek beállítva a hitelesítő adatok',
+    detailSesFallback: 'Nincs beállítva — az SMTP-relé a tartalék',
+    detailSmtpOff: 'A relé ki van kapcsolva',
+    detailSmtpNoHost: 'Bekapcsolva, de nincs gép',
+    detailNotChecked: 'Nincs ellenőrizve',
+    volume24h: 'Elmúlt 24 óra',
+    volume7d: 'Elmúlt 7 nap',
+    total: 'Összesen',
+    sent: 'Elküldve',
+    delivered: 'Kézbesítve',
+    pending: 'Függőben',
+    bounced: 'Visszadobva',
+    complained: 'Panasz',
+    failedStatus: 'Sikertelen',
+    inventory: 'Leltár',
+    tenants: 'Bérlők',
+    active: 'Aktív',
+    domains: 'Domainek',
+    verified: 'Ellenőrzött',
+    pendingDomains: 'Függőben',
+    failedDomains: 'Sikertelen',
+    topTenants: 'Top bérlők (7 nap)',
+    emptyTenants: 'Nincs küldés az elmúlt 7 napban.',
+    recentFailures: 'Legutóbbi hibák',
+    emptyFailures: 'Nincs sikertelen, visszadobott vagy panaszos üzenet.',
+    when: 'Idő',
+    tenant: 'Bérlő',
+    from: 'Feladó',
+    to: 'Címzett',
+    subject: 'Tárgy',
+    status: 'Állapot',
   },
   tabs: {
     domainsTitle: 'Domainek',

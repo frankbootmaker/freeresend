@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Nunito_Sans, Source_Serif_4 } from "next/font/google";
+import { IBM_Plex_Mono, Nunito_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PrefsProvider } from "@/contexts/PrefsContext";
 
-const display = Source_Serif_4({
-  variable: "--font-display-file",
-  subsets: ["latin", "latin-ext"],
-});
-
 const body = Nunito_Sans({
   variable: "--font-body-file",
   subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const mono = IBM_Plex_Mono({
@@ -38,7 +34,7 @@ export default function RootLayout({
       lang="en"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${display.variable} ${body.variable} ${mono.variable}`}
+      className={`${body.variable} ${mono.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: prefsBootScript }} />

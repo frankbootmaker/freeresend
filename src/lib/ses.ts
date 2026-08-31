@@ -8,6 +8,7 @@ import {
   CreateConfigurationSetCommand,
   VerifyDomainDkimCommand,
   GetIdentityDkimAttributesCommand,
+  GetSendQuotaCommand,
 } from "@aws-sdk/client-ses";
 import { generateSendingDnsRecords } from "./dns-records";
 import { getResolvedPlatformSettings } from "./platform-settings";
@@ -41,6 +42,18 @@ export async function getSesClient(): Promise<SESClient> {
 
 export function invalidateSesClient(): void {
   cachedClient = null;
+}
+
+export async function getSesSendQuota(): Promise<{
+  max24HourSend: number;
+  sentLast24Hours: number;
+}> {
+  const client = await getSesClient();
+  const response = await client.send(new GetSendQuotaCommand({}));
+  return {
+    max24HourSend: Number(response.Max24HourSend ?? 0),
+    sentLast24Hours: Number(response.SentLast24Hours ?? 0),
+  };
 }
 
 async function sesSendOptions(): Promise<{ ConfigurationSetName?: string }> {

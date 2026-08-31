@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import CustomersTab from './CustomersTab';
+import PlatformHealthTab from './PlatformHealthTab';
 import PlatformSettingsTab from './PlatformSettingsTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'customers' | 'settings';
+type Tab = 'customers' | 'health' | 'settings';
 
 export default function PortalDashboard() {
   const router = useRouter();
@@ -21,11 +22,13 @@ export default function PortalDashboard() {
 
   const tabLabels: Record<Tab, string> = {
     customers: t.nav.customers,
+    health: t.nav.health,
     settings: t.nav.settings,
   };
 
   const items: ShellNavItem[] = [
     { id: 'customers', label: tabLabels.customers },
+    { id: 'health', label: tabLabels.health },
     { id: 'settings', label: tabLabels.settings },
   ];
 
@@ -42,6 +45,7 @@ export default function PortalDashboard() {
       onSignOut={logout}
     >
       {activeTab === 'customers' && <CustomersTab />}
+      {activeTab === 'health' && <PlatformHealthTab />}
       {activeTab === 'settings' && <PlatformSettingsTab />}
     </AppShell>
   );

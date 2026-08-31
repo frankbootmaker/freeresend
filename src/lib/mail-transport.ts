@@ -87,24 +87,48 @@ export async function sendOutboundEmail(
   return sendViaSes(options);
 }
 
+export type PlatformMailVia = 'ses' | 'smtp';
+
+function resolvePlatformVia(
+  platform: Awaited<ReturnType<typeof getResolvedPlatformSettings>>,
+  via?: PlatformMailVia,
+): PlatformMailVia {
+  if (via) return via;
+  if (platform.sesAccessKeyId && platform.sesSecretAccessKey) return 'ses';
+  return 'smtp';
+}
+
+async function sendViaPlatformSmtp(options: SendEmailOptions): Promise<string> {
+  const platform = await getResolvedPlatformSettings();
+  if (!platform.smtpHost) {
+    throw new Error('Platform SMTP relay is not configured');
+  }
+  return sendViaSmtpRelay(
+    {
+      host: platform.smtpHost,
+      port: platform.smtpPort,
+      secure: platform.smtpSecure,
+      username: platform.smtpUsername,
+      password: platform.smtpPassword,
+    },
+    options,
+  );
+}
+
 export async function sendPlatformSystemEmail(
   options: SendEmailOptions,
+  via?: PlatformMailVia,
 ): Promise<string> {
   const platform = await getResolvedPlatformSettings();
-  if (platform.sesAccessKeyId && platform.sesSecretAccessKey) {
+  const resolved = resolvePlatformVia(platform, via);
+  if (resolved === 'ses') {
+    if (!platform.sesAccessKeyId || !platform.sesSecretAccessKey) {
+      throw new Error('Platform SES is not configured');
+    }
     return sendViaSes(options);
   }
-  if (platform.smtpEnabled && platform.smtpHost) {
-    return sendViaSmtpRelay(
-      {
-        host: platform.smtpHost,
-        port: platform.smtpPort,
-        secure: platform.smtpSecure,
-        username: platform.smtpUsername,
-        password: platform.smtpPassword,
-      },
-      options,
-    );
+  if (via === 'smtp' && !platform.smtpEnabled) {
+    throw new Error('Platform SMTP relay is disabled');
   }
-  throw new Error('No platform SES or SMTP relay is configured');
+  return sendViaPlatformSmtp(options);
 }
