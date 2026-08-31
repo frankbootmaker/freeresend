@@ -36,7 +36,7 @@ FreeResend allows you to host your own email service using Amazon SES and option
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24+
 - PostgreSQL database (local or hosted)
 - Amazon AWS account with SES access
 - Digital Ocean account (optional, for automatic DNS management)
@@ -287,7 +287,7 @@ Both scripts will:
 ### Docker (Recommended)
 
 ```dockerfile
-FROM node:18-alpine
+FROM node:24-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
