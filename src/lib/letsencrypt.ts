@@ -1,9 +1,16 @@
 import * as acme from 'acme-client';
+import type { Order } from 'acme-client';
+import type { Challenge } from 'acme-client/types/rfc8555';
 import {
   createDNSRecord,
   deleteDNSRecord,
   getDomains,
 } from '@/lib/digitalocean';
+import {
+  ispconfigAddTxt,
+  ispconfigRemoveTxt,
+  type IspconfigConfig,
+} from '@/lib/ispconfig';
 import {
   forgetAcmeHttpChallenge,
   getResolvedPlatformSettings,
@@ -14,8 +21,10 @@ import {
 import {
   findLongestZone,
   isPublicTlsHostname,
+  parseStoredAcmeOrder,
   parseTlsHostname,
   shouldIssueLetsEncrypt,
+  type AcmeChallengeMethod,
 } from '@/lib/smtp-tls';
 
 const DNS_PROPAGATION_MS = 20_000;
@@ -43,11 +52,26 @@ async function resolveDoZone(hostname: string): Promise<string | null> {
   }
 }
 
+function challengePriority(
+  method: AcmeChallengeMethod,
+): string[] {
+  if (method === 'http-01') return ['http-01'];
+  return ['dns-01'];
+}
+
 export async function maybeIssueLetsEncryptCertificate(
   force = false,
 ): Promise<boolean> {
   if (inFlight) return inFlight;
   inFlight = issueIfNeeded(force).finally(() => {
+    inFlight = null;
+  });
+  return inFlight;
+}
+
+export async function continueManualDnsCertificate(): Promise<boolean> {
+  if (inFlight) return inFlight;
+  inFlight = completeManualDns().finally(() => {
     inFlight = null;
   });
   return inFlight;
@@ -63,6 +87,7 @@ async function issueIfNeeded(force: boolean): Promise<boolean> {
       statusAt: settings.smtpIngressTlsStatusAt,
       certPem: settings.smtpIngressTlsCert,
       renewAt: settings.smtpIngressTlsRenewAt,
+      challenge: settings.smtpIngressAcmeChallenge,
       force,
     })
   ) {
@@ -78,42 +103,173 @@ async function issueIfNeeded(force: boolean): Promise<boolean> {
     return false;
   }
 
+  if (settings.smtpIngressAcmeChallenge === 'dns-manual') {
+    return startManualDns(domain);
+  }
+
+  return completeAutomaticIssue(domain, settings.smtpIngressAcmeChallenge);
+}
+
+async function createClient(accountKeyPem?: string, email?: string) {
+  const accountKey = accountKeyPem
+    || (await acme.crypto.createPrivateKey()).toString('utf8');
+  const client = new acme.Client({
+    directoryUrl: directoryUrl(),
+    accountKey,
+  });
+  await client.createAccount({
+    termsOfServiceAgreed: true,
+    contact: email ? [`mailto:${email}`] : undefined,
+  });
+  return { client, accountKey };
+}
+
+function contactEmail(
+  settings: { alertEmail: string },
+): string {
+  return (
+    process.env.ACME_EMAIL
+    || settings.alertEmail
+    || process.env.ADMIN_EMAIL
+    || ''
+  ).trim();
+}
+
+async function startManualDns(domain: string): Promise<boolean> {
+  const settings = await getResolvedPlatformSettings();
   await updateTlsIssuanceState({
     status: 'pending',
     error: null,
+    challenge: 'dns-manual',
   });
 
   try {
-    const email = (
-      process.env.ACME_EMAIL
-      || settings.alertEmail
-      || process.env.ADMIN_EMAIL
-      || ''
-    ).trim();
-    const accountKey = settings.smtpIngressAcmeAccountKey
-      || (await acme.crypto.createPrivateKey()).toString('utf8');
-    const client = new acme.Client({
-      directoryUrl: directoryUrl(),
+    const email = contactEmail(settings);
+    const { client, accountKey } = await createClient(
+      settings.smtpIngressAcmeAccountKey,
+      email,
+    );
+    const [key, csr] = await acme.crypto.createCsr({ commonName: domain });
+    const order = await client.createOrder({
+      identifiers: [{ type: 'dns', value: domain }],
+    });
+    const authorizations = await client.getAuthorizations(order);
+    const challenge = authorizations
+      .flatMap((authz) => authz.challenges)
+      .find((item) => item.type === 'dns-01');
+    if (!challenge) {
+      throw new Error('Let’s Encrypt did not offer a DNS-01 challenge');
+    }
+    const dnsValue = await client.getChallengeKeyAuthorization(challenge);
+    const dnsName = `_acme-challenge.${domain}`;
+
+    await updateTlsIssuanceState({
+      status: 'waiting_dns',
+      error: null,
       accountKey,
+      dnsName,
+      dnsValue,
+      orderJson: JSON.stringify({
+        orderUrl: order.url,
+        challengeUrl: challenge.url,
+        csr: csr.toString(),
+        key: key.toString('utf8'),
+      }),
     });
+    return true;
+  } catch (error) {
+    return failIssuance(error);
+  }
+}
 
-    await client.createAccount({
-      termsOfServiceAgreed: true,
-      contact: email ? [`mailto:${email}`] : undefined,
+async function completeManualDns(): Promise<boolean> {
+  const settings = await getResolvedPlatformSettings();
+  const stored = parseStoredAcmeOrder(settings.smtpIngressAcmeOrder);
+  if (!stored) {
+    await updateTlsIssuanceState({
+      status: 'error',
+      error: 'No pending DNS challenge. Issue a certificate first.',
     });
+    return false;
+  }
 
-    const [key, csr] = await acme.crypto.createCsr({
-      commonName: domain,
-    });
+  await updateTlsIssuanceState({ status: 'pending', error: null });
 
-    const zone = await resolveDoZone(domain);
-    const createdRecords: Array<{ zone: string; id: number }> = [];
+  try {
+    const { client, accountKey } = await createClient(
+      settings.smtpIngressAcmeAccountKey,
+      contactEmail(settings),
+    );
+    const order = await client.getOrder({ url: stored.orderUrl } as Order);
+    const challenge = {
+      type: 'dns-01',
+      url: stored.challengeUrl,
+    } as Challenge;
+    await client.completeChallenge(challenge);
+    await client.waitForValidStatus(challenge);
+    await client.finalizeOrder(order, stored.csr);
+    const certificate = await client.getCertificate(order);
+    return storeIssuedCertificate(certificate, stored.key, accountKey);
+  } catch (error) {
+    await updateTlsIssuanceState({ status: 'waiting_dns' });
+    return failIssuance(error, false);
+  }
+}
+
+async function completeAutomaticIssue(
+  domain: string,
+  method: AcmeChallengeMethod,
+): Promise<boolean> {
+  const settings = await getResolvedPlatformSettings();
+  await updateTlsIssuanceState({
+    status: 'pending',
+    error: null,
+    challenge: method,
+  });
+
+  try {
+    const ispconfig = ispconfigConfigFromSettings(settings);
+    if (method === 'dns-digitalocean') {
+      const zone = await resolveDoZone(domain);
+      if (!process.env.DO_API_TOKEN) {
+        throw new Error(
+          'DigitalOcean DNS needs DO_API_TOKEN on this installation.',
+        );
+      }
+      if (!zone) {
+        throw new Error(
+          `No DigitalOcean zone matches ${domain}. Add the zone or use DNS TXT.`,
+        );
+      }
+    }
+    if (method === 'dns-ispconfig') {
+      if (!ispconfig) {
+        throw new Error(
+          'ISPConfig needs an API URL, remote user, and password.',
+        );
+      }
+    }
+
+    const email = contactEmail(settings);
+    const { client, accountKey } = await createClient(
+      settings.smtpIngressAcmeAccountKey,
+      email,
+    );
+    const [key, csr] = await acme.crypto.createCsr({ commonName: domain });
+    const zone = method === 'dns-digitalocean'
+      ? await resolveDoZone(domain)
+      : null;
+    const createdRecords: Array<{
+      provider: 'digitalocean' | 'ispconfig';
+      zone?: string;
+      id: number;
+    }> = [];
 
     const certificate = await client.auto({
       csr,
       email: email || undefined,
       termsOfServiceAgreed: true,
-      challengePriority: zone ? ['dns-01', 'http-01'] : ['http-01'],
+      challengePriority: challengePriority(method),
       challengeCreateFn: async (_authz, challenge, keyAuthorization) => {
         if (challenge.type === 'http-01') {
           rememberAcmeHttpChallenge(challenge.token, keyAuthorization);
@@ -123,14 +279,29 @@ async function issueIfNeeded(force: boolean): Promise<boolean> {
           });
           return;
         }
-        if (challenge.type === 'dns-01' && zone) {
+        if (challenge.type === 'dns-01' && method === 'dns-digitalocean' && zone) {
           const record = await createDNSRecord(zone, {
             type: 'TXT',
             name: `_acme-challenge.${domain}`,
             value: keyAuthorization,
             ttl: 30,
           });
-          createdRecords.push({ zone, id: record.id });
+          createdRecords.push({
+            provider: 'digitalocean',
+            zone,
+            id: record.id,
+          });
+          await new Promise((resolve) => {
+            setTimeout(resolve, DNS_PROPAGATION_MS);
+          });
+        }
+        if (challenge.type === 'dns-01' && method === 'dns-ispconfig' && ispconfig) {
+          const recordId = await ispconfigAddTxt(
+            ispconfig,
+            domain,
+            keyAuthorization,
+          );
+          createdRecords.push({ provider: 'ispconfig', id: recordId });
           await new Promise((resolve) => {
             setTimeout(resolve, DNS_PROPAGATION_MS);
           });
@@ -146,44 +317,97 @@ async function issueIfNeeded(force: boolean): Promise<boolean> {
         }
         if (challenge.type === 'dns-01') {
           await Promise.all(
-            createdRecords.splice(0).map((record) =>
-              deleteDNSRecord(record.zone, record.id).catch((error) => {
-                console.warn(
-                  'Let’s Encrypt: failed to remove DNS challenge',
-                  (error as Error).message,
+            createdRecords.splice(0).map((record) => {
+              if (record.provider === 'digitalocean' && record.zone) {
+                return deleteDNSRecord(record.zone, record.id).catch((error) => {
+                  console.warn(
+                    'Let’s Encrypt: failed to remove DNS challenge',
+                    (error as Error).message,
+                  );
+                });
+              }
+              if (record.provider === 'ispconfig' && ispconfig) {
+                return ispconfigRemoveTxt(ispconfig, domain, record.id).catch(
+                  (error) => {
+                    console.warn(
+                      'Let’s Encrypt: failed to remove ISPConfig TXT',
+                      (error as Error).message,
+                    );
+                  },
                 );
-              }),
-            ),
+              }
+              return Promise.resolve();
+            }),
           );
         }
       },
     });
 
-    const info = acme.crypto.readCertificateInfo(certificate);
-    const expiresAt = info.notAfter;
-    const certPem = certificate.toString();
-    const keyPem = key.toString('utf8');
-
-    await updateTlsIssuanceState({
-      status: 'issued',
-      error: null,
-      cert: certPem,
-      key: keyPem,
-      expiresAt,
-      renewAt: renewAtFromExpiry(expiresAt),
+    return storeIssuedCertificate(
+      certificate,
+      key.toString('utf8'),
       accountKey,
-      httpToken: null,
-      httpKeyAuth: null,
-    });
-    console.log(`Let’s Encrypt certificate issued for ${domain}`);
-    return true;
+    );
   } catch (error) {
-    const message = (error as Error).message || 'Certificate request failed';
-    console.error('Let’s Encrypt issuance failed:', error);
-    await updateTlsIssuanceState({
-      status: 'error',
-      error: message,
-    });
-    return false;
+    return failIssuance(error);
   }
+}
+
+async function storeIssuedCertificate(
+  certificate: string,
+  keyPem: string,
+  accountKey: string,
+): Promise<boolean> {
+  const info = acme.crypto.readCertificateInfo(certificate);
+  const expiresAt = info.notAfter;
+  await updateTlsIssuanceState({
+    status: 'issued',
+    error: null,
+    cert: certificate.toString(),
+    key: keyPem,
+    expiresAt,
+    renewAt: renewAtFromExpiry(expiresAt),
+    accountKey,
+    httpToken: null,
+    httpKeyAuth: null,
+    dnsName: null,
+    dnsValue: null,
+    orderJson: null,
+  });
+  console.log('Let’s Encrypt certificate issued');
+  return true;
+}
+
+function ispconfigConfigFromSettings(settings: {
+  smtpIngressIspconfigUrl: string;
+  smtpIngressIspconfigUser: string;
+  smtpIngressIspconfigPassword: string;
+  smtpIngressIspconfigInsecure: boolean;
+}): IspconfigConfig | null {
+  if (
+    !settings.smtpIngressIspconfigUrl.trim()
+    || !settings.smtpIngressIspconfigUser.trim()
+    || !settings.smtpIngressIspconfigPassword
+  ) {
+    return null;
+  }
+  return {
+    apiUrl: settings.smtpIngressIspconfigUrl,
+    username: settings.smtpIngressIspconfigUser,
+    password: settings.smtpIngressIspconfigPassword,
+    insecure: settings.smtpIngressIspconfigInsecure,
+  };
+}
+
+async function failIssuance(
+  error: unknown,
+  setErrorStatus = true,
+): Promise<boolean> {
+  const message = (error as Error).message || 'Certificate request failed';
+  console.error('Let’s Encrypt issuance failed:', error);
+  await updateTlsIssuanceState({
+    status: setErrorStatus ? 'error' : undefined,
+    error: message,
+  });
+  return false;
 }

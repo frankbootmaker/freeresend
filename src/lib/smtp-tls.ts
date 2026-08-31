@@ -1,7 +1,24 @@
 import { X509Certificate } from 'node:crypto';
 
 export type SmtpIngressTlsSource = 'letsencrypt' | 'manual';
-export type SmtpIngressTlsStatus = 'idle' | 'pending' | 'issued' | 'error';
+export type SmtpIngressTlsStatus =
+  | 'idle'
+  | 'pending'
+  | 'waiting_dns'
+  | 'issued'
+  | 'error';
+export type AcmeChallengeMethod =
+  | 'http-01'
+  | 'dns-digitalocean'
+  | 'dns-ispconfig'
+  | 'dns-manual';
+
+export type StoredAcmeOrder = {
+  orderUrl: string;
+  challengeUrl: string;
+  csr: string;
+  key: string;
+};
 
 export const TLS_RENEW_BEFORE_MS = 30 * 24 * 60 * 60 * 1000;
 export const TLS_PENDING_STALE_MS = 15 * 60 * 1000;
@@ -17,10 +34,57 @@ export function parseTlsSource(
 export function parseTlsStatus(
   value: string | null | undefined,
 ): SmtpIngressTlsStatus {
-  if (value === 'pending' || value === 'issued' || value === 'error') {
+  if (
+    value === 'pending'
+    || value === 'waiting_dns'
+    || value === 'issued'
+    || value === 'error'
+  ) {
     return value;
   }
   return 'idle';
+}
+
+export function parseAcmeChallenge(
+  value: string | null | undefined,
+): AcmeChallengeMethod {
+  if (value === 'http-01' || value === 'http') return 'http-01';
+  if (
+    value === 'dns-digitalocean'
+    || value === 'dns-01'
+    || value === 'digitalocean'
+  ) {
+    return 'dns-digitalocean';
+  }
+  if (value === 'dns-ispconfig' || value === 'ispconfig') {
+    return 'dns-ispconfig';
+  }
+  return 'dns-manual';
+}
+
+export function parseStoredAcmeOrder(
+  value: string | null | undefined,
+): StoredAcmeOrder | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<StoredAcmeOrder>;
+    if (
+      parsed.orderUrl
+      && parsed.challengeUrl
+      && parsed.csr
+      && parsed.key
+    ) {
+      return {
+        orderUrl: parsed.orderUrl,
+        challengeUrl: parsed.challengeUrl,
+        csr: parsed.csr,
+        key: parsed.key,
+      };
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 export function parseTlsHostname(value: string | null | undefined): string {
@@ -116,12 +180,15 @@ export function shouldIssueLetsEncrypt(input: {
   statusAt?: string;
   certPem?: string;
   renewAt?: string;
+  challenge?: AcmeChallengeMethod;
   now?: Date;
   force?: boolean;
   pendingStaleMs?: number;
 }): boolean {
   if (input.source !== 'letsencrypt') return false;
   if (!isPublicTlsHostname(input.domain)) return false;
+  if (input.challenge === 'dns-manual' && !input.force) return false;
+  if (input.status === 'waiting_dns' && !input.force) return false;
 
   const now = input.now || new Date();
   if (input.status === 'pending') {

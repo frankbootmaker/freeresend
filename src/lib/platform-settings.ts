@@ -9,10 +9,12 @@ import {
   computeRenewAt,
   isoDate,
   isPublicTlsHostname,
+  parseAcmeChallenge,
   parseTlsHostname,
   parseTlsSource,
   parseTlsStatus,
   readCertificateExpiry,
+  type AcmeChallengeMethod,
   type SmtpIngressTlsSource,
   type SmtpIngressTlsStatus,
 } from '@/lib/smtp-tls';
@@ -47,6 +49,14 @@ export type PlatformSettingsRow = {
   smtp_ingress_tls_status_at?: Date | string | null;
   smtp_ingress_acme_http_token?: string | null;
   smtp_ingress_acme_http_key_auth?: string | null;
+  smtp_ingress_acme_challenge?: string | null;
+  smtp_ingress_acme_dns_name?: string | null;
+  smtp_ingress_acme_dns_value?: string | null;
+  smtp_ingress_acme_order?: string | null;
+  smtp_ingress_ispconfig_url?: string | null;
+  smtp_ingress_ispconfig_user?: string | null;
+  smtp_ingress_ispconfig_password?: string | null;
+  smtp_ingress_ispconfig_insecure?: boolean | null;
 };
 
 export type ResolvedPlatformSettings = {
@@ -76,6 +86,14 @@ export type ResolvedPlatformSettings = {
   smtpIngressTlsStatusAt: string;
   smtpIngressAcmeHttpToken: string;
   smtpIngressAcmeHttpKeyAuth: string;
+  smtpIngressAcmeChallenge: AcmeChallengeMethod;
+  smtpIngressAcmeDnsName: string;
+  smtpIngressAcmeDnsValue: string;
+  smtpIngressAcmeOrder: string;
+  smtpIngressIspconfigUrl: string;
+  smtpIngressIspconfigUser: string;
+  smtpIngressIspconfigPassword: string;
+  smtpIngressIspconfigInsecure: boolean;
 };
 
 export type PlatformSettingsPatch = {
@@ -97,6 +115,11 @@ export type PlatformSettingsPatch = {
   smtpIngressTlsKey?: string;
   smtpIngressTlsSource?: SmtpIngressTlsSource;
   smtpIngressTlsDomain?: string;
+  smtpIngressAcmeChallenge?: AcmeChallengeMethod;
+  smtpIngressIspconfigUrl?: string;
+  smtpIngressIspconfigUser?: string;
+  smtpIngressIspconfigPassword?: string;
+  smtpIngressIspconfigInsecure?: boolean;
 };
 
 export type PublicPlatformSettings = {
@@ -121,6 +144,13 @@ export type PublicPlatformSettings = {
   smtpIngressTlsError: string;
   smtpIngressTlsExpiresAt: string;
   smtpIngressTlsRenewAt: string;
+  smtpIngressAcmeChallenge: AcmeChallengeMethod;
+  smtpIngressAcmeDnsName: string;
+  smtpIngressAcmeDnsValue: string;
+  smtpIngressIspconfigUrl: string;
+  smtpIngressIspconfigUser: string;
+  smtpIngressIspconfigPasswordConfigured: boolean;
+  smtpIngressIspconfigInsecure: boolean;
 };
 
 type EnvSource = Record<string, string | undefined>;
@@ -201,6 +231,28 @@ export function resolvePlatformSettings(
     smtpIngressTlsStatusAt: isoDate(row?.smtp_ingress_tls_status_at),
     smtpIngressAcmeHttpToken: blank(row?.smtp_ingress_acme_http_token),
     smtpIngressAcmeHttpKeyAuth: blank(row?.smtp_ingress_acme_http_key_auth),
+    smtpIngressAcmeChallenge: parseAcmeChallenge(
+      firstNonEmpty(row?.smtp_ingress_acme_challenge, env.SMTP_TLS_CHALLENGE),
+    ),
+    smtpIngressAcmeDnsName: blank(row?.smtp_ingress_acme_dns_name),
+    smtpIngressAcmeDnsValue: blank(row?.smtp_ingress_acme_dns_value),
+    smtpIngressAcmeOrder: blank(row?.smtp_ingress_acme_order),
+    smtpIngressIspconfigUrl: firstNonEmpty(
+      row?.smtp_ingress_ispconfig_url,
+      env.ISPCONFIG_API_URL,
+    ),
+    smtpIngressIspconfigUser: firstNonEmpty(
+      row?.smtp_ingress_ispconfig_user,
+      env.ISPCONFIG_USER,
+    ),
+    smtpIngressIspconfigPassword: firstNonEmpty(
+      row?.smtp_ingress_ispconfig_password,
+      env.ISPCONFIG_PASSWORD,
+    ),
+    smtpIngressIspconfigInsecure:
+      typeof row?.smtp_ingress_ispconfig_insecure === 'boolean'
+        ? row.smtp_ingress_ispconfig_insecure
+        : env.ISPCONFIG_API_INSECURE === 'true' || env.ISPCONFIG_API_INSECURE === '1',
   };
 }
 
@@ -243,6 +295,15 @@ export function toPublicPlatformSettings(
     smtpIngressTlsError: resolved.smtpIngressTlsError,
     smtpIngressTlsExpiresAt: resolved.smtpIngressTlsExpiresAt,
     smtpIngressTlsRenewAt: resolved.smtpIngressTlsRenewAt,
+    smtpIngressAcmeChallenge: resolved.smtpIngressAcmeChallenge,
+    smtpIngressAcmeDnsName: resolved.smtpIngressAcmeDnsName,
+    smtpIngressAcmeDnsValue: resolved.smtpIngressAcmeDnsValue,
+    smtpIngressIspconfigUrl: resolved.smtpIngressIspconfigUrl,
+    smtpIngressIspconfigUser: resolved.smtpIngressIspconfigUser,
+    smtpIngressIspconfigPasswordConfigured: Boolean(
+      resolved.smtpIngressIspconfigPassword,
+    ),
+    smtpIngressIspconfigInsecure: resolved.smtpIngressIspconfigInsecure,
   };
 }
 
@@ -311,10 +372,13 @@ export async function updatePlatformSettings(
       ses_configuration_set, smtp_enabled, smtp_host, smtp_port, smtp_secure,
       smtp_username, smtp_password, alert_email, alert_from,
       smtp_listen_ports, smtp_ingress_tls_mode, smtp_ingress_tls_cert,
-      smtp_ingress_tls_key, smtp_ingress_tls_source, smtp_ingress_tls_domain
+      smtp_ingress_tls_key, smtp_ingress_tls_source, smtp_ingress_tls_domain,
+      smtp_ingress_acme_challenge, smtp_ingress_ispconfig_url,
+      smtp_ingress_ispconfig_user, smtp_ingress_ispconfig_password,
+      smtp_ingress_ispconfig_insecure
     ) VALUES (
       'default', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-      $13, $14, $15, $16, $17, $18
+      $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
     )
     ON CONFLICT (id) DO UPDATE SET
       ses_region = EXCLUDED.ses_region,
@@ -334,7 +398,12 @@ export async function updatePlatformSettings(
       smtp_ingress_tls_cert = EXCLUDED.smtp_ingress_tls_cert,
       smtp_ingress_tls_key = EXCLUDED.smtp_ingress_tls_key,
       smtp_ingress_tls_source = EXCLUDED.smtp_ingress_tls_source,
-      smtp_ingress_tls_domain = EXCLUDED.smtp_ingress_tls_domain`,
+      smtp_ingress_tls_domain = EXCLUDED.smtp_ingress_tls_domain,
+      smtp_ingress_acme_challenge = EXCLUDED.smtp_ingress_acme_challenge,
+      smtp_ingress_ispconfig_url = EXCLUDED.smtp_ingress_ispconfig_url,
+      smtp_ingress_ispconfig_user = EXCLUDED.smtp_ingress_ispconfig_user,
+      smtp_ingress_ispconfig_password = EXCLUDED.smtp_ingress_ispconfig_password,
+      smtp_ingress_ispconfig_insecure = EXCLUDED.smtp_ingress_ispconfig_insecure`,
     [
       keepText(patch.sesRegion, current?.ses_region),
       keepSecret(patch.sesAccessKeyId, current?.ses_access_key_id),
@@ -366,6 +435,17 @@ export async function updatePlatformSettings(
       patch.smtpIngressTlsDomain !== undefined
         ? parseTlsHostname(patch.smtpIngressTlsDomain) || null
         : current?.smtp_ingress_tls_domain || null,
+      patch.smtpIngressAcmeChallenge
+        || parseAcmeChallenge(current?.smtp_ingress_acme_challenge),
+      keepText(patch.smtpIngressIspconfigUrl, current?.smtp_ingress_ispconfig_url),
+      keepText(patch.smtpIngressIspconfigUser, current?.smtp_ingress_ispconfig_user),
+      keepSecret(
+        patch.smtpIngressIspconfigPassword,
+        current?.smtp_ingress_ispconfig_password,
+      ),
+      patch.smtpIngressIspconfigInsecure !== undefined
+        ? Boolean(patch.smtpIngressIspconfigInsecure)
+        : Boolean(current?.smtp_ingress_ispconfig_insecure),
     ],
   );
 
@@ -400,6 +480,10 @@ export type TlsIssuancePatch = {
   accountKey?: string | null;
   httpToken?: string | null;
   httpKeyAuth?: string | null;
+  challenge?: AcmeChallengeMethod | null;
+  dnsName?: string | null;
+  dnsValue?: string | null;
+  orderJson?: string | null;
 };
 
 export async function updateTlsIssuanceState(
@@ -434,6 +518,18 @@ export async function updateTlsIssuanceState(
   }
   if (patch.httpKeyAuth !== undefined) {
     set('smtp_ingress_acme_http_key_auth', patch.httpKeyAuth);
+  }
+  if (patch.challenge !== undefined) {
+    set('smtp_ingress_acme_challenge', patch.challenge);
+  }
+  if (patch.dnsName !== undefined) {
+    set('smtp_ingress_acme_dns_name', patch.dnsName);
+  }
+  if (patch.dnsValue !== undefined) {
+    set('smtp_ingress_acme_dns_value', patch.dnsValue);
+  }
+  if (patch.orderJson !== undefined) {
+    set('smtp_ingress_acme_order', patch.orderJson);
   }
 
   if (assignments.length === 0) return;

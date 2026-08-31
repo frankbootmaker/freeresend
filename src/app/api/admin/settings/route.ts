@@ -41,6 +41,16 @@ const schema = z.object({
   smtpIngressTlsKey: z.string().optional(),
   smtpIngressTlsSource: z.enum(['letsencrypt', 'manual']).optional(),
   smtpIngressTlsDomain: z.string().optional(),
+  smtpIngressAcmeChallenge: z.enum([
+    'http-01',
+    'dns-digitalocean',
+    'dns-ispconfig',
+    'dns-manual',
+  ]).optional(),
+  smtpIngressIspconfigUrl: z.string().optional(),
+  smtpIngressIspconfigUser: z.string().optional(),
+  smtpIngressIspconfigPassword: z.string().optional(),
+  smtpIngressIspconfigInsecure: z.boolean().optional(),
 });
 
 export async function OPTIONS() {

@@ -243,9 +243,25 @@ type Dict = {
     tlsManual: string;
     tlsDomain: string;
     tlsLeHint: string;
+    tlsChallenge: string;
+    tlsChallengeHttp: string;
+    tlsChallengeDo: string;
+    tlsChallengeIsp: string;
+    tlsChallengeDns: string;
+    tlsHttpHint: string;
+    tlsDoHint: string;
+    tlsIspHint: string;
+    tlsDnsHint: string;
+    tlsIspUrl: string;
+    tlsIspUser: string;
+    tlsIspPassword: string;
+    tlsIspTls: string;
+    tlsIspSecure: string;
+    tlsIspInsecure: string;
     tlsManualHint: string;
     tlsStatusIdle: string;
     tlsStatusPending: string;
+    tlsStatusWaitingDns: string;
     tlsStatusIssued: string;
     tlsStatusError: string;
     tlsExpiresOn: (when: string) => string;
@@ -253,6 +269,10 @@ type Dict = {
     tlsIssueNow: string;
     tlsIssuing: string;
     tlsNoCertYet: string;
+    tlsDnsRecordName: string;
+    tlsDnsRecordValue: string;
+    tlsDnsContinue: string;
+    tlsDnsContinuing: string;
     alertTitle: string;
     alertLead: string;
     alertEmail: string;
@@ -665,11 +685,31 @@ const en: Dict = {
     tlsManual: 'Manual',
     tlsDomain: 'Hostname',
     tlsLeHint:
-      'Point this hostname at the portal for HTTP-01, or keep it in DigitalOcean DNS for automatic TXT challenges. Certificates renew about 30 days before they expire.',
+      'Behind Traefik or Dokploy, prefer DNS TXT. HTTP-01 only works if that hostname reaches this portal on port 80, including /.well-known/acme-challenge.',
+    tlsChallenge: 'Validation',
+    tlsChallengeHttp: 'HTTP-01',
+    tlsChallengeDo: 'DigitalOcean DNS',
+    tlsChallengeIsp: 'ISPConfig',
+    tlsChallengeDns: 'DNS TXT',
+    tlsHttpHint:
+      'Let’s Encrypt must reach http://hostname/.well-known/acme-challenge on this app. Traefik often intercepts that path — use DNS TXT on Dokploy unless you forward it.',
+    tlsDoHint:
+      'Creates _acme-challenge automatically when the hostname’s zone is in DigitalOcean (DO_API_TOKEN). Renews on its own.',
+    tlsIspHint:
+      'Uses the ISPConfig Remote JSON API to create the TXT record. The remote user needs DNS zone, DNS TXT, and client permissions. Renews on its own.',
+    tlsIspUrl: 'ISPConfig API URL',
+    tlsIspUser: 'Remote user',
+    tlsIspPassword: 'Remote password',
+    tlsIspTls: 'Panel TLS',
+    tlsIspSecure: 'Verify',
+    tlsIspInsecure: 'Allow insecure',
+    tlsDnsHint:
+      'Add the TXT record at your DNS host, wait a minute, then continue. Renewals need the same step — they are not fully automatic.',
     tlsManualHint:
       'Paste a certificate and key, or set SMTP_TLS_CERT_PATH and SMTP_TLS_KEY_PATH.',
     tlsStatusIdle: 'No certificate yet. Save a public hostname to issue one.',
     tlsStatusPending: 'Requesting a certificate from Let’s Encrypt…',
+    tlsStatusWaitingDns: 'Add the TXT record below, then continue.',
     tlsStatusIssued: 'Certificate issued',
     tlsStatusError: 'Certificate request failed',
     tlsExpiresOn: (when) => `Expires ${when}`,
@@ -677,6 +717,10 @@ const en: Dict = {
     tlsIssueNow: 'Issue / renew now',
     tlsIssuing: 'Requesting…',
     tlsNoCertYet: 'No certificate stored yet.',
+    tlsDnsRecordName: 'TXT name',
+    tlsDnsRecordValue: 'TXT value',
+    tlsDnsContinue: 'I added the record',
+    tlsDnsContinuing: 'Checking DNS…',
     alertTitle: 'Monitoring and alerts',
     alertLead:
       'Operational notices, including waitlist and delivery alerts, go to this address.',
@@ -1094,11 +1138,31 @@ const de: Dict = {
     tlsManual: 'Manuell',
     tlsDomain: 'Hostname',
     tlsLeHint:
-      'Dieser Hostname muss das Portal für HTTP-01 erreichen oder in DigitalOcean-DNS liegen. Erneuerung etwa 30 Tage vor Ablauf.',
+      'Hinter Traefik oder Dokploy DNS-TXT bevorzugen. HTTP-01 nur, wenn der Hostname Port 80 inklusive /.well-known/acme-challenge hier erreicht.',
+    tlsChallenge: 'Validierung',
+    tlsChallengeHttp: 'HTTP-01',
+    tlsChallengeDo: 'DigitalOcean-DNS',
+    tlsChallengeIsp: 'ISPConfig',
+    tlsChallengeDns: 'DNS-TXT',
+    tlsHttpHint:
+      'Let’s Encrypt muss http://hostname/.well-known/acme-challenge auf dieser App erreichen. Traefik fängt den Pfad oft ab — auf Dokploy DNS-TXT nutzen.',
+    tlsDoHint:
+      'Legt _acme-challenge automatisch an, wenn die Zone in DigitalOcean liegt (DO_API_TOKEN). Erneuert sich selbst.',
+    tlsIspHint:
+      'Legt den TXT-Record über die ISPConfig Remote-JSON-API an. Der Remote-User braucht DNS-Zone, DNS-TXT und Client-Rechte. Erneuert sich selbst.',
+    tlsIspUrl: 'ISPConfig-API-URL',
+    tlsIspUser: 'Remote-Benutzer',
+    tlsIspPassword: 'Remote-Passwort',
+    tlsIspTls: 'Panel-TLS',
+    tlsIspSecure: 'Prüfen',
+    tlsIspInsecure: 'Unsicher erlauben',
+    tlsDnsHint:
+      'TXT-Record beim DNS-Anbieter anlegen, kurz warten, dann fortfahren. Erneuerung braucht denselben Schritt.',
     tlsManualHint:
       'Zertifikat und Schlüssel einfügen oder SMTP_TLS_CERT_PATH und SMTP_TLS_KEY_PATH setzen.',
     tlsStatusIdle: 'Noch kein Zertifikat. Öffentlichen Hostnamen speichern, um eines anzufordern.',
     tlsStatusPending: 'Zertifikat wird bei Let’s Encrypt angefordert…',
+    tlsStatusWaitingDns: 'TXT-Record unten anlegen, dann fortfahren.',
     tlsStatusIssued: 'Zertifikat ausgestellt',
     tlsStatusError: 'Zertifikatsanforderung fehlgeschlagen',
     tlsExpiresOn: (when) => `Läuft ab ${when}`,
@@ -1106,6 +1170,10 @@ const de: Dict = {
     tlsIssueNow: 'Jetzt ausstellen / erneuern',
     tlsIssuing: 'Anforderung…',
     tlsNoCertYet: 'Noch kein Zertifikat gespeichert.',
+    tlsDnsRecordName: 'TXT-Name',
+    tlsDnsRecordValue: 'TXT-Wert',
+    tlsDnsContinue: 'Record ist angelegt',
+    tlsDnsContinuing: 'DNS wird geprüft…',
     alertTitle: 'Überwachung und Alarmierung',
     alertLead:
       'Betriebshinweise, inklusive Warteliste und Zustellalarme, gehen an diese Adresse.',
@@ -1523,11 +1591,31 @@ const hu: Dict = {
     tlsManual: 'Kézi',
     tlsDomain: 'Gépnév',
     tlsLeHint:
-      'A gépnév mutasson a portálra (HTTP-01), vagy legyen DigitalOcean DNS-ben. Megújítás lejárat előtt kb. 30 nappal.',
+      'Traefik vagy Dokploy mögött a DNS TXT a biztos. HTTP-01 csak akkor, ha a gépnév 80-as porton ide éri el a /.well-known/acme-challenge útvonalat.',
+    tlsChallenge: 'Ellenőrzés',
+    tlsChallengeHttp: 'HTTP-01',
+    tlsChallengeDo: 'DigitalOcean DNS',
+    tlsChallengeIsp: 'ISPConfig',
+    tlsChallengeDns: 'DNS TXT',
+    tlsHttpHint:
+      'A Let’s Encryptnek el kell érnie a http://gépnév/.well-known/acme-challenge címet. A Traefik gyakran elnyeli ezt — Dokployon DNS TXT-t használjon.',
+    tlsDoHint:
+      'Automatikusan létrehozza a _acme-challenge rekordot, ha a zóna DigitalOceanben van (DO_API_TOKEN). Magától megújul.',
+    tlsIspHint:
+      'Az ISPConfig Remote JSON API hozza létre a TXT rekordot. A remote usernek DNS zóna, DNS TXT és kliens jogosultság kell. Magától megújul.',
+    tlsIspUrl: 'ISPConfig API URL',
+    tlsIspUser: 'Remote felhasználó',
+    tlsIspPassword: 'Remote jelszó',
+    tlsIspTls: 'Panel TLS',
+    tlsIspSecure: 'Ellenőrzés',
+    tlsIspInsecure: 'Bizonytalan engedélyezése',
+    tlsDnsHint:
+      'Adja hozzá a TXT rekordot a DNS-nél, várjon egy percet, majd folytassa. A megújítás ugyanígy történik.',
     tlsManualHint:
       'Illesszen be tanúsítványt és kulcsot, vagy állítsa be a SMTP_TLS_CERT_PATH és SMTP_TLS_KEY_PATH változókat.',
     tlsStatusIdle: 'Még nincs tanúsítvány. Mentse a nyilvános gépnevet a kiállításhoz.',
     tlsStatusPending: 'Tanúsítvány kérése a Let’s Encrypt-től…',
+    tlsStatusWaitingDns: 'Adja hozzá az alábbi TXT rekordot, majd folytassa.',
     tlsStatusIssued: 'Tanúsítvány kiállítva',
     tlsStatusError: 'A tanúsítványkérés sikertelen',
     tlsExpiresOn: (when) => `Lejár ${when}`,
@@ -1535,6 +1623,10 @@ const hu: Dict = {
     tlsIssueNow: 'Kiállítás / megújítás most',
     tlsIssuing: 'Kérés…',
     tlsNoCertYet: 'Még nincs tárolt tanúsítvány.',
+    tlsDnsRecordName: 'TXT név',
+    tlsDnsRecordValue: 'TXT érték',
+    tlsDnsContinue: 'A rekord kész',
+    tlsDnsContinuing: 'DNS ellenőrzése…',
     alertTitle: 'Felügyelet és riasztás',
     alertLead:
       'Üzemeltetési értesítések, beleértve a várólistát és a kézbesítési riasztásokat, ide mennek.',

@@ -643,6 +643,7 @@ textarea {
 
 .seg {
   display: flex;
+  flex-wrap: wrap;
   margin-bottom: 11px;
 }
 

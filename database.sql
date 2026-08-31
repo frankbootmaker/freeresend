@@ -197,6 +197,14 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   smtp_ingress_tls_status_at TIMESTAMP WITH TIME ZONE,
   smtp_ingress_acme_http_token TEXT,
   smtp_ingress_acme_http_key_auth TEXT,
+  smtp_ingress_acme_challenge TEXT DEFAULT 'dns-manual',
+  smtp_ingress_acme_dns_name TEXT,
+  smtp_ingress_acme_dns_value TEXT,
+  smtp_ingress_acme_order TEXT,
+  smtp_ingress_ispconfig_url TEXT,
+  smtp_ingress_ispconfig_user TEXT,
+  smtp_ingress_ispconfig_password TEXT,
+  smtp_ingress_ispconfig_insecure BOOLEAN NOT NULL DEFAULT FALSE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

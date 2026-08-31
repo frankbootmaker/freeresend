@@ -7,6 +7,7 @@ import {
   computeRenewAt,
   findLongestZone,
   isPublicTlsHostname,
+  parseAcmeChallenge,
   parseTlsHostname,
   parseTlsSource,
   shouldIssueLetsEncrypt,
@@ -99,5 +100,31 @@ describe('shouldIssueLetsEncrypt', () => {
     expect(
       shouldIssueLetsEncrypt({ ...base, domain: 'localhost' }),
     ).toBe(false);
+  });
+
+  it('does not auto-issue while waiting for a manual DNS TXT', () => {
+    expect(
+      shouldIssueLetsEncrypt({
+        ...base,
+        challenge: 'dns-manual',
+        status: 'waiting_dns',
+      }),
+    ).toBe(false);
+    expect(
+      shouldIssueLetsEncrypt({
+        ...base,
+        challenge: 'dns-manual',
+        force: true,
+      }),
+    ).toBe(true);
+  });
+});
+
+describe('parseAcmeChallenge', () => {
+  it('defaults to manual DNS and accepts HTTP or DigitalOcean', () => {
+    expect(parseAcmeChallenge(undefined)).toBe('dns-manual');
+    expect(parseAcmeChallenge('http-01')).toBe('http-01');
+    expect(parseAcmeChallenge('dns-digitalocean')).toBe('dns-digitalocean');
+    expect(parseAcmeChallenge('ispconfig')).toBe('dns-ispconfig');
   });
 });

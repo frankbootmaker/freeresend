@@ -31,14 +31,28 @@ function SegButton({
   );
 }
 
+type TlsStatus = 'idle' | 'pending' | 'waiting_dns' | 'issued' | 'error';
+type AcmeChallenge =
+  | 'http-01'
+  | 'dns-digitalocean'
+  | 'dns-ispconfig'
+  | 'dns-manual';
+
 function applyTlsSettings(settings: Record<string, unknown>, setters: {
   setIngressTlsConfigured: (value: boolean) => void;
   setIngressTlsSource: (value: 'letsencrypt' | 'manual') => void;
   setIngressTlsDomain: (value: string) => void;
-  setIngressTlsStatus: (value: 'idle' | 'pending' | 'issued' | 'error') => void;
+  setIngressTlsStatus: (value: TlsStatus) => void;
   setIngressTlsError: (value: string) => void;
   setIngressTlsExpiresAt: (value: string) => void;
   setIngressTlsRenewAt: (value: string) => void;
+  setAcmeChallenge: (value: AcmeChallenge) => void;
+  setAcmeDnsName: (value: string) => void;
+  setAcmeDnsValue: (value: string) => void;
+  setIspconfigUrl: (value: string) => void;
+  setIspconfigUser: (value: string) => void;
+  setIspconfigPasswordConfigured: (value: boolean) => void;
+  setIspconfigInsecure: (value: boolean) => void;
 }) {
   setters.setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
   setters.setIngressTlsSource(
@@ -47,13 +61,32 @@ function applyTlsSettings(settings: Record<string, unknown>, setters: {
   setters.setIngressTlsDomain(String(settings.smtpIngressTlsDomain || ''));
   const status = settings.smtpIngressTlsStatus;
   setters.setIngressTlsStatus(
-    status === 'pending' || status === 'issued' || status === 'error'
+    status === 'pending'
+    || status === 'waiting_dns'
+    || status === 'issued'
+    || status === 'error'
       ? status
       : 'idle',
   );
   setters.setIngressTlsError(String(settings.smtpIngressTlsError || ''));
   setters.setIngressTlsExpiresAt(String(settings.smtpIngressTlsExpiresAt || ''));
   setters.setIngressTlsRenewAt(String(settings.smtpIngressTlsRenewAt || ''));
+  const challenge = settings.smtpIngressAcmeChallenge;
+  setters.setAcmeChallenge(
+    challenge === 'http-01'
+    || challenge === 'dns-digitalocean'
+    || challenge === 'dns-ispconfig'
+      ? challenge
+      : 'dns-manual',
+  );
+  setters.setAcmeDnsName(String(settings.smtpIngressAcmeDnsName || ''));
+  setters.setAcmeDnsValue(String(settings.smtpIngressAcmeDnsValue || ''));
+  setters.setIspconfigUrl(String(settings.smtpIngressIspconfigUrl || ''));
+  setters.setIspconfigUser(String(settings.smtpIngressIspconfigUser || ''));
+  setters.setIspconfigPasswordConfigured(
+    Boolean(settings.smtpIngressIspconfigPasswordConfigured),
+  );
+  setters.setIspconfigInsecure(Boolean(settings.smtpIngressIspconfigInsecure));
 }
 
 function formatTlsWhen(iso: string, locale: Locale): string {
@@ -90,12 +123,18 @@ export default function PlatformSettingsTab() {
     'letsencrypt' | 'manual'
   >('letsencrypt');
   const [ingressTlsDomain, setIngressTlsDomain] = useState('');
-  const [ingressTlsStatus, setIngressTlsStatus] = useState<
-    'idle' | 'pending' | 'issued' | 'error'
-  >('idle');
+  const [ingressTlsStatus, setIngressTlsStatus] = useState<TlsStatus>('idle');
   const [ingressTlsError, setIngressTlsError] = useState('');
   const [ingressTlsExpiresAt, setIngressTlsExpiresAt] = useState('');
   const [ingressTlsRenewAt, setIngressTlsRenewAt] = useState('');
+  const [acmeChallenge, setAcmeChallenge] = useState<AcmeChallenge>('dns-manual');
+  const [acmeDnsName, setAcmeDnsName] = useState('');
+  const [acmeDnsValue, setAcmeDnsValue] = useState('');
+  const [ispconfigUrl, setIspconfigUrl] = useState('');
+  const [ispconfigUser, setIspconfigUser] = useState('');
+  const [ispconfigPassword, setIspconfigPassword] = useState('');
+  const [ispconfigPasswordConfigured, setIspconfigPasswordConfigured] = useState(false);
+  const [ispconfigInsecure, setIspconfigInsecure] = useState(false);
   const [issuingCert, setIssuingCert] = useState(false);
   const [watchCertUntil, setWatchCertUntil] = useState(0);
   const [alertEmail, setAlertEmail] = useState('');
@@ -138,6 +177,13 @@ export default function PlatformSettingsTab() {
           setIngressTlsError,
           setIngressTlsExpiresAt,
           setIngressTlsRenewAt,
+          setAcmeChallenge,
+          setAcmeDnsName,
+          setAcmeDnsValue,
+          setIspconfigUrl,
+          setIspconfigUser,
+          setIspconfigPasswordConfigured,
+          setIspconfigInsecure,
         });
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
@@ -179,6 +225,13 @@ export default function PlatformSettingsTab() {
             setIngressTlsError,
             setIngressTlsExpiresAt,
             setIngressTlsRenewAt,
+            setAcmeChallenge,
+            setAcmeDnsName,
+            setAcmeDnsValue,
+            setIspconfigUrl,
+            setIspconfigUser,
+            setIspconfigPasswordConfigured,
+            setIspconfigInsecure,
           });
         })
         .catch(() => undefined);
@@ -210,11 +263,17 @@ export default function PlatformSettingsTab() {
         smtpIngressTlsKey,
         smtpIngressTlsSource: ingressTlsSource,
         smtpIngressTlsDomain: ingressTlsDomain,
+        smtpIngressAcmeChallenge: acmeChallenge,
+        smtpIngressIspconfigUrl: ispconfigUrl,
+        smtpIngressIspconfigUser: ispconfigUser,
+        smtpIngressIspconfigPassword: ispconfigPassword,
+        smtpIngressIspconfigInsecure: ispconfigInsecure,
       });
       const settings = res.data.settings;
       setSesAccessKeyId('');
       setSesSecretAccessKey('');
       setSmtpPassword('');
+      setIspconfigPassword('');
       setIngressTlsCert('');
       setIngressTlsKey('');
       setSesAccessKeyConfigured(Boolean(settings.sesAccessKeyConfigured));
@@ -228,6 +287,13 @@ export default function PlatformSettingsTab() {
         setIngressTlsError,
         setIngressTlsExpiresAt,
         setIngressTlsRenewAt,
+        setAcmeChallenge,
+        setAcmeDnsName,
+        setAcmeDnsValue,
+        setIspconfigUrl,
+        setIspconfigUser,
+        setIspconfigPasswordConfigured,
+        setIspconfigInsecure,
       });
       if (ingressTlsSource === 'letsencrypt' && ingressTlsDomain.trim()) {
         setWatchCertUntil(Date.now() + 120000);
@@ -290,8 +356,13 @@ export default function PlatformSettingsTab() {
         smtpIngressTlsMode: ingressTlsMode,
         smtpIngressTlsSource: ingressTlsSource,
         smtpIngressTlsDomain: ingressTlsDomain,
+        smtpIngressAcmeChallenge: acmeChallenge,
+        smtpIngressIspconfigUrl: ispconfigUrl,
+        smtpIngressIspconfigUser: ispconfigUser,
+        smtpIngressIspconfigPassword: ispconfigPassword,
+        smtpIngressIspconfigInsecure: ispconfigInsecure,
       });
-      const res = await api.issuePlatformCertificate();
+      const res = await api.issuePlatformCertificate('issue');
       applyTlsSettings(res.data.settings, {
         setIngressTlsConfigured,
         setIngressTlsSource,
@@ -300,6 +371,44 @@ export default function PlatformSettingsTab() {
         setIngressTlsError,
         setIngressTlsExpiresAt,
         setIngressTlsRenewAt,
+        setAcmeChallenge,
+        setAcmeDnsName,
+        setAcmeDnsValue,
+        setIspconfigUrl,
+        setIspconfigUser,
+        setIspconfigPasswordConfigured,
+        setIspconfigInsecure,
+      });
+      setWatchCertUntil(Date.now() + 120000);
+    } catch (err: unknown) {
+      setSaveError(
+        (err as { message?: string }).message || t.settings.saveFailed,
+      );
+    } finally {
+      setIssuingCert(false);
+    }
+  };
+
+  const continueDns = async () => {
+    setSaveError('');
+    setIssuingCert(true);
+    try {
+      const res = await api.issuePlatformCertificate('continue');
+      applyTlsSettings(res.data.settings, {
+        setIngressTlsConfigured,
+        setIngressTlsSource,
+        setIngressTlsDomain,
+        setIngressTlsStatus,
+        setIngressTlsError,
+        setIngressTlsExpiresAt,
+        setIngressTlsRenewAt,
+        setAcmeChallenge,
+        setAcmeDnsName,
+        setAcmeDnsValue,
+        setIspconfigUrl,
+        setIspconfigUser,
+        setIspconfigPasswordConfigured,
+        setIspconfigInsecure,
       });
       setWatchCertUntil(Date.now() + 120000);
     } catch (err: unknown) {
@@ -520,15 +629,122 @@ export default function PlatformSettingsTab() {
                   />
                 </div>
               </div>
+              <label className="field-label">{t.settings.tlsChallenge}</label>
+              <div
+                className="seg"
+                role="radiogroup"
+                aria-label={t.settings.tlsChallenge}
+              >
+                <SegButton
+                  active={acmeChallenge === 'dns-manual'}
+                  onClick={() => setAcmeChallenge('dns-manual')}
+                >
+                  {t.settings.tlsChallengeDns}
+                </SegButton>
+                <SegButton
+                  active={acmeChallenge === 'dns-digitalocean'}
+                  onClick={() => setAcmeChallenge('dns-digitalocean')}
+                >
+                  {t.settings.tlsChallengeDo}
+                </SegButton>
+                <SegButton
+                  active={acmeChallenge === 'dns-ispconfig'}
+                  onClick={() => setAcmeChallenge('dns-ispconfig')}
+                >
+                  {t.settings.tlsChallengeIsp}
+                </SegButton>
+                <SegButton
+                  active={acmeChallenge === 'http-01'}
+                  onClick={() => setAcmeChallenge('http-01')}
+                >
+                  {t.settings.tlsChallengeHttp}
+                </SegButton>
+              </div>
+              <p className="cardlead">
+                {acmeChallenge === 'http-01'
+                  ? t.settings.tlsHttpHint
+                  : acmeChallenge === 'dns-digitalocean'
+                    ? t.settings.tlsDoHint
+                    : acmeChallenge === 'dns-ispconfig'
+                      ? t.settings.tlsIspHint
+                      : t.settings.tlsDnsHint}
+              </p>
+              {acmeChallenge === 'dns-ispconfig' && (
+                <div className="formgrid">
+                  <div className="field">
+                    <label>{t.settings.tlsIspUrl}</label>
+                    <input
+                      value={ispconfigUrl}
+                      onChange={(e) => setIspconfigUrl(e.target.value)}
+                      placeholder="https://panel.example.com:8080/remote/json.php"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>{t.settings.tlsIspUser}</label>
+                    <input
+                      value={ispconfigUser}
+                      onChange={(e) => setIspconfigUser(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>{t.settings.tlsIspPassword}</label>
+                    <input
+                      type="password"
+                      value={ispconfigPassword}
+                      onChange={(e) => setIspconfigPassword(e.target.value)}
+                      placeholder={secretPlaceholder(ispconfigPasswordConfigured)}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>{t.settings.tlsIspTls}</label>
+                    <div
+                      className="seg"
+                      role="radiogroup"
+                      aria-label={t.settings.tlsIspTls}
+                    >
+                      <SegButton
+                        active={!ispconfigInsecure}
+                        onClick={() => setIspconfigInsecure(false)}
+                      >
+                        {t.settings.tlsIspSecure}
+                      </SegButton>
+                      <SegButton
+                        active={ispconfigInsecure}
+                        onClick={() => setIspconfigInsecure(true)}
+                      >
+                        {t.settings.tlsIspInsecure}
+                      </SegButton>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {(acmeDnsName || acmeDnsValue) && (
+                <div className="formgrid">
+                  <div className="field">
+                    <label>{t.settings.tlsDnsRecordName}</label>
+                    <input readOnly value={acmeDnsName} spellCheck={false} />
+                  </div>
+                  <div className="field">
+                    <label>{t.settings.tlsDnsRecordValue}</label>
+                    <input readOnly value={acmeDnsValue} spellCheck={false} />
+                  </div>
+                </div>
+              )}
               <div className="tls-meta" role="status">
                 <p>
                   {ingressTlsStatus === 'pending'
                     ? t.settings.tlsStatusPending
-                    : ingressTlsStatus === 'issued'
-                      ? t.settings.tlsStatusIssued
-                      : ingressTlsStatus === 'error'
-                        ? t.settings.tlsStatusError
-                        : t.settings.tlsStatusIdle}
+                    : ingressTlsStatus === 'waiting_dns'
+                      ? t.settings.tlsStatusWaitingDns
+                      : ingressTlsStatus === 'issued'
+                        ? t.settings.tlsStatusIssued
+                        : ingressTlsStatus === 'error'
+                          ? t.settings.tlsStatusError
+                          : t.settings.tlsStatusIdle}
                 </p>
                 <p>
                   {ingressTlsExpiresAt
@@ -548,16 +764,29 @@ export default function PlatformSettingsTab() {
               {ingressTlsError && (
                 <div className="fr-error" role="alert">{ingressTlsError}</div>
               )}
-              <button
-                className="primary save"
-                type="button"
-                onClick={issueCert}
-                disabled={issuingCert || ingressTlsStatus === 'pending'}
-              >
-                {issuingCert || ingressTlsStatus === 'pending'
-                  ? t.settings.tlsIssuing
-                  : t.settings.tlsIssueNow}
-              </button>
+              {ingressTlsStatus === 'waiting_dns' ? (
+                <button
+                  className="primary save"
+                  type="button"
+                  onClick={continueDns}
+                  disabled={issuingCert}
+                >
+                  {issuingCert
+                    ? t.settings.tlsDnsContinuing
+                    : t.settings.tlsDnsContinue}
+                </button>
+              ) : (
+                <button
+                  className="primary save"
+                  type="button"
+                  onClick={issueCert}
+                  disabled={issuingCert || ingressTlsStatus === 'pending'}
+                >
+                  {issuingCert || ingressTlsStatus === 'pending'
+                    ? t.settings.tlsIssuing
+                    : t.settings.tlsIssueNow}
+                </button>
+              )}
             </>
           ) : (
             <>

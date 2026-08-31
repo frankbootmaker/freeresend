@@ -113,7 +113,23 @@ describe('toPublicPlatformSettings', () => {
       smtpIngressTlsStatusAt: '2026-08-14T00:00:00.000Z',
       smtpIngressAcmeHttpToken: 'token',
       smtpIngressAcmeHttpKeyAuth: 'key-auth',
+      smtpIngressAcmeChallenge: 'dns-manual',
+      smtpIngressAcmeDnsName: '_acme-challenge.smtp.example.com',
+      smtpIngressAcmeDnsValue: 'challenge-value',
+      smtpIngressAcmeOrder: '{"orderUrl":"https://example"}',
+      smtpIngressIspconfigUrl: 'https://panel.example.com:8080/remote/json.php',
+      smtpIngressIspconfigUser: 'remote',
+      smtpIngressIspconfigPassword: 'secret',
+      smtpIngressIspconfigInsecure: true,
     });
+    expect(publicSettings.smtpIngressIspconfigUser).toBe('remote');
+    expect(publicSettings.smtpIngressIspconfigPasswordConfigured).toBe(true);
+    expect(publicSettings).not.toHaveProperty('smtpIngressIspconfigPassword');
+    expect(publicSettings.smtpIngressAcmeChallenge).toBe('dns-manual');
+    expect(publicSettings.smtpIngressAcmeDnsName).toBe(
+      '_acme-challenge.smtp.example.com',
+    );
+    expect(publicSettings).not.toHaveProperty('smtpIngressAcmeOrder');
     expect(publicSettings.smtpListenPorts).toEqual([587, 2525]);
     expect(publicSettings.smtpIngressTlsConfigured).toBe(true);
     expect(publicSettings.smtpIngressTlsSource).toBe('letsencrypt');
