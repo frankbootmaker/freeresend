@@ -187,6 +187,16 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   smtp_ingress_tls_mode TEXT DEFAULT 'off',
   smtp_ingress_tls_cert TEXT,
   smtp_ingress_tls_key TEXT,
+  smtp_ingress_tls_source TEXT DEFAULT 'letsencrypt',
+  smtp_ingress_tls_domain TEXT,
+  smtp_ingress_acme_account_key TEXT,
+  smtp_ingress_tls_expires_at TIMESTAMP WITH TIME ZONE,
+  smtp_ingress_tls_renew_at TIMESTAMP WITH TIME ZONE,
+  smtp_ingress_tls_status TEXT DEFAULT 'idle',
+  smtp_ingress_tls_error TEXT,
+  smtp_ingress_tls_status_at TIMESTAMP WITH TIME ZONE,
+  smtp_ingress_acme_http_token TEXT,
+  smtp_ingress_acme_http_key_auth TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

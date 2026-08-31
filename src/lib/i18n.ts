@@ -238,6 +238,21 @@ type Dict = {
     tlsCert: string;
     tlsKey: string;
     tlsHint: string;
+    tlsSource: string;
+    tlsLetsEncrypt: string;
+    tlsManual: string;
+    tlsDomain: string;
+    tlsLeHint: string;
+    tlsManualHint: string;
+    tlsStatusIdle: string;
+    tlsStatusPending: string;
+    tlsStatusIssued: string;
+    tlsStatusError: string;
+    tlsExpiresOn: (when: string) => string;
+    tlsRenewsOn: (when: string) => string;
+    tlsIssueNow: string;
+    tlsIssuing: string;
+    tlsNoCertYet: string;
     alertTitle: string;
     alertLead: string;
     alertEmail: string;
@@ -644,7 +659,24 @@ const en: Dict = {
     tlsCert: 'Certificate (PEM)',
     tlsKey: 'Private key (PEM)',
     tlsHint:
-      'Paste a certificate and key, or set SMTP_TLS_CERT_PATH and SMTP_TLS_KEY_PATH (Let’s Encrypt fullchain + privkey).',
+      'Let’s Encrypt issues and renews a certificate for the hostname below. Switch to Manual to paste PEMs.',
+    tlsSource: 'Certificate',
+    tlsLetsEncrypt: 'Let’s Encrypt',
+    tlsManual: 'Manual',
+    tlsDomain: 'Hostname',
+    tlsLeHint:
+      'Point this hostname at the portal for HTTP-01, or keep it in DigitalOcean DNS for automatic TXT challenges. Certificates renew about 30 days before they expire.',
+    tlsManualHint:
+      'Paste a certificate and key, or set SMTP_TLS_CERT_PATH and SMTP_TLS_KEY_PATH.',
+    tlsStatusIdle: 'No certificate yet. Save a public hostname to issue one.',
+    tlsStatusPending: 'Requesting a certificate from Let’s Encrypt…',
+    tlsStatusIssued: 'Certificate issued',
+    tlsStatusError: 'Certificate request failed',
+    tlsExpiresOn: (when) => `Expires ${when}`,
+    tlsRenewsOn: (when) => `Next renewal ${when}`,
+    tlsIssueNow: 'Issue / renew now',
+    tlsIssuing: 'Requesting…',
+    tlsNoCertYet: 'No certificate stored yet.',
     alertTitle: 'Monitoring and alerts',
     alertLead:
       'Operational notices, including waitlist and delivery alerts, go to this address.',
@@ -1056,7 +1088,24 @@ const de: Dict = {
     tlsCert: 'Zertifikat (PEM)',
     tlsKey: 'Privater Schlüssel (PEM)',
     tlsHint:
-      'Zertifikat und Schlüssel einfügen oder SMTP_TLS_CERT_PATH und SMTP_TLS_KEY_PATH setzen (Let’s Encrypt fullchain + privkey).',
+      'Let’s Encrypt stellt das Zertifikat aus und erneuert es. Auf Manuell wechseln, um PEMs einzufügen.',
+    tlsSource: 'Zertifikat',
+    tlsLetsEncrypt: 'Let’s Encrypt',
+    tlsManual: 'Manuell',
+    tlsDomain: 'Hostname',
+    tlsLeHint:
+      'Dieser Hostname muss das Portal für HTTP-01 erreichen oder in DigitalOcean-DNS liegen. Erneuerung etwa 30 Tage vor Ablauf.',
+    tlsManualHint:
+      'Zertifikat und Schlüssel einfügen oder SMTP_TLS_CERT_PATH und SMTP_TLS_KEY_PATH setzen.',
+    tlsStatusIdle: 'Noch kein Zertifikat. Öffentlichen Hostnamen speichern, um eines anzufordern.',
+    tlsStatusPending: 'Zertifikat wird bei Let’s Encrypt angefordert…',
+    tlsStatusIssued: 'Zertifikat ausgestellt',
+    tlsStatusError: 'Zertifikatsanforderung fehlgeschlagen',
+    tlsExpiresOn: (when) => `Läuft ab ${when}`,
+    tlsRenewsOn: (when) => `Nächste Erneuerung ${when}`,
+    tlsIssueNow: 'Jetzt ausstellen / erneuern',
+    tlsIssuing: 'Anforderung…',
+    tlsNoCertYet: 'Noch kein Zertifikat gespeichert.',
     alertTitle: 'Überwachung und Alarmierung',
     alertLead:
       'Betriebshinweise, inklusive Warteliste und Zustellalarme, gehen an diese Adresse.',
@@ -1468,7 +1517,24 @@ const hu: Dict = {
     tlsCert: 'Tanúsítvány (PEM)',
     tlsKey: 'Privát kulcs (PEM)',
     tlsHint:
+      'A Let’s Encrypt kiállítja és megújítja a tanúsítványt. Kézi módhoz váltson, ha PEM-et illeszt be.',
+    tlsSource: 'Tanúsítvány',
+    tlsLetsEncrypt: 'Let’s Encrypt',
+    tlsManual: 'Kézi',
+    tlsDomain: 'Gépnév',
+    tlsLeHint:
+      'A gépnév mutasson a portálra (HTTP-01), vagy legyen DigitalOcean DNS-ben. Megújítás lejárat előtt kb. 30 nappal.',
+    tlsManualHint:
       'Illesszen be tanúsítványt és kulcsot, vagy állítsa be a SMTP_TLS_CERT_PATH és SMTP_TLS_KEY_PATH változókat.',
+    tlsStatusIdle: 'Még nincs tanúsítvány. Mentse a nyilvános gépnevet a kiállításhoz.',
+    tlsStatusPending: 'Tanúsítvány kérése a Let’s Encrypt-től…',
+    tlsStatusIssued: 'Tanúsítvány kiállítva',
+    tlsStatusError: 'A tanúsítványkérés sikertelen',
+    tlsExpiresOn: (when) => `Lejár ${when}`,
+    tlsRenewsOn: (when) => `Következő megújítás ${when}`,
+    tlsIssueNow: 'Kiállítás / megújítás most',
+    tlsIssuing: 'Kérés…',
+    tlsNoCertYet: 'Még nincs tárolt tanúsítvány.',
     alertTitle: 'Felügyelet és riasztás',
     alertLead:
       'Üzemeltetési értesítések, beleértve a várólistát és a kézbesítési riasztásokat, ide mennek.',

@@ -37,6 +37,7 @@
     "@aws-sdk/client-iam": "^3.899.0",
     "@aws-sdk/client-ses": "^3.682.0",
     "@types/pg": "^8.15.5",
+    "acme-client": "^5.4.0",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "jose": "^5.9.6",

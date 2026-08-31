@@ -6,6 +6,7 @@ import {
   getPublicPlatformSettings,
   updatePlatformSettings,
 } from '@/lib/platform-settings';
+import { maybeIssueLetsEncryptCertificate } from '@/lib/letsencrypt';
 import { invalidateSesClient } from '@/lib/ses';
 
 const optionalEmail = z
@@ -38,6 +39,8 @@ const schema = z.object({
   smtpIngressTlsMode: z.enum(['off', 'starttls', 'required']).optional(),
   smtpIngressTlsCert: z.string().optional(),
   smtpIngressTlsKey: z.string().optional(),
+  smtpIngressTlsSource: z.enum(['letsencrypt', 'manual']).optional(),
+  smtpIngressTlsDomain: z.string().optional(),
 });
 
 export async function OPTIONS() {
@@ -68,8 +71,11 @@ export async function PATCH(request: NextRequest) {
       return json({ error: 'Platform admin required' }, 403);
     }
     const body = schema.parse(await request.json());
-    await updatePlatformSettings(body);
+    const resolved = await updatePlatformSettings(body);
     invalidateSesClient();
+    if (resolved.smtpIngressTlsSource === 'letsencrypt') {
+      void maybeIssueLetsEncryptCertificate(false);
+    }
     const settings = await getPublicPlatformSettings();
     return json({ success: true, data: { settings } });
   } catch (error: unknown) {

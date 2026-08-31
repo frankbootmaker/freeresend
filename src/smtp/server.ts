@@ -4,6 +4,7 @@ import { loadEnvConfig } from '@next/env';
 import { verifyApiKey } from '../lib/api-keys';
 import { dispatchWithApiKey, SendDispatchError } from '../lib/send-email';
 import { getResolvedPlatformSettings } from '../lib/platform-settings';
+import { maybeIssueLetsEncryptCertificate } from '../lib/letsencrypt';
 import {
   canListenOnPort,
   smtpTlsOptionsForPort,
@@ -185,6 +186,9 @@ syncListeners().catch((error) => {
 });
 
 setInterval(() => {
+  maybeIssueLetsEncryptCertificate(false).catch((error) => {
+    console.error('Let’s Encrypt renewal failed:', error);
+  });
   syncListeners().catch((error) => {
     console.error('SMTP ingress reload failed:', error);
   });

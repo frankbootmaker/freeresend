@@ -162,6 +162,12 @@ class ApiClient {
     return this.request('/admin/health');
   }
 
+  async issuePlatformCertificate() {
+    return this.request('/admin/settings/certificate', {
+      method: 'POST',
+    });
+  }
+
   async sendPlatformTestEmail(payload: {
     from: string;
     to: string;

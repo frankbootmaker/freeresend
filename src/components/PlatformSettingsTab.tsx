@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { usePrefs } from '@/contexts/PrefsContext';
+import type { Locale } from '@/lib/i18n';
 
 function SegButton({
   active,
@@ -30,8 +31,41 @@ function SegButton({
   );
 }
 
+function applyTlsSettings(settings: Record<string, unknown>, setters: {
+  setIngressTlsConfigured: (value: boolean) => void;
+  setIngressTlsSource: (value: 'letsencrypt' | 'manual') => void;
+  setIngressTlsDomain: (value: string) => void;
+  setIngressTlsStatus: (value: 'idle' | 'pending' | 'issued' | 'error') => void;
+  setIngressTlsError: (value: string) => void;
+  setIngressTlsExpiresAt: (value: string) => void;
+  setIngressTlsRenewAt: (value: string) => void;
+}) {
+  setters.setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
+  setters.setIngressTlsSource(
+    settings.smtpIngressTlsSource === 'manual' ? 'manual' : 'letsencrypt',
+  );
+  setters.setIngressTlsDomain(String(settings.smtpIngressTlsDomain || ''));
+  const status = settings.smtpIngressTlsStatus;
+  setters.setIngressTlsStatus(
+    status === 'pending' || status === 'issued' || status === 'error'
+      ? status
+      : 'idle',
+  );
+  setters.setIngressTlsError(String(settings.smtpIngressTlsError || ''));
+  setters.setIngressTlsExpiresAt(String(settings.smtpIngressTlsExpiresAt || ''));
+  setters.setIngressTlsRenewAt(String(settings.smtpIngressTlsRenewAt || ''));
+}
+
+function formatTlsWhen(iso: string, locale: Locale): string {
+  if (!iso) return '—';
+  const tag = locale === 'de' ? 'de-DE' : locale === 'hu' ? 'hu-HU' : 'en-GB';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString(tag, { dateStyle: 'medium', timeStyle: 'short' });
+}
+
 export default function PlatformSettingsTab() {
-  const { t } = usePrefs();
+  const { t, locale } = usePrefs();
   const [sesRegion, setSesRegion] = useState('us-east-1');
   const [sesConfigurationSet, setSesConfigurationSet] = useState('');
   const [sesAccessKeyId, setSesAccessKeyId] = useState('');
@@ -52,6 +86,18 @@ export default function PlatformSettingsTab() {
   const [ingressTlsCert, setIngressTlsCert] = useState('');
   const [ingressTlsKey, setIngressTlsKey] = useState('');
   const [ingressTlsConfigured, setIngressTlsConfigured] = useState(false);
+  const [ingressTlsSource, setIngressTlsSource] = useState<
+    'letsencrypt' | 'manual'
+  >('letsencrypt');
+  const [ingressTlsDomain, setIngressTlsDomain] = useState('');
+  const [ingressTlsStatus, setIngressTlsStatus] = useState<
+    'idle' | 'pending' | 'issued' | 'error'
+  >('idle');
+  const [ingressTlsError, setIngressTlsError] = useState('');
+  const [ingressTlsExpiresAt, setIngressTlsExpiresAt] = useState('');
+  const [ingressTlsRenewAt, setIngressTlsRenewAt] = useState('');
+  const [issuingCert, setIssuingCert] = useState(false);
+  const [watchCertUntil, setWatchCertUntil] = useState(0);
   const [alertEmail, setAlertEmail] = useState('');
   const [alertFrom, setAlertFrom] = useState('');
   const [testFrom, setTestFrom] = useState('');
@@ -84,7 +130,15 @@ export default function PlatformSettingsTab() {
             : [2525, 587],
         );
         setIngressTlsMode(settings.smtpIngressTlsMode || 'off');
-        setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
+        applyTlsSettings(settings, {
+          setIngressTlsConfigured,
+          setIngressTlsSource,
+          setIngressTlsDomain,
+          setIngressTlsStatus,
+          setIngressTlsError,
+          setIngressTlsExpiresAt,
+          setIngressTlsRenewAt,
+        });
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
         setTestFrom((current) => current || settings.alertFrom || '');
@@ -104,6 +158,33 @@ export default function PlatformSettingsTab() {
         );
       });
   }, [t.settings.saveFailed]);
+
+  useEffect(() => {
+    const watching = watchCertUntil > Date.now();
+    if (
+      ingressTlsSource !== 'letsencrypt'
+      || (ingressTlsStatus !== 'pending' && !watching)
+    ) {
+      return undefined;
+    }
+    const timer = window.setInterval(() => {
+      api
+        .getPlatformSettings()
+        .then((res) => {
+          applyTlsSettings(res.data.settings, {
+            setIngressTlsConfigured,
+            setIngressTlsSource,
+            setIngressTlsDomain,
+            setIngressTlsStatus,
+            setIngressTlsError,
+            setIngressTlsExpiresAt,
+            setIngressTlsRenewAt,
+          });
+        })
+        .catch(() => undefined);
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [ingressTlsSource, ingressTlsStatus, watchCertUntil]);
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -127,6 +208,8 @@ export default function PlatformSettingsTab() {
         smtpIngressTlsMode: ingressTlsMode,
         smtpIngressTlsCert,
         smtpIngressTlsKey,
+        smtpIngressTlsSource: ingressTlsSource,
+        smtpIngressTlsDomain: ingressTlsDomain,
       });
       const settings = res.data.settings;
       setSesAccessKeyId('');
@@ -137,7 +220,18 @@ export default function PlatformSettingsTab() {
       setSesAccessKeyConfigured(Boolean(settings.sesAccessKeyConfigured));
       setSesSecretConfigured(Boolean(settings.sesSecretConfigured));
       setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
-      setIngressTlsConfigured(Boolean(settings.smtpIngressTlsConfigured));
+      applyTlsSettings(settings, {
+        setIngressTlsConfigured,
+        setIngressTlsSource,
+        setIngressTlsDomain,
+        setIngressTlsStatus,
+        setIngressTlsError,
+        setIngressTlsExpiresAt,
+        setIngressTlsRenewAt,
+      });
+      if (ingressTlsSource === 'letsencrypt' && ingressTlsDomain.trim()) {
+        setWatchCertUntil(Date.now() + 120000);
+      }
       setSaveMessage(t.settings.saved);
     } catch (err: unknown) {
       setSaveError(
@@ -186,7 +280,40 @@ export default function PlatformSettingsTab() {
     });
   };
 
-  const tlsReady = ingressTlsConfigured || Boolean(ingressTlsCert.trim());
+  const issueCert = async () => {
+    setSaveError('');
+    setSaveMessage('');
+    setIssuingCert(true);
+    try {
+      await api.updatePlatformSettings({
+        smtpListenPorts: listenPorts,
+        smtpIngressTlsMode: ingressTlsMode,
+        smtpIngressTlsSource: ingressTlsSource,
+        smtpIngressTlsDomain: ingressTlsDomain,
+      });
+      const res = await api.issuePlatformCertificate();
+      applyTlsSettings(res.data.settings, {
+        setIngressTlsConfigured,
+        setIngressTlsSource,
+        setIngressTlsDomain,
+        setIngressTlsStatus,
+        setIngressTlsError,
+        setIngressTlsExpiresAt,
+        setIngressTlsRenewAt,
+      });
+      setWatchCertUntil(Date.now() + 120000);
+    } catch (err: unknown) {
+      setSaveError(
+        (err as { message?: string }).message || t.settings.saveFailed,
+      );
+    } finally {
+      setIssuingCert(false);
+    }
+  };
+
+  const tlsReady =
+    ingressTlsConfigured
+    || (ingressTlsSource === 'manual' && Boolean(ingressTlsCert.trim()));
 
   return (
     <>
@@ -363,29 +490,102 @@ export default function PlatformSettingsTab() {
               {t.settings.tlsRequired}
             </SegButton>
           </div>
-          <p className="cardlead">{t.settings.tlsHint}</p>
-          <div className="formgrid">
-            <div className="field">
-              <label>{t.settings.tlsCert}</label>
-              <textarea
-                value={ingressTlsCert}
-                onChange={(e) => setIngressTlsCert(e.target.value)}
-                placeholder={secretPlaceholder(ingressTlsConfigured)}
-                rows={5}
-                spellCheck={false}
-              />
-            </div>
-            <div className="field">
-              <label>{t.settings.tlsKey}</label>
-              <textarea
-                value={ingressTlsKey}
-                onChange={(e) => setIngressTlsKey(e.target.value)}
-                placeholder={secretPlaceholder(ingressTlsConfigured)}
-                rows={5}
-                spellCheck={false}
-              />
-            </div>
+          <label className="field-label">{t.settings.tlsSource}</label>
+          <div className="seg" role="radiogroup" aria-label={t.settings.tlsSource}>
+            <SegButton
+              active={ingressTlsSource === 'letsencrypt'}
+              onClick={() => setIngressTlsSource('letsencrypt')}
+            >
+              {t.settings.tlsLetsEncrypt}
+            </SegButton>
+            <SegButton
+              active={ingressTlsSource === 'manual'}
+              onClick={() => setIngressTlsSource('manual')}
+            >
+              {t.settings.tlsManual}
+            </SegButton>
           </div>
+          {ingressTlsSource === 'letsencrypt' ? (
+            <>
+              <p className="cardlead">{t.settings.tlsLeHint}</p>
+              <div className="formgrid">
+                <div className="field">
+                  <label>{t.settings.tlsDomain}</label>
+                  <input
+                    value={ingressTlsDomain}
+                    onChange={(e) => setIngressTlsDomain(e.target.value)}
+                    placeholder="smtp.example.com"
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
+              <div className="tls-meta" role="status">
+                <p>
+                  {ingressTlsStatus === 'pending'
+                    ? t.settings.tlsStatusPending
+                    : ingressTlsStatus === 'issued'
+                      ? t.settings.tlsStatusIssued
+                      : ingressTlsStatus === 'error'
+                        ? t.settings.tlsStatusError
+                        : t.settings.tlsStatusIdle}
+                </p>
+                <p>
+                  {ingressTlsExpiresAt
+                    ? t.settings.tlsExpiresOn(
+                        formatTlsWhen(ingressTlsExpiresAt, locale),
+                      )
+                    : t.settings.tlsNoCertYet}
+                </p>
+                {ingressTlsRenewAt ? (
+                  <p>
+                    {t.settings.tlsRenewsOn(
+                      formatTlsWhen(ingressTlsRenewAt, locale),
+                    )}
+                  </p>
+                ) : null}
+              </div>
+              {ingressTlsError && (
+                <div className="fr-error" role="alert">{ingressTlsError}</div>
+              )}
+              <button
+                className="primary save"
+                type="button"
+                onClick={issueCert}
+                disabled={issuingCert || ingressTlsStatus === 'pending'}
+              >
+                {issuingCert || ingressTlsStatus === 'pending'
+                  ? t.settings.tlsIssuing
+                  : t.settings.tlsIssueNow}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="cardlead">{t.settings.tlsManualHint}</p>
+              <div className="formgrid">
+                <div className="field">
+                  <label>{t.settings.tlsCert}</label>
+                  <textarea
+                    value={ingressTlsCert}
+                    onChange={(e) => setIngressTlsCert(e.target.value)}
+                    placeholder={secretPlaceholder(ingressTlsConfigured)}
+                    rows={5}
+                    spellCheck={false}
+                  />
+                </div>
+                <div className="field">
+                  <label>{t.settings.tlsKey}</label>
+                  <textarea
+                    value={ingressTlsKey}
+                    onChange={(e) => setIngressTlsKey(e.target.value)}
+                    placeholder={secretPlaceholder(ingressTlsConfigured)}
+                    rows={5}
+                    spellCheck={false}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
       <section className="card settings-alerts">

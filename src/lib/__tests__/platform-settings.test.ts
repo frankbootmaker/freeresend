@@ -103,11 +103,27 @@ describe('toPublicPlatformSettings', () => {
       smtpIngressTlsMode: 'off',
       smtpIngressTlsCert: 'CERT',
       smtpIngressTlsKey: 'KEY',
+      smtpIngressTlsSource: 'letsencrypt',
+      smtpIngressTlsDomain: 'smtp.example.com',
+      smtpIngressAcmeAccountKey: 'ACCOUNT',
+      smtpIngressTlsExpiresAt: '2026-11-12T00:00:00.000Z',
+      smtpIngressTlsRenewAt: '2026-10-13T00:00:00.000Z',
+      smtpIngressTlsStatus: 'issued',
+      smtpIngressTlsError: '',
+      smtpIngressTlsStatusAt: '2026-08-14T00:00:00.000Z',
+      smtpIngressAcmeHttpToken: 'token',
+      smtpIngressAcmeHttpKeyAuth: 'key-auth',
     });
     expect(publicSettings.smtpListenPorts).toEqual([587, 2525]);
     expect(publicSettings.smtpIngressTlsConfigured).toBe(true);
+    expect(publicSettings.smtpIngressTlsSource).toBe('letsencrypt');
+    expect(publicSettings.smtpIngressTlsDomain).toBe('smtp.example.com');
+    expect(publicSettings.smtpIngressTlsExpiresAt).toBe('2026-11-12T00:00:00.000Z');
+    expect(publicSettings.smtpIngressTlsRenewAt).toBe('2026-10-13T00:00:00.000Z');
     expect(publicSettings).not.toHaveProperty('smtpIngressTlsCert');
     expect(publicSettings).not.toHaveProperty('smtpIngressTlsKey');
+    expect(publicSettings).not.toHaveProperty('smtpIngressAcmeAccountKey');
+    expect(publicSettings).not.toHaveProperty('smtpIngressAcmeHttpToken');
     expect(publicSettings.sesAccessKeyConfigured).toBe(true);
     expect(publicSettings.sesSecretConfigured).toBe(true);
     expect(publicSettings.smtpPasswordConfigured).toBe(true);
