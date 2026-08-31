@@ -7,6 +7,7 @@ import {
   updatePlatformSettings,
 } from '@/lib/platform-settings';
 import { maybeIssueLetsEncryptCertificate } from '@/lib/letsencrypt';
+import { requestOrigin } from '@/lib/oidc';
 import { invalidateSesClient } from '@/lib/ses';
 
 const optionalEmail = z
@@ -51,6 +52,12 @@ const schema = z.object({
   smtpIngressIspconfigUser: z.string().optional(),
   smtpIngressIspconfigPassword: z.string().optional(),
   smtpIngressIspconfigInsecure: z.boolean().optional(),
+  oidcEnabled: z.boolean().optional(),
+  oidcIssuer: z.string().optional(),
+  oidcClientId: z.string().optional(),
+  oidcClientSecret: z.string().optional(),
+  oidcJitEnabled: z.boolean().optional(),
+  oidcAdminGroup: z.string().optional(),
 });
 
 export async function OPTIONS() {
@@ -63,7 +70,7 @@ export async function GET(request: NextRequest) {
     if (!session.user?.isPlatformAdmin) {
       return json({ error: 'Platform admin required' }, 403);
     }
-    const settings = await getPublicPlatformSettings();
+    const settings = await getPublicPlatformSettings(requestOrigin(request.headers));
     return json({ success: true, data: { settings } });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -86,7 +93,7 @@ export async function PATCH(request: NextRequest) {
     if (resolved.smtpIngressTlsSource === 'letsencrypt') {
       void maybeIssueLetsEncryptCertificate(false);
     }
-    const settings = await getPublicPlatformSettings();
+    const settings = await getPublicPlatformSettings(requestOrigin(request.headers));
     return json({ success: true, data: { settings } });
   } catch (error: unknown) {
     if (error instanceof AuthError) {

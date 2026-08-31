@@ -81,6 +81,8 @@ describe('resolvePlatformSettings', () => {
     expect(resolved.sesRegion).toBe('us-east-1');
     expect(resolved.sesConfigurationSet).toBe('relayhorizon-prod');
     expect(resolved.smtpEnabled).toBe(false);
+    expect(resolved.oidcEnabled).toBe(false);
+    expect(resolved.oidcJitEnabled).toBe(false);
   });
 });
 
@@ -121,6 +123,12 @@ describe('toPublicPlatformSettings', () => {
       smtpIngressIspconfigUser: 'remote',
       smtpIngressIspconfigPassword: 'secret',
       smtpIngressIspconfigInsecure: true,
+      oidcEnabled: true,
+      oidcIssuer: 'https://auth.example.com/application/o/relayhorizon/',
+      oidcClientId: 'client',
+      oidcClientSecret: 'oidc-secret',
+      oidcJitEnabled: true,
+      oidcAdminGroup: 'relayhorizon-admins',
     });
     expect(publicSettings.smtpIngressIspconfigUser).toBe('remote');
     expect(publicSettings.smtpIngressIspconfigPasswordConfigured).toBe(true);
@@ -146,6 +154,10 @@ describe('toPublicPlatformSettings', () => {
     expect(publicSettings).not.toHaveProperty('sesAccessKeyId');
     expect(publicSettings).not.toHaveProperty('sesSecretAccessKey');
     expect(publicSettings).not.toHaveProperty('smtpPassword');
+    expect(publicSettings.oidcEnabled).toBe(true);
+    expect(publicSettings.oidcJitEnabled).toBe(true);
+    expect(publicSettings.oidcClientSecretConfigured).toBe(true);
+    expect(publicSettings).not.toHaveProperty('oidcClientSecret');
   });
 });
 

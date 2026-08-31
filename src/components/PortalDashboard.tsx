@@ -31,6 +31,7 @@ const SETTINGS_SECTIONS: SettingsSection[] = [
   'smtp',
   'ingress',
   'alerts',
+  'oidc',
   'test',
 ];
 
@@ -53,6 +54,7 @@ export default function PortalDashboard() {
     { id: 'settings-smtp', label: t.settings.smtpTitle },
     { id: 'settings-ingress', label: t.settings.ingressTitle },
     { id: 'settings-alerts', label: t.settings.alertTitle },
+    { id: 'settings-oidc', label: t.settings.oidcTitle },
     { id: 'settings-test', label: t.settings.testTitle },
   ];
 

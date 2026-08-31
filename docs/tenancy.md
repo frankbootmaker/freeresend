@@ -13,6 +13,8 @@
 
 **Admin setup** `POST /api/admin/customers` (platform admin JWT) can create tenant, owner user, optional domain, API key, and MCP token in one call. Secrets are returned **once**.
 
+**OIDC** (Portal → Configuration) signs dashboard users in through Authentik or another OpenID Connect provider. The IdP `email` claim maps to `users.email`. With JIT on, a first sign-in creates the user and a `platform` tenant membership; an optional group can set `is_platform_admin`. With JIT off, only existing local accounts can complete sign-in.
+
 ## Isolation rules
 
 - Domains, API keys, email logs, MCP tokens (when tenant-scoped) always carry `tenant_id`

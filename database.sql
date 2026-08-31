@@ -221,6 +221,12 @@ CREATE TABLE IF NOT EXISTS platform_settings (
   backup_s3_access_key_id TEXT,
   backup_s3_secret_access_key TEXT,
   backup_s3_force_path_style BOOLEAN NOT NULL DEFAULT TRUE,
+  oidc_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  oidc_issuer TEXT,
+  oidc_client_id TEXT,
+  oidc_client_secret TEXT,
+  oidc_jit_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  oidc_admin_group TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

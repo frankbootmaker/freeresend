@@ -99,6 +99,10 @@ class ApiClient {
     return this.request("/auth/me");
   }
 
+  async getOidcStatus() {
+    return this.request("/auth/oidc");
+  }
+
   async updateProfile(payload: { name?: string; avatar?: string | null }) {
     const response = await this.request("/auth/me", {
       method: "PATCH",

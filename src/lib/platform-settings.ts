@@ -1,4 +1,5 @@
 import { DEFAULT_SES_CONFIGURATION_SET } from '@/lib/brand';
+import { oidcRedirectUri } from '@/lib/oidc';
 import { query } from '@/lib/database';
 import {
   listenPortsFromStored,
@@ -58,6 +59,12 @@ export type PlatformSettingsRow = {
   smtp_ingress_ispconfig_user?: string | null;
   smtp_ingress_ispconfig_password?: string | null;
   smtp_ingress_ispconfig_insecure?: boolean | null;
+  oidc_enabled?: boolean | null;
+  oidc_issuer?: string | null;
+  oidc_client_id?: string | null;
+  oidc_client_secret?: string | null;
+  oidc_jit_enabled?: boolean | null;
+  oidc_admin_group?: string | null;
 };
 
 export type ResolvedPlatformSettings = {
@@ -95,6 +102,12 @@ export type ResolvedPlatformSettings = {
   smtpIngressIspconfigUser: string;
   smtpIngressIspconfigPassword: string;
   smtpIngressIspconfigInsecure: boolean;
+  oidcEnabled: boolean;
+  oidcIssuer: string;
+  oidcClientId: string;
+  oidcClientSecret: string;
+  oidcJitEnabled: boolean;
+  oidcAdminGroup: string;
 };
 
 export type PlatformSettingsPatch = {
@@ -121,6 +134,12 @@ export type PlatformSettingsPatch = {
   smtpIngressIspconfigUser?: string;
   smtpIngressIspconfigPassword?: string;
   smtpIngressIspconfigInsecure?: boolean;
+  oidcEnabled?: boolean;
+  oidcIssuer?: string;
+  oidcClientId?: string;
+  oidcClientSecret?: string;
+  oidcJitEnabled?: boolean;
+  oidcAdminGroup?: string;
 };
 
 export type PublicPlatformSettings = {
@@ -152,6 +171,13 @@ export type PublicPlatformSettings = {
   smtpIngressIspconfigUser: string;
   smtpIngressIspconfigPasswordConfigured: boolean;
   smtpIngressIspconfigInsecure: boolean;
+  oidcEnabled: boolean;
+  oidcIssuer: string;
+  oidcClientId: string;
+  oidcClientSecretConfigured: boolean;
+  oidcJitEnabled: boolean;
+  oidcAdminGroup: string;
+  oidcRedirectUri: string;
 };
 
 type EnvSource = Record<string, string | undefined>;
@@ -254,7 +280,21 @@ export function resolvePlatformSettings(
       typeof row?.smtp_ingress_ispconfig_insecure === 'boolean'
         ? row.smtp_ingress_ispconfig_insecure
         : env.ISPCONFIG_API_INSECURE === 'true' || env.ISPCONFIG_API_INSECURE === '1',
+    oidcEnabled: boolFrom(row?.oidc_enabled, env.OIDC_ENABLED),
+    oidcIssuer: firstNonEmpty(row?.oidc_issuer, env.OIDC_ISSUER),
+    oidcClientId: firstNonEmpty(row?.oidc_client_id, env.OIDC_CLIENT_ID),
+    oidcClientSecret: firstNonEmpty(row?.oidc_client_secret, env.OIDC_CLIENT_SECRET),
+    oidcJitEnabled: boolFrom(row?.oidc_jit_enabled, env.OIDC_JIT_ENABLED),
+    oidcAdminGroup: firstNonEmpty(row?.oidc_admin_group, env.OIDC_ADMIN_GROUP),
   };
+}
+
+function boolFrom(
+  row: boolean | null | undefined,
+  envValue: string | undefined,
+): boolean {
+  if (typeof row === 'boolean') return row;
+  return envValue === 'true' || envValue === '1';
 }
 
 function resolveTlsDomain(
@@ -305,6 +345,15 @@ export function toPublicPlatformSettings(
       resolved.smtpIngressIspconfigPassword,
     ),
     smtpIngressIspconfigInsecure: resolved.smtpIngressIspconfigInsecure,
+    oidcEnabled: resolved.oidcEnabled,
+    oidcIssuer: resolved.oidcIssuer,
+    oidcClientId: resolved.oidcClientId,
+    oidcClientSecretConfigured: Boolean(resolved.oidcClientSecret),
+    oidcJitEnabled: resolved.oidcJitEnabled,
+    oidcAdminGroup: resolved.oidcAdminGroup,
+    oidcRedirectUri: oidcRedirectUri(
+      (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, ''),
+    ),
   };
 }
 
@@ -353,8 +402,14 @@ export async function getResolvedPlatformSettings(): Promise<ResolvedPlatformSet
   return resolvePlatformSettings(row);
 }
 
-export async function getPublicPlatformSettings(): Promise<PublicPlatformSettings> {
-  return toPublicPlatformSettings(await getResolvedPlatformSettings());
+export async function getPublicPlatformSettings(
+  origin?: string,
+): Promise<PublicPlatformSettings> {
+  const settings = toPublicPlatformSettings(await getResolvedPlatformSettings());
+  if (origin) {
+    settings.oidcRedirectUri = oidcRedirectUri(origin);
+  }
+  return settings;
 }
 
 export async function hasSesCredentials(): Promise<boolean> {
@@ -449,6 +504,39 @@ export async function updatePlatformSettings(
         : Boolean(current?.smtp_ingress_ispconfig_insecure),
     ],
   );
+
+  const oidcTouched = (
+    patch.oidcEnabled !== undefined
+    || patch.oidcIssuer !== undefined
+    || patch.oidcClientId !== undefined
+    || patch.oidcClientSecret !== undefined
+    || patch.oidcJitEnabled !== undefined
+    || patch.oidcAdminGroup !== undefined
+  );
+  if (oidcTouched) {
+    await query(
+      `UPDATE platform_settings SET
+        oidc_enabled = $1,
+        oidc_issuer = $2,
+        oidc_client_id = $3,
+        oidc_client_secret = $4,
+        oidc_jit_enabled = $5,
+        oidc_admin_group = $6
+       WHERE id = 'default'`,
+      [
+        patch.oidcEnabled !== undefined
+          ? Boolean(patch.oidcEnabled)
+          : Boolean(current?.oidc_enabled),
+        keepText(patch.oidcIssuer, current?.oidc_issuer),
+        keepText(patch.oidcClientId, current?.oidc_client_id),
+        keepSecret(patch.oidcClientSecret, current?.oidc_client_secret),
+        patch.oidcJitEnabled !== undefined
+          ? Boolean(patch.oidcJitEnabled)
+          : Boolean(current?.oidc_jit_enabled),
+        keepText(patch.oidcAdminGroup, current?.oidc_admin_group),
+      ],
+    );
+  }
 
   const resolved = await getResolvedPlatformSettings();
   if (

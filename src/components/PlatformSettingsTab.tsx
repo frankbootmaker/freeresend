@@ -97,7 +97,13 @@ function formatTlsWhen(iso: string, locale: Locale): string {
   return date.toLocaleString(tag, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-export type SettingsSection = 'ses' | 'smtp' | 'ingress' | 'alerts' | 'test';
+export type SettingsSection =
+  | 'ses'
+  | 'smtp'
+  | 'ingress'
+  | 'alerts'
+  | 'oidc'
+  | 'test';
 
 export default function PlatformSettingsTab({
   section = 'ses',
@@ -147,6 +153,14 @@ export default function PlatformSettingsTab({
   const [alertFrom, setAlertFrom] = useState('');
   const [testFrom, setTestFrom] = useState('');
   const [testTo, setTestTo] = useState('');
+  const [oidcEnabled, setOidcEnabled] = useState(false);
+  const [oidcIssuer, setOidcIssuer] = useState('');
+  const [oidcClientId, setOidcClientId] = useState('');
+  const [oidcClientSecret, setOidcClientSecret] = useState('');
+  const [oidcClientSecretConfigured, setOidcClientSecretConfigured] = useState(false);
+  const [oidcJitEnabled, setOidcJitEnabled] = useState(false);
+  const [oidcAdminGroup, setOidcAdminGroup] = useState('');
+  const [oidcRedirectUri, setOidcRedirectUri] = useState('');
   const [testVia, setTestVia] = useState<'ses' | 'smtp'>('ses');
   const [testSending, setTestSending] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -193,6 +207,17 @@ export default function PlatformSettingsTab({
         });
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
+        setOidcEnabled(Boolean(settings.oidcEnabled));
+        setOidcIssuer(settings.oidcIssuer || '');
+        setOidcClientId(settings.oidcClientId || '');
+        setOidcClientSecretConfigured(Boolean(settings.oidcClientSecretConfigured));
+        setOidcJitEnabled(Boolean(settings.oidcJitEnabled));
+        setOidcAdminGroup(settings.oidcAdminGroup || '');
+        setOidcRedirectUri(
+          typeof window !== 'undefined'
+            ? `${window.location.origin}/api/auth/oidc/callback`
+            : String(settings.oidcRedirectUri || ''),
+        );
         setTestFrom((current) => current || settings.alertFrom || '');
         setTestTo((current) => current || settings.alertEmail || '');
         if (
@@ -265,8 +290,8 @@ export default function PlatformSettingsTab({
         alertFrom,
         smtpListenPorts: listenPorts,
         smtpIngressTlsMode: ingressTlsMode,
-        smtpIngressTlsCert,
-        smtpIngressTlsKey,
+        smtpIngressTlsCert: ingressTlsCert,
+        smtpIngressTlsKey: ingressTlsKey,
         smtpIngressTlsSource: ingressTlsSource,
         smtpIngressTlsDomain: ingressTlsDomain,
         smtpIngressAcmeChallenge: acmeChallenge,
@@ -274,6 +299,12 @@ export default function PlatformSettingsTab({
         smtpIngressIspconfigUser: ispconfigUser,
         smtpIngressIspconfigPassword: ispconfigPassword,
         smtpIngressIspconfigInsecure: ispconfigInsecure,
+        oidcEnabled,
+        oidcIssuer,
+        oidcClientId,
+        oidcClientSecret,
+        oidcJitEnabled,
+        oidcAdminGroup,
       });
       const settings = res.data.settings;
       setSesAccessKeyId('');
@@ -282,9 +313,16 @@ export default function PlatformSettingsTab({
       setIspconfigPassword('');
       setIngressTlsCert('');
       setIngressTlsKey('');
+      setOidcClientSecret('');
       setSesAccessKeyConfigured(Boolean(settings.sesAccessKeyConfigured));
       setSesSecretConfigured(Boolean(settings.sesSecretConfigured));
       setSmtpPasswordConfigured(Boolean(settings.smtpPasswordConfigured));
+      setOidcClientSecretConfigured(Boolean(settings.oidcClientSecretConfigured));
+      setOidcEnabled(Boolean(settings.oidcEnabled));
+      setOidcIssuer(settings.oidcIssuer || '');
+      setOidcClientId(settings.oidcClientId || '');
+      setOidcJitEnabled(Boolean(settings.oidcJitEnabled));
+      setOidcAdminGroup(settings.oidcAdminGroup || '');
       applyTlsSettings(settings, {
         setIngressTlsConfigured,
         setIngressTlsSource,
@@ -881,6 +919,87 @@ export default function PlatformSettingsTab({
           <button className="primary save" type="submit">
             {t.settings.save}
           </button>
+        </div>
+      </section>
+        )}
+        {section === 'oidc' && (
+      <section className="card settings-alerts">
+        <header className="cardhead">
+          <h2>{t.settings.oidcTitle}</h2>
+        </header>
+        <div className="cardbody">
+          <p className="cardlead">{t.settings.oidcLead}</p>
+          <label className="field-label">{t.settings.oidcEnabled}</label>
+          <div className="seg" role="radiogroup" aria-label={t.settings.oidcEnabled}>
+            <SegButton active={oidcEnabled} onClick={() => setOidcEnabled(true)}>
+              {t.settings.oidcOn}
+            </SegButton>
+            <SegButton active={!oidcEnabled} onClick={() => setOidcEnabled(false)}>
+              {t.settings.oidcOff}
+            </SegButton>
+          </div>
+          <div className="formgrid">
+            <div className="field">
+              <label>{t.settings.oidcIssuer}</label>
+              <input
+                value={oidcIssuer}
+                onChange={(e) => setOidcIssuer(e.target.value)}
+                placeholder="https://authentik.example.com/application/o/relayhorizon/"
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.oidcRedirect}</label>
+              <input
+                value={oidcRedirectUri}
+                readOnly
+                onFocus={(e) => e.target.select()}
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.oidcClientId}</label>
+              <input
+                value={oidcClientId}
+                onChange={(e) => setOidcClientId(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.oidcClientSecret}</label>
+              <input
+                type="password"
+                value={oidcClientSecret}
+                onChange={(e) => setOidcClientSecret(e.target.value)}
+                placeholder={secretPlaceholder(oidcClientSecretConfigured)}
+                autoComplete="new-password"
+              />
+            </div>
+            <div className="field">
+              <label>{t.settings.oidcAdminGroup}</label>
+              <input
+                value={oidcAdminGroup}
+                onChange={(e) => setOidcAdminGroup(e.target.value)}
+                placeholder="relayhorizon-admins"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <p className="cardlead">{t.settings.oidcIssuerHint}</p>
+          <p className="cardlead">{t.settings.oidcAdminGroupHint}</p>
+          <label className="field-label">{t.settings.oidcJit}</label>
+          <div className="seg" role="radiogroup" aria-label={t.settings.oidcJit}>
+            <SegButton active={oidcJitEnabled} onClick={() => setOidcJitEnabled(true)}>
+              {t.settings.oidcJitOn}
+            </SegButton>
+            <SegButton
+              active={!oidcJitEnabled}
+              onClick={() => setOidcJitEnabled(false)}
+            >
+              {t.settings.oidcJitOff}
+            </SegButton>
+          </div>
+          <p className="cardlead">{t.settings.oidcJitHint}</p>
+          {saveFooter}
         </div>
       </section>
         )}

@@ -96,6 +96,11 @@ type Dict = {
     apiExampleAria: string;
     showPassword: string;
     hidePassword: string;
+    continueOidc: string;
+    oidcDenied: string;
+    oidcNotProvisioned: string;
+    oidcUnavailable: string;
+    oidcFailed: string;
   };
   register: {
     kickerStory: string;
@@ -152,6 +157,7 @@ type Dict = {
     lead: string;
     close: string;
     current: string;
+    unreleased: string;
     added: string;
     changed: string;
     fixed: string;
@@ -367,6 +373,22 @@ type Dict = {
     testSent: (via: string, id: string) => string;
     testFailed: string;
     testSmtpDisabled: string;
+    oidcTitle: string;
+    oidcLead: string;
+    oidcEnabled: string;
+    oidcOn: string;
+    oidcOff: string;
+    oidcIssuer: string;
+    oidcIssuerHint: string;
+    oidcClientId: string;
+    oidcClientSecret: string;
+    oidcRedirect: string;
+    oidcJit: string;
+    oidcJitOn: string;
+    oidcJitOff: string;
+    oidcJitHint: string;
+    oidcAdminGroup: string;
+    oidcAdminGroupHint: string;
   };
   health: {
     title: string;
@@ -688,6 +710,12 @@ const en: Dict = {
     apiExampleAria: 'API example',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    continueOidc: 'Continue with Authentik',
+    oidcDenied: 'Sign-in was cancelled.',
+    oidcNotProvisioned:
+      'No local account exists for that identity. Ask an administrator, or enable JIT account creation.',
+    oidcUnavailable: 'OIDC sign-in is not configured.',
+    oidcFailed: 'OIDC sign-in failed.',
   },
   register: {
     kickerStory: 'RelayHorizon console',
@@ -745,6 +773,7 @@ const en: Dict = {
     lead: 'What changed in this installation. Newest first.',
     close: 'Close',
     current: 'This installation',
+    unreleased: 'Unreleased',
     added: 'Added',
     changed: 'Changed',
     fixed: 'Fixed',
@@ -977,6 +1006,26 @@ const en: Dict = {
     testSent: (via, id) => `Sent via ${via}. Message ID ${id}`,
     testFailed: 'Test send failed',
     testSmtpDisabled: 'Enable SMTP relay to test this path',
+    oidcTitle: 'OIDC',
+    oidcLead:
+      'Sign operators in through Authentik or another OpenID Connect provider. Paste the callback URL into the provider application.',
+    oidcEnabled: 'OIDC sign-in',
+    oidcOn: 'Enabled',
+    oidcOff: 'Disabled',
+    oidcIssuer: 'Issuer URL',
+    oidcIssuerHint:
+      'Authentik example: https://authentik.example.com/application/o/relayhorizon/',
+    oidcClientId: 'Client ID',
+    oidcClientSecret: 'Client secret',
+    oidcRedirect: 'Callback URL',
+    oidcJit: 'Just-in-time accounts',
+    oidcJitOn: 'Create accounts',
+    oidcJitOff: 'Existing only',
+    oidcJitHint:
+      'When on, the first successful sign-in creates a local user on the platform tenant. An optional group can grant portal administrator access.',
+    oidcAdminGroup: 'Administrator group',
+    oidcAdminGroupHint:
+      'Optional Authentik group name. Matching users become platform administrators.',
   },
   health: {
     title: 'Health',
@@ -1303,6 +1352,12 @@ const de: Dict = {
     apiExampleAria: 'API-Beispiel',
     showPassword: 'Passwort anzeigen',
     hidePassword: 'Passwort verbergen',
+    continueOidc: 'Weiter mit Authentik',
+    oidcDenied: 'Anmeldung wurde abgebrochen.',
+    oidcNotProvisioned:
+      'Für diese Identität gibt es kein lokales Konto. Bitten Sie einen Administrator oder aktivieren Sie JIT-Konten.',
+    oidcUnavailable: 'OIDC-Anmeldung ist nicht konfiguriert.',
+    oidcFailed: 'OIDC-Anmeldung fehlgeschlagen.',
   },
   register: {
     kickerStory: 'RelayHorizon-Konsole',
@@ -1360,6 +1415,7 @@ const de: Dict = {
     lead: 'Änderungen in dieser Installation. Neueste zuerst.',
     close: 'Schließen',
     current: 'Diese Installation',
+    unreleased: 'Unveröffentlicht',
     added: 'Neu',
     changed: 'Geändert',
     fixed: 'Behoben',
@@ -1595,6 +1651,26 @@ const de: Dict = {
     testSent: (via, id) => `Gesendet über ${via}. Nachrichten-ID ${id}`,
     testFailed: 'Testversand fehlgeschlagen',
     testSmtpDisabled: 'SMTP-Relay aktivieren, um diesen Weg zu testen',
+    oidcTitle: 'OIDC',
+    oidcLead:
+      'Operatoren über Authentik oder einen anderen OpenID-Connect-Anbieter anmelden. Die Callback-URL in die Provider-Anwendung eintragen.',
+    oidcEnabled: 'OIDC-Anmeldung',
+    oidcOn: 'Aktiv',
+    oidcOff: 'Inaktiv',
+    oidcIssuer: 'Issuer-URL',
+    oidcIssuerHint:
+      'Authentik-Beispiel: https://authentik.example.com/application/o/relayhorizon/',
+    oidcClientId: 'Client-ID',
+    oidcClientSecret: 'Client-Secret',
+    oidcRedirect: 'Callback-URL',
+    oidcJit: 'Just-in-time-Konten',
+    oidcJitOn: 'Konten anlegen',
+    oidcJitOff: 'Nur vorhandene',
+    oidcJitHint:
+      'Wenn aktiv, legt die erste erfolgreiche Anmeldung ein lokales Konto am Plattform-Mandanten an. Eine optionale Gruppe kann Portaladministratoren gewähren.',
+    oidcAdminGroup: 'Administratorgruppe',
+    oidcAdminGroupHint:
+      'Optionaler Authentik-Gruppenname. Passende Benutzer werden Plattformadministratoren.',
   },
   health: {
     title: 'Status',
@@ -1921,6 +1997,12 @@ const hu: Dict = {
     apiExampleAria: 'API-példa',
     showPassword: 'Jelszó megjelenítése',
     hidePassword: 'Jelszó elrejtése',
+    continueOidc: 'Folytatás Authentikkal',
+    oidcDenied: 'A belépés megszakadt.',
+    oidcNotProvisioned:
+      'Ehhez az identitáshoz nincs helyi fiók. Kérjen adminisztrátort, vagy kapcsolja be a JIT-fióklétrehozást.',
+    oidcUnavailable: 'Az OIDC-belépés nincs beállítva.',
+    oidcFailed: 'Az OIDC-belépés sikertelen.',
   },
   register: {
     kickerStory: 'RelayHorizon konzol',
@@ -1978,6 +2060,7 @@ const hu: Dict = {
     lead: 'A telepítés változásai. A legújabb elöl.',
     close: 'Bezárás',
     current: 'Ez a telepítés',
+    unreleased: 'Kiadatlan',
     added: 'Új',
     changed: 'Változott',
     fixed: 'Javítva',
@@ -2213,6 +2296,26 @@ const hu: Dict = {
     testSent: (via, id) => `Elküldve (${via}). Üzenetazonosító: ${id}`,
     testFailed: 'A tesztküldés sikertelen',
     testSmtpDisabled: 'A teszteléshez kapcsolja be az SMTP-relét',
+    oidcTitle: 'OIDC',
+    oidcLead:
+      'Operátorok beléptetése Authentikon vagy más OpenID Connect szolgáltatón keresztül. A callback URL-t írja be a provider alkalmazásba.',
+    oidcEnabled: 'OIDC-belépés',
+    oidcOn: 'Bekapcsolva',
+    oidcOff: 'Kikapcsolva',
+    oidcIssuer: 'Issuer URL',
+    oidcIssuerHint:
+      'Authentik példa: https://authentik.example.com/application/o/relayhorizon/',
+    oidcClientId: 'Client ID',
+    oidcClientSecret: 'Client secret',
+    oidcRedirect: 'Callback URL',
+    oidcJit: 'Just-in-time fiókok',
+    oidcJitOn: 'Fiók létrehozása',
+    oidcJitOff: 'Csak meglévők',
+    oidcJitHint:
+      'Bekapcsolva az első sikeres belépés helyi fiókot hoz létre a platform bérlőn. Opcionális csoport portáladminisztrátori jogot adhat.',
+    oidcAdminGroup: 'Adminisztrátori csoport',
+    oidcAdminGroupHint:
+      'Opcionális Authentik csoportnév. Az egyező felhasználók platformadminisztrátorok lesznek.',
   },
   health: {
     title: 'Állapot',

@@ -6,7 +6,7 @@ SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration se
 
 ## Read in this order
 
-1. [Progress summary](progress-summary.md) — what is built as of 29 August 2026
+1. [Progress summary](progress-summary.md) — what is built as of 1 September 2026
 2. [Architecture](architecture.md)
 3. [Tenancy](tenancy.md)
 4. [Sending](sending.md)

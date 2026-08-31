@@ -6,8 +6,17 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-- Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs).
-- Console profile menu with optional picture upload.
+Work on `main` since 1.9.0. The console top-bar notes show the same list.
+
+### Added
+
+- Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs)
+- Console profile menu with optional picture upload
+- Portal Configuration → OIDC for Authentik (or another OpenID Connect provider), with a JIT account-creation toggle and optional administrator group
+
+### Fixed
+
+- Configuration Save referenced an undefined TLS field and failed from every settings section
 
 ## 1.9.0 — 2026-09-01
 

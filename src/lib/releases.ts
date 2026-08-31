@@ -14,8 +14,34 @@ export type Release = {
   changes: ReleaseChange[];
 };
 
+export const UNRELEASED_VERSION = 'unreleased';
+
 /** Newest first. Keep CHANGELOG.md in sync when you add a row. */
 export const RELEASES: Release[] = [
+  {
+    version: UNRELEASED_VERSION,
+    date: '2026-09-01',
+    summary:
+      'Work on main since 1.9.0: Guide tabs, profile pictures, and Authentik/OIDC sign-in.',
+    changes: [
+      {
+        kind: 'added',
+        text: 'Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs).',
+      },
+      {
+        kind: 'added',
+        text: 'Console profile menu with optional picture upload.',
+      },
+      {
+        kind: 'added',
+        text: 'Portal Configuration → OIDC for Authentik (or another OpenID Connect provider), with a JIT account-creation toggle and optional administrator group.',
+      },
+      {
+        kind: 'fixed',
+        text: 'Configuration Save referenced an undefined TLS field and failed from every settings section.',
+      },
+    ],
+  },
   {
     version: '1.9.0',
     date: '2026-09-01',

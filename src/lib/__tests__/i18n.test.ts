@@ -17,8 +17,15 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.changelog.title).toMatch(/release/i);
     expect(dictionaries.de.changelog.close).toMatch(/schließen/i);
     expect(dictionaries.hu.changelog.current).toMatch(/telepítés/i);
+    expect(dictionaries.en.changelog.unreleased).toBe('Unreleased');
+    expect(dictionaries.de.changelog.unreleased).toMatch(/unveröffentlicht/i);
+    expect(dictionaries.hu.changelog.unreleased).toMatch(/kiadatlan/i);
     expect(dictionaries.en.nav.guide).toBe('Guide');
     expect(dictionaries.de.nav.guide).toMatch(/handbuch/i);
     expect(dictionaries.hu.nav.guide).toMatch(/útmutató/i);
+    expect(dictionaries.en.settings.oidcTitle).toBe('OIDC');
+    expect(dictionaries.en.settings.oidcJitOn).toMatch(/create/i);
+    expect(dictionaries.de.settings.oidcJit).toMatch(/just-in-time/i);
+    expect(dictionaries.hu.settings.oidcJit).toMatch(/just-in-time/i);
   });
 });

@@ -429,7 +429,8 @@ textarea {
   display: block;
 }
 
-.authform .primary {
+.authform .primary,
+.authform .button {
   width: 100%;
   margin-top: 12px;
 }

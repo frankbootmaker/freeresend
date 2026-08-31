@@ -40,6 +40,7 @@ interface AuthContextType {
     password: string;
   }) => Promise<void>;
   switchTenant: (tenantId: string) => Promise<void>;
+  completeOidc: (token: string) => Promise<AuthUser>;
   updateProfile: (payload: {
     name?: string;
     avatar?: string | null;
@@ -109,6 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const completeOidc = async (token: string) => {
+    api.setToken(token);
+    const response = await api.getUser();
+    applySession(response.data);
+    return response.data.user as AuthUser;
+  };
+
   const updateProfile = async (payload: {
     name?: string;
     avatar?: string | null;
@@ -139,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         switchTenant,
+        completeOidc,
         updateProfile,
         logout,
       }}

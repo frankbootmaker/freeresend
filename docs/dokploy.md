@@ -37,11 +37,11 @@ Postgres is bound to `127.0.0.1:5436` on the VPS. Remove the postgres `ports` bl
 1. Deploy and wait until `postgres` is healthy, then `web`.
 2. `POST https://<host>/api/setup` once. Store `mcpToken` if the response includes it.
 3. Sign in at `/portal` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
-4. **Configuration** — SES credentials or the platform SMTP relay.
+4. **Configuration** — SES credentials or the platform SMTP relay. Optional **OIDC** (Authentik): paste issuer/client credentials and the callback URL `/api/auth/oidc/callback`. Enable JIT only if a first Authentik sign-in should create a local user.
 5. **Health** — database, SES/SMTP, and backup sidecar heartbeat.
 6. Provision one customer, publish MX/SPF/DKIM/DMARC, send a test.
 
-Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`).
+Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`), including `database-migrate-oidc.sql` and `database-migrate-user-profile.sql`.
 
 ## After the first send
 

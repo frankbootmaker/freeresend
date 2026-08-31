@@ -2,11 +2,17 @@
  * @jest-environment node
  */
 
-import { APP_VERSION, RELEASES, displayVersion } from '../releases';
+import {
+  APP_VERSION,
+  RELEASES,
+  UNRELEASED_VERSION,
+  displayVersion,
+} from '../releases';
 
 describe('releases', () => {
-  it('lists the current version first', () => {
-    expect(RELEASES[0]?.version).toBe(APP_VERSION);
+  it('lists unreleased work first and still includes the installed version', () => {
+    expect(RELEASES[0]?.version).toBe(UNRELEASED_VERSION);
+    expect(RELEASES.some((release) => release.version === APP_VERSION)).toBe(true);
     expect(displayVersion()).toBe(`v${APP_VERSION}`);
   });
 

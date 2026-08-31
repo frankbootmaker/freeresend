@@ -31,7 +31,10 @@ This guide will help you set up RelayHorizon from scratch. Prefer [`docs/docker.
    psql $DATABASE_URL -f database.sql
 
    # Or copy contents of database.sql and run in your PostgreSQL client
+   # Existing databases: apply every database-migrate-*.sql
    ```
+
+Optional Authentik / OIDC is configured later in Portal → **Configuration → OIDC** (issuer, client ID/secret, JIT). Env fallbacks are documented in `.env.local.example`.
 
 ### AWS SES Setup
 

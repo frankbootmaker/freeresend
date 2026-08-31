@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
+import { api } from '@/lib/api';
 import { postAuthPath } from '@/lib/post-auth';
 import OpsBrand from './ops/OpsBrand';
 import OpsPrefs from './ops/OpsPrefs';
@@ -26,9 +27,28 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [oidcEnabled, setOidcEnabled] = useState(false);
   const { login } = useAuth();
   const { t } = usePrefs();
   const router = useRouter();
+
+  useEffect(() => {
+    api.getOidcStatus()
+      .then((res) => setOidcEnabled(Boolean(res.data?.enabled)))
+      .catch(() => setOidcEnabled(false));
+  }, []);
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('oidc_error');
+    if (!code) return;
+    const messages: Record<string, string> = {
+      denied: t.login.oidcDenied,
+      not_provisioned: t.login.oidcNotProvisioned,
+      unavailable: t.login.oidcUnavailable,
+      failed: t.login.oidcFailed,
+    };
+    setError(messages[code] || t.login.oidcFailed);
+  }, [t.login]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,6 +145,11 @@ export default function LoginForm({
           <button className="primary" type="submit" disabled={loading}>
             {loading ? t.login.submitting : t.login.submit}
           </button>
+          {oidcEnabled && (
+            <a className="button" href="/api/auth/oidc/start">
+              {t.login.continueOidc}
+            </a>
+          )}
           {onCreate && (
             <button type="button" className="switchauth" onClick={onCreate}>
               {t.login.createAccount}

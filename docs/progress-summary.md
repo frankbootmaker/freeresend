@@ -14,7 +14,7 @@ Operators provision **tenants** (customers). Each tenant sends mail through a Re
 
 | Surface | Who | What it does |
 | --- | --- | --- |
-| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Users** adds or revokes other platform administrators. **Agents** issues platform MCP tokens with administrator access. **Configuration** sets installation-level SES, a shared SMTP relay, and alert addresses. **Guide** is the administrator walkthrough. |
+| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Users** adds or revokes other platform administrators. **Agents** issues platform MCP tokens with administrator access. **Configuration** sets installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. |
 | **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys**, **Agents**, **Logs**, **Guide**. Tenant agents are scoped to that organization. Platform admins can switch back to the portal. |
 
 UI language: English, German, Hungarian. Theme toggle is in the shell.
@@ -44,14 +44,15 @@ Stored in `platform_settings` (row `id = 'default'`). Env vars remain fallbacks 
 - **Amazon SES** — region, configuration set, access key, secret. Used for tenant SES send and domain verification. Secrets are never returned; blank fields on save keep the stored secret.
 - **SMTP relay** — enable, host, port, TLS, username, password. Shared outbound client for tenants without their own upstream.
 - **Monitoring / alerts** — destination and from address for operational notices (waitlist and similar). Fallback chain: saved value, then `ALERT_EMAIL` / `ADMIN_EMAIL` and `ALERT_FROM` / `FROM_EMAIL`.
+- **OIDC** — enable Authentik (or another OpenID Connect provider), issuer, client ID/secret, JIT account creation, optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env fallbacks: `OIDC_*`.
 
-Existing databases need `database-migrate-platform-settings.sql` once. New installs get the table from `database.sql`.
+Existing databases need every `database-migrate-*.sql` once (`platform-settings`, `oidc`, `user-profile`, and the others). New installs get columns from `database.sql`.
 
 ## Tenancy and auth
 
 - Tenant, user, membership (`owner` | `admin` | `member`). Email is globally unique; a user may belong to several tenants.
 - Self-signup: `POST /api/auth/register`. Admin provision: `POST /api/admin/customers`.
-- Dashboard: JWT. Sending API: `frs_…` keys (bcrypt hashed, copy-once in the UI). MCP: `mcp_…` tokens.
+- Dashboard: JWT after password or OIDC. Sending API: `frs_…` keys (bcrypt hashed, copy-once in the UI). MCP: `mcp_…` tokens.
 - Platform admin header `X-Tenant-Id` or `POST /api/auth/me` with `{ tenantId }` to switch context.
 - Suspended tenants cannot send. Domain names are globally unique.
 
@@ -66,7 +67,7 @@ Existing databases need `database-migrate-platform-settings.sql` once. New insta
 - Incoming mail / hosting mailboxes.
 - Bounce/complaint webhook mail to the alert address (avoided so far to prevent noise and loops).
 
-Version history: [CHANGELOG.md](../CHANGELOG.md). The console top bar shows `v` plus `APP_VERSION` from `src/lib/releases.ts`.
+Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is still `v` plus `APP_VERSION` (1.9.0) until you cut a release.
 
 ## Local run
 

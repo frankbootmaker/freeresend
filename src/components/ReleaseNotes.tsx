@@ -1,7 +1,13 @@
 'use client';
 
 import { usePrefs } from '@/contexts/PrefsContext';
-import { APP_VERSION, RELEASES, displayVersion, type ReleaseChangeKind } from '@/lib/releases';
+import {
+  APP_VERSION,
+  RELEASES,
+  UNRELEASED_VERSION,
+  displayVersion,
+  type ReleaseChangeKind,
+} from '@/lib/releases';
 
 export default function ReleaseNotes({ onClose }: { onClose: () => void }) {
   const { t } = usePrefs();
@@ -32,7 +38,9 @@ export default function ReleaseNotes({ onClose }: { onClose: () => void }) {
           {RELEASES.map((release) => (
             <li key={release.version} className="release">
               <h3>
-                {displayVersion(release.version)}
+                {release.version === UNRELEASED_VERSION
+                  ? t.changelog.unreleased
+                  : displayVersion(release.version)}
                 {release.version === APP_VERSION ? (
                   <span className="release-current">{t.changelog.current}</span>
                 ) : null}
