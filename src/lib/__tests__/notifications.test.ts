@@ -8,6 +8,11 @@ jest.mock('../mail-transport', () => ({
 
 jest.mock('../platform-settings', () => ({
   getResolvedPlatformSettings: jest.fn(),
+  platformSender: (settings: { platformFrom?: string; alertFrom?: string }) =>
+    settings.platformFrom
+    || settings.alertFrom
+    || process.env.FROM_EMAIL
+    || 'info@localhost',
 }));
 
 const mockSendEmail = sendPlatformSystemEmail as jest.MockedFunction<
@@ -31,6 +36,7 @@ function resolvedFromEnv() {
     smtpPassword: '',
     alertEmail: process.env.ADMIN_EMAIL || '',
     alertFrom: process.env.FROM_EMAIL || '',
+    platformFrom: '',
   };
 }
 
@@ -72,7 +78,7 @@ describe('Notifications', () => {
       expect(mockSendEmail).toHaveBeenCalledWith({
         from: 'RelayHorizon Notifications <info@localhost>',
         to: ['admin@test.com'],
-        subject: '🚀 New Waitlist Signup: user@example.com',
+        subject: 'New waitlist signup: user@example.com',
         html: expect.stringContaining('user@example.com'),
         text: expect.stringContaining('user@example.com'),
         tags: {
@@ -163,9 +169,9 @@ describe('Notifications', () => {
       expect(mockSendEmail).toHaveBeenCalledWith({
         from: 'RelayHorizon <info@localhost>',
         to: ['user@example.com'],
-        subject: 'Welcome to the RelayHorizon Waitlist! 🚀',
-        html: expect.stringContaining('You\'re on the waitlist!'),
-        text: expect.stringContaining('You\'re on the RelayHorizon waitlist!'),
+        subject: 'You are on the RelayHorizon waitlist',
+        html: expect.stringContaining('You are on the waitlist'),
+        text: expect.stringContaining('RelayHorizon hosted waitlist'),
         tags: {
           type: 'waitlist_welcome',
           signup_id: 'signup-id-456',

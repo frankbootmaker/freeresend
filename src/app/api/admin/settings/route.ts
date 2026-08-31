@@ -58,6 +58,7 @@ const schema = z.object({
   oidcClientSecret: z.string().optional(),
   oidcJitEnabled: z.boolean().optional(),
   oidcAdminGroup: z.string().optional(),
+  platformFrom: optionalEmail,
 });
 
 export async function OPTIONS() {

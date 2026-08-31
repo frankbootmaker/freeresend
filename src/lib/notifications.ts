@@ -1,5 +1,12 @@
-import { sendPlatformSystemEmail } from "./mail-transport";
-import { getResolvedPlatformSettings } from "./platform-settings";
+import { sendPlatformSystemEmail } from './mail-transport';
+import {
+  getResolvedPlatformSettings,
+  platformSender,
+} from './platform-settings';
+import {
+  emailInfoTable,
+  renderSystemEmail,
+} from './system-email';
 
 export interface WaitlistNotificationData {
   email: string;
@@ -15,148 +22,64 @@ export interface WaitlistNotificationData {
   createdAt: string;
 }
 
-export async function sendWaitlistNotification(data: WaitlistNotificationData): Promise<void> {
+function formatVolume(volume?: number): string {
+  if (volume === undefined || volume === null) return 'Not specified';
+  return `${volume.toLocaleString()} emails/month`;
+}
+
+export async function sendWaitlistNotification(
+  data: WaitlistNotificationData,
+): Promise<void> {
   const settings = await getResolvedPlatformSettings();
   const adminEmail = settings.alertEmail;
-  const fromEmail = settings.alertFrom || "info@localhost";
+  const fromEmail = platformSender(settings);
 
   if (!adminEmail) {
-    console.warn("Alert email is not configured, skipping waitlist notification");
+    console.warn('Alert email is not configured, skipping waitlist notification');
     return;
   }
 
-  // Format the estimated volume for display
-  const formatVolume = (volume?: number) => {
-    if (volume === undefined || volume === null) return "Not specified";
-    return volume.toLocaleString() + " emails/month";
-  };
-
-  // Format UTM parameters
   const utmInfo = [
     data.utmSource && `Source: ${data.utmSource}`,
     data.utmMedium && `Medium: ${data.utmMedium}`,
     data.utmCampaign && `Campaign: ${data.utmCampaign}`,
-  ].filter(Boolean).join(" | ");
+  ].filter(Boolean).join(' | ');
 
-  const subject = `🚀 New Waitlist Signup: ${data.email}`;
+  const subject = `New waitlist signup: ${data.email}`;
+  const origin = (process.env.NEXTAUTH_URL || '').replace(/\/$/, '');
+  const rows = [
+    { label: 'Email', value: data.email, emphasize: true },
+    { label: 'Expected volume', value: formatVolume(data.estimatedVolume) },
+    { label: 'Current provider', value: data.currentProvider || 'Not specified' },
+    { label: 'Referral source', value: data.referralSource || 'Not specified' },
+    { label: 'Signup time', value: new Date(data.createdAt).toLocaleString() },
+    { label: 'Signup ID', value: data.signupId },
+  ];
+  if (utmInfo) {
+    rows.push({ label: 'UTM', value: utmInfo });
+  }
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>New Waitlist Signup</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
-        .content { padding: 30px; }
-        .signup-info { background: #f8fafc; border-radius: 6px; padding: 20px; margin: 20px 0; }
-        .info-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
-        .info-row:last-child { border-bottom: none; }
-        .label { font-weight: 600; color: #475569; }
-        .value { color: #1e293b; }
-        .highlight { background: #dbeafe; color: #1d4ed8; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
-        .footer { background: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
-        .cta { background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin: 20px 0; font-weight: 500; }
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .stat-card { background: #f8fafc; padding: 15px; border-radius: 6px; text-align: center; border-left: 4px solid #3b82f6; }
-        .stat-number { font-size: 20px; font-weight: 700; color: #1e293b; }
-        .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🚀 New Waitlist Signup</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Someone just joined the RelayHorizon hosted version waitlist!</p>
-        </div>
-        
-        <div class="content">
-          <div class="signup-info">
-            <div class="info-row">
-              <span class="label">Email:</span>
-              <span class="value highlight">${data.email}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Expected Volume:</span>
-              <span class="value">${formatVolume(data.estimatedVolume)}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Current Provider:</span>
-              <span class="value">${data.currentProvider || "Not specified"}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Referral Source:</span>
-              <span class="value">${data.referralSource || "Not specified"}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">Signup Time:</span>
-              <span class="value">${new Date(data.createdAt).toLocaleString()}</span>
-            </div>
-            ${utmInfo ? `
-            <div class="info-row">
-              <span class="label">UTM Parameters:</span>
-              <span class="value">${utmInfo}</span>
-            </div>
-            ` : ''}
-          </div>
-
-          <div class="stats">
-            <div class="stat-card">
-              <div class="stat-number">${data.estimatedVolume ? Math.round(data.estimatedVolume / 1000) + 'K' : '?'}</div>
-              <div class="stat-label">Monthly Volume</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-number">ID: ${data.signupId.substring(0, 8)}</div>
-              <div class="stat-label">Signup ID</div>
-            </div>
-          </div>
-
-          <div style="text-align: center;">
-            <a href="${process.env.NEXTAUTH_URL}/admin/waitlist" class="cta">
-              View All Signups
-            </a>
-          </div>
-
-          <div style="margin-top: 30px; padding: 20px; background: #fef3c7; border-radius: 6px; border-left: 4px solid #f59e0b;">
-            <h3 style="margin: 0 0 10px 0; color: #92400e;">💡 Quick Actions</h3>
-            <ul style="margin: 0; padding-left: 20px; color: #92400e;">
-              <li>Review their expected volume for pricing tier planning</li>
-              <li>Consider reaching out if they're a high-volume user</li>
-              <li>Track conversion from ${data.currentProvider || 'unknown provider'}</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>This notification was sent because someone joined the RelayHorizon hosted version waitlist.</p>
-          <p><strong>RelayHorizon Admin Notifications</strong> • ${new Date().getFullYear()}</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-🚀 NEW WAITLIST SIGNUP
-
-Email: ${data.email}
-Expected Volume: ${formatVolume(data.estimatedVolume)}
-Current Provider: ${data.currentProvider || "Not specified"}
-Referral Source: ${data.referralSource || "Not specified"}
-Signup Time: ${new Date(data.createdAt).toLocaleString()}
-Signup ID: ${data.signupId}
-
-${utmInfo ? `UTM Parameters: ${utmInfo}` : ''}
-
-View all signups: ${process.env.NEXTAUTH_URL}/admin/waitlist
-
----
-RelayHorizon Admin Notifications
-  `;
+  const { html, text } = renderSystemEmail({
+    title: 'New waitlist signup',
+    lead: 'Someone joined the RelayHorizon hosted waitlist.',
+    bodyHtml:
+      emailInfoTable(rows)
+      + `<p style="margin:0;color:#5c7266;font:400 14px/1.5 'Avenir Next',Avenir,'Segoe UI',sans-serif;">`
+      + `Review volume for tier planning, and reach out if they look like a high-volume prospect.</p>`,
+    bodyText: [
+      `Email: ${data.email}`,
+      `Expected volume: ${formatVolume(data.estimatedVolume)}`,
+      `Current provider: ${data.currentProvider || 'Not specified'}`,
+      `Referral source: ${data.referralSource || 'Not specified'}`,
+      `Signup time: ${new Date(data.createdAt).toLocaleString()}`,
+      `Signup ID: ${data.signupId}`,
+      utmInfo ? `UTM: ${utmInfo}` : '',
+    ].filter(Boolean).join('\n'),
+    cta: origin
+      ? { label: 'View waitlist', href: `${origin}/admin/waitlist` }
+      : undefined,
+    footerNote: 'Sent because someone joined the hosted waitlist.',
+  });
 
   try {
     await sendPlatformSystemEmail({
@@ -166,141 +89,56 @@ RelayHorizon Admin Notifications
       html,
       text,
       tags: {
-        type: "waitlist_notification",
+        type: 'waitlist_notification',
         signup_id: data.signupId,
       },
     });
-
     console.log(`Waitlist notification sent to ${adminEmail} for signup: ${data.email}`);
   } catch (error) {
-    console.error("Failed to send waitlist notification:", error);
-    // Don't throw error - we don't want to fail the signup if notification fails
+    console.error('Failed to send waitlist notification:', error);
   }
 }
 
-export async function sendWelcomeEmail(email: string, signupId: string): Promise<void> {
+export async function sendWelcomeEmail(
+  email: string,
+  signupId: string,
+): Promise<void> {
   const settings = await getResolvedPlatformSettings();
-  const fromEmail = settings.alertFrom || process.env.FROM_EMAIL || "info@localhost";
-  const subject = "Welcome to the RelayHorizon Waitlist! 🚀";
+  const fromEmail = platformSender(settings);
+  const subject = 'You are on the RelayHorizon waitlist';
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to RelayHorizon Waitlist</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; padding: 40px 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; font-weight: 600; }
-        .content { padding: 40px 30px; }
-        .highlight { background: #dbeafe; color: #1d4ed8; padding: 3px 8px; border-radius: 4px; font-weight: 500; }
-        .footer { background: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
-        .cta { background: #3b82f6; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; display: inline-block; margin: 20px 0; font-weight: 500; }
-        .benefits { background: #f8fafc; padding: 25px; border-radius: 8px; margin: 25px 0; }
-        .benefit-item { display: flex; align-items: flex-start; margin: 15px 0; }
-        .benefit-icon { background: #dbeafe; color: #1d4ed8; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 14px; flex-shrink: 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🎉 You're on the waitlist!</h1>
-          <p style="margin: 15px 0 0 0; opacity: 0.9; font-size: 18px;">Welcome to the future of email infrastructure</p>
-        </div>
-        
-        <div class="content">
-          <p>Hi there!</p>
-          
-          <p>Thanks for joining the <span class="highlight">RelayHorizon hosted version waitlist</span>! You're now in line to be among the first to experience our fully managed email service.</p>
-
-          <div class="benefits">
-            <h3 style="margin: 0 0 20px 0; color: #1e293b;">What you can expect:</h3>
-            
-            <div class="benefit-item">
-              <div class="benefit-icon">💰</div>
-              <div>
-                <strong>50-85% cost savings</strong> compared to premium email services like Resend
-              </div>
-            </div>
-            
-            <div class="benefit-item">
-              <div class="benefit-icon">🔧</div>
-              <div>
-                <strong>Zero maintenance</strong> - we handle all the infrastructure for you
-              </div>
-            </div>
-            
-            <div class="benefit-item">
-              <div class="benefit-icon">🔄</div>
-              <div>
-                <strong>Drop-in compatibility</strong> with Resend API - just change one environment variable
-              </div>
-            </div>
-            
-            <div class="benefit-item">
-              <div class="benefit-icon">⚡</div>
-              <div>
-                <strong>Lightning fast setup</strong> - from signup to sending emails in under 60 seconds
-              </div>
-            </div>
-          </div>
-
-          <p>We'll notify you as soon as the hosted version becomes available. In the meantime, you can:</p>
-          
-          <ul>
-            <li>Try the <strong>self-hosted version</strong> on GitHub (it's open source!)</li>
-            <li>Join our community discussions</li>
-            <li>Follow us for updates and tips</li>
-          </ul>
-
-          <div style="text-align: center;">
-            <a href="https://github.com/eibrahim/freeresend" class="cta">
-              Explore Self-Hosted Version
-            </a>
-          </div>
-
-          <div style="margin-top: 30px; padding: 20px; background: #ecfdf5; border-radius: 6px; border-left: 4px solid #10b981;">
-            <p style="margin: 0; color: #065f46;"><strong>💡 Pro tip:</strong> While you wait, check out our pricing calculator to see exactly how much you'll save compared to your current provider!</p>
-          </div>
-        </div>
-
-        <div class="footer">
-          <p>You're receiving this because you joined the RelayHorizon waitlist.</p>
-          <p><strong>RelayHorizon</strong> • Making email infrastructure affordable for everyone</p>
-          <p style="font-size: 12px; margin-top: 15px;">Signup ID: ${signupId}</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-
-  const text = `
-🎉 You're on the RelayHorizon waitlist!
-
-Hi there!
-
-Thanks for joining the RelayHorizon hosted version waitlist! You're now in line to be among the first to experience our fully managed email service.
-
-What you can expect:
-• 50-85% cost savings compared to premium email services
-• Zero maintenance - we handle all the infrastructure
-• Drop-in compatibility with Resend API
-• Lightning fast setup - from signup to sending in under 60 seconds
-
-We'll notify you as soon as the hosted version becomes available.
-
-In the meantime, you can try the self-hosted version on GitHub:
-https://github.com/eibrahim/freeresend
-
-Thanks for joining us!
-The RelayHorizon Team
-
----
-Signup ID: ${signupId}
-  `;
+  const { html, text } = renderSystemEmail({
+    title: 'You are on the waitlist',
+    lead: 'We will notify you when the hosted service is ready.',
+    bodyHtml: `
+      <p style="margin:0 0 14px;">Thanks for joining the RelayHorizon hosted waitlist.
+      You are in line for early access to the managed outbound email service.</p>
+      <p style="margin:0 0 8px;font-weight:600;">What to expect</p>
+      <ul style="margin:0 0 16px;padding-left:20px;color:#1a2f24;">
+        <li style="margin:0 0 8px;">Lower cost than many premium transactional providers</li>
+        <li style="margin:0 0 8px;">We run the infrastructure; you keep the Resend-compatible API</li>
+        <li style="margin:0 0 8px;">Point <code style="font-family:SFMono-Regular,Consolas,monospace;font-size:13px;">RESEND_BASE_URL</code> at your instance when it is live</li>
+      </ul>
+      <p style="margin:0;">While you wait, you can try the open-source self-hosted build on GitHub.</p>
+    `,
+    bodyText: [
+      'Thanks for joining the RelayHorizon hosted waitlist.',
+      'We will notify you when the hosted service is ready.',
+      '',
+      'What to expect:',
+      '- Lower cost than many premium transactional providers',
+      '- We run the infrastructure; you keep the Resend-compatible API',
+      '- Point RESEND_BASE_URL at your instance when it is live',
+      '',
+      'Self-hosted: https://github.com/eibrahim/freeresend',
+      `Signup ID: ${signupId}`,
+    ].join('\n'),
+    cta: {
+      label: 'Explore self-hosted',
+      href: 'https://github.com/eibrahim/freeresend',
+    },
+    footerNote: `You are receiving this because you joined the waitlist. Signup ID: ${signupId}`,
+  });
 
   try {
     await sendPlatformSystemEmail({
@@ -310,14 +148,12 @@ Signup ID: ${signupId}
       html,
       text,
       tags: {
-        type: "waitlist_welcome",
+        type: 'waitlist_welcome',
         signup_id: signupId,
       },
     });
-
     console.log(`Welcome email sent to ${email}`);
   } catch (error) {
     console.error(`Failed to send welcome email to ${email}:`, error);
-    // Don't throw error - we don't want to fail the signup if welcome email fails
   }
 }

@@ -101,6 +101,21 @@ type Dict = {
     oidcNotProvisioned: string;
     oidcUnavailable: string;
     oidcFailed: string;
+    forgotPassword: string;
+    forgotTitle: string;
+    forgotLead: string;
+    forgotSubmit: string;
+    forgotSubmitting: string;
+    forgotSent: string;
+    forgotFailed: string;
+    resetTitle: string;
+    resetLead: string;
+    resetSubmit: string;
+    resetSubmitting: string;
+    resetDone: string;
+    resetInvalid: string;
+    resetMissing: string;
+    backToSignIn: string;
   };
   register: {
     kickerStory: string;
@@ -389,6 +404,10 @@ type Dict = {
     oidcJitHint: string;
     oidcAdminGroup: string;
     oidcAdminGroupHint: string;
+    basicsTitle: string;
+    basicsLead: string;
+    platformFrom: string;
+    platformFromHint: string;
   };
   health: {
     title: string;
@@ -716,6 +735,22 @@ const en: Dict = {
       'No local account exists for that identity. Ask an administrator, or enable JIT account creation.',
     oidcUnavailable: 'OIDC sign-in is not configured.',
     oidcFailed: 'OIDC sign-in failed.',
+    forgotPassword: 'Forgot password?',
+    forgotTitle: 'Reset your password',
+    forgotLead:
+      'Enter your work email. If an account exists, we send a one-hour reset link.',
+    forgotSubmit: 'Send reset link',
+    forgotSubmitting: 'Sending…',
+    forgotSent: 'If an account exists for that address, a reset link is on its way.',
+    forgotFailed: 'Could not send a reset link.',
+    resetTitle: 'Choose a new password',
+    resetLead: 'Use at least 8 characters.',
+    resetSubmit: 'Save password',
+    resetSubmitting: 'Saving…',
+    resetDone: 'Password updated. You can sign in now.',
+    resetInvalid: 'This reset link is invalid or has expired.',
+    resetMissing: 'This reset link is incomplete.',
+    backToSignIn: 'Back to sign in',
   },
   register: {
     kickerStory: 'RelayHorizon console',
@@ -1026,6 +1061,12 @@ const en: Dict = {
     oidcAdminGroup: 'Administrator group',
     oidcAdminGroupHint:
       'Optional Authentik group name. Matching users become platform administrators.',
+    basicsTitle: 'Basics',
+    basicsLead:
+      'Identity used when RelayHorizon sends its own mail — password resets, waitlist notices, and welcome messages.',
+    platformFrom: 'Platform sender',
+    platformFromHint:
+      'Leave blank to fall back to the alert From address, then FROM_EMAIL.',
   },
   health: {
     title: 'Health',
@@ -1358,6 +1399,23 @@ const de: Dict = {
       'Für diese Identität gibt es kein lokales Konto. Bitten Sie einen Administrator oder aktivieren Sie JIT-Konten.',
     oidcUnavailable: 'OIDC-Anmeldung ist nicht konfiguriert.',
     oidcFailed: 'OIDC-Anmeldung fehlgeschlagen.',
+    forgotPassword: 'Passwort vergessen?',
+    forgotTitle: 'Passwort zurücksetzen',
+    forgotLead:
+      'Geben Sie Ihre E-Mail-Adresse ein. Wenn ein Konto existiert, senden wir einen Link für eine Stunde.',
+    forgotSubmit: 'Link senden',
+    forgotSubmitting: 'Senden…',
+    forgotSent:
+      'Wenn ein Konto zu dieser Adresse gehört, ist ein Zurücksetzen-Link unterwegs.',
+    forgotFailed: 'Der Link konnte nicht gesendet werden.',
+    resetTitle: 'Neues Passwort wählen',
+    resetLead: 'Mindestens 8 Zeichen.',
+    resetSubmit: 'Passwort speichern',
+    resetSubmitting: 'Speichern…',
+    resetDone: 'Passwort aktualisiert. Sie können sich jetzt anmelden.',
+    resetInvalid: 'Dieser Link ist ungültig oder abgelaufen.',
+    resetMissing: 'Dieser Link ist unvollständig.',
+    backToSignIn: 'Zurück zur Anmeldung',
   },
   register: {
     kickerStory: 'RelayHorizon-Konsole',
@@ -1671,6 +1729,12 @@ const de: Dict = {
     oidcAdminGroup: 'Administratorgruppe',
     oidcAdminGroupHint:
       'Optionaler Authentik-Gruppenname. Passende Benutzer werden Plattformadministratoren.',
+    basicsTitle: 'Grundlagen',
+    basicsLead:
+      'Absender für plattformeigene Nachrichten — Passwort-Zurücksetzen, Warteliste und Willkommen.',
+    platformFrom: 'Plattform-Absender',
+    platformFromHint:
+      'Leer lassen, um die Alert-Absenderadresse und danach FROM_EMAIL zu verwenden.',
   },
   health: {
     title: 'Status',
@@ -2003,6 +2067,22 @@ const hu: Dict = {
       'Ehhez az identitáshoz nincs helyi fiók. Kérjen adminisztrátort, vagy kapcsolja be a JIT-fióklétrehozást.',
     oidcUnavailable: 'Az OIDC-belépés nincs beállítva.',
     oidcFailed: 'Az OIDC-belépés sikertelen.',
+    forgotPassword: 'Elfelejtett jelszó?',
+    forgotTitle: 'Jelszó visszaállítása',
+    forgotLead:
+      'Adja meg a munkahelyi e-mail-címét. Ha van fiók, egyórás visszaállító linket küldünk.',
+    forgotSubmit: 'Link küldése',
+    forgotSubmitting: 'Küldés…',
+    forgotSent: 'Ha van fiók ehhez a címhez, a visszaállító link úton van.',
+    forgotFailed: 'A linket nem sikerült elküldeni.',
+    resetTitle: 'Új jelszó választása',
+    resetLead: 'Legalább 8 karakter.',
+    resetSubmit: 'Jelszó mentése',
+    resetSubmitting: 'Mentés…',
+    resetDone: 'A jelszó frissült. Most beléphet.',
+    resetInvalid: 'Ez a link érvénytelen vagy lejárt.',
+    resetMissing: 'Ez a link hiányos.',
+    backToSignIn: 'Vissza a belépéshez',
   },
   register: {
     kickerStory: 'RelayHorizon konzol',
@@ -2316,6 +2396,12 @@ const hu: Dict = {
     oidcAdminGroup: 'Adminisztrátori csoport',
     oidcAdminGroupHint:
       'Opcionális Authentik csoportnév. Az egyező felhasználók platformadminisztrátorok lesznek.',
+    basicsTitle: 'Alapok',
+    basicsLead:
+      'A RelayHorizon saját leveleinek feladója — jelszó-visszaállítás, várólista és üdvözlő üzenetek.',
+    platformFrom: 'Platform feladó',
+    platformFromHint:
+      'Hagyja üresen, ha a riasztási feladót, majd a FROM_EMAIL értéket szeretné használni.',
   },
   health: {
     title: 'Állapot',

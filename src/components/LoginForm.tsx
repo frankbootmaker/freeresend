@@ -150,6 +150,13 @@ export default function LoginForm({
               {t.login.continueOidc}
             </a>
           )}
+          <button
+            type="button"
+            className="switchauth"
+            onClick={() => router.push('/login/forgot')}
+          >
+            {t.login.forgotPassword}
+          </button>
           {onCreate && (
             <button type="button" className="switchauth" onClick={onCreate}>
               {t.login.createAccount}

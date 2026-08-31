@@ -27,6 +27,7 @@ describe('resolvePlatformSettings', () => {
     ADMIN_EMAIL: 'admin@env.test',
     ALERT_FROM: 'from@env.test',
     FROM_EMAIL: 'noreply@env.test',
+    PLATFORM_FROM: 'platform@env.test',
   };
 
   it('falls back to environment values when the row is empty', () => {
@@ -42,6 +43,7 @@ describe('resolvePlatformSettings', () => {
     expect(resolved.smtpUsername).toBe('env-user');
     expect(resolved.alertEmail).toBe('alerts@env.test');
     expect(resolved.alertFrom).toBe('from@env.test');
+    expect(resolved.platformFrom).toBe('platform@env.test');
   });
 
   it('lets stored values override environment', () => {
@@ -59,6 +61,7 @@ describe('resolvePlatformSettings', () => {
         smtp_password: 'db-pass',
         alert_email: 'ops@db.test',
         alert_from: 'relayhorizon@db.test',
+        platform_from: 'ops@db.test',
       },
       env,
     );
@@ -69,6 +72,7 @@ describe('resolvePlatformSettings', () => {
     expect(resolved.smtpPort).toBe(465);
     expect(resolved.alertEmail).toBe('ops@db.test');
     expect(resolved.alertFrom).toBe('relayhorizon@db.test');
+    expect(resolved.platformFrom).toBe('ops@db.test');
   });
 
   it('uses ADMIN_EMAIL and FROM_EMAIL when dedicated alert vars are missing', () => {
@@ -129,6 +133,7 @@ describe('toPublicPlatformSettings', () => {
       oidcClientSecret: 'oidc-secret',
       oidcJitEnabled: true,
       oidcAdminGroup: 'relayhorizon-admins',
+      platformFrom: 'noreply@example.com',
     });
     expect(publicSettings.smtpIngressIspconfigUser).toBe('remote');
     expect(publicSettings.smtpIngressIspconfigPasswordConfigured).toBe(true);
@@ -158,6 +163,7 @@ describe('toPublicPlatformSettings', () => {
     expect(publicSettings.oidcJitEnabled).toBe(true);
     expect(publicSettings.oidcClientSecretConfigured).toBe(true);
     expect(publicSettings).not.toHaveProperty('oidcClientSecret');
+    expect(publicSettings.platformFrom).toBe('noreply@example.com');
   });
 });
 

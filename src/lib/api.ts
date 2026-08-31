@@ -103,6 +103,20 @@ class ApiClient {
     return this.request("/auth/oidc");
   }
 
+  async forgotPassword(email: string) {
+    return this.request("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async resetPassword(token: string, password: string) {
+    return this.request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, password }),
+    });
+  }
+
   async updateProfile(payload: { name?: string; avatar?: string | null }) {
     const response = await this.request("/auth/me", {
       method: "PATCH",

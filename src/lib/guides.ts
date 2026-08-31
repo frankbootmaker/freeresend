@@ -79,6 +79,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Configuration',
         paragraphs: [
+          'Basics sets the platform sender used for password resets, waitlist notices, and welcome mail. Leave it blank to fall back to the alert From address.',
           'Set SES credentials, an optional platform SMTP relay, inbound SMTP TLS, alert addresses, and Authentik/OIDC sign-in.',
           'For OIDC, paste the issuer, client ID, and secret from Authentik, and copy the callback URL into the provider application.',
           'JIT accounts creates a local user on first sign-in. Leave it off to allow only people already in Users. An optional group grants portal administrator access.',
@@ -161,6 +162,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Konfiguration',
         paragraphs: [
+          'Unter Grundlagen legen Sie den Plattform-Absender für Passwort-Zurücksetzen, Warteliste und Willkommen fest. Leer bedeutet Alert-Absender.',
           'SES-Zugangsdaten, optionales Plattform-SMTP-Relais, eingehendes SMTP-TLS, Alert-Adressen und Authentik/OIDC-Anmeldung.',
           'Für OIDC Issuer, Client-ID und Secret aus Authentik eintragen und die Callback-URL in die Provider-Anwendung kopieren.',
           'JIT-Konten legt beim ersten Anmelden ein lokales Konto an. Ausgeschaltet bleiben nur Personen aus Benutzer. Eine optionale Gruppe gibt Portaladministratorrechte.',
@@ -243,6 +245,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Konfiguráció',
         paragraphs: [
+          'Az Alapoknál állítsa be a platform feladót a jelszó-visszaállításhoz, várólistához és üdvözlő levelekhez. Üresen a riasztási feladót használja.',
           'SES-hitelesítő adatok, opcionális platform SMTP-relé, bejövő SMTP TLS, riasztási címek és Authentik/OIDC-belépés.',
           'OIDC-nál írja be az Authentik issuer, client ID és secret értékeit, a callback URL-t másolja a provider alkalmazásba.',
           'A JIT-fiók az első belépéskor helyi felhasználót hoz létre. Kikapcsolva csak a Felhasználókban már meglévők léphetnek be. Opcionális csoport portáladminisztrátori jogot ad.',

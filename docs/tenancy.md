@@ -15,6 +15,8 @@
 
 **OIDC** (Portal → Configuration) signs dashboard users in through Authentik or another OpenID Connect provider. The IdP `email` claim maps to `users.email`. With JIT on, a first sign-in creates the user and a `platform` tenant membership; an optional group can set `is_platform_admin`. With JIT off, only existing local accounts can complete sign-in.
 
+**Forgot password** (`POST /api/auth/forgot-password`) emails a one-hour link to `/login/reset`. The response does not say whether the address exists. Tokens are stored hashed.
+
 ## Isolation rules
 
 - Domains, API keys, email logs, MCP tokens (when tenant-scoped) always carry `tenant_id`

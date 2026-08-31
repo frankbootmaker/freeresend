@@ -65,6 +65,7 @@ export type PlatformSettingsRow = {
   oidc_client_secret?: string | null;
   oidc_jit_enabled?: boolean | null;
   oidc_admin_group?: string | null;
+  platform_from?: string | null;
 };
 
 export type ResolvedPlatformSettings = {
@@ -108,6 +109,7 @@ export type ResolvedPlatformSettings = {
   oidcClientSecret: string;
   oidcJitEnabled: boolean;
   oidcAdminGroup: string;
+  platformFrom: string;
 };
 
 export type PlatformSettingsPatch = {
@@ -140,6 +142,7 @@ export type PlatformSettingsPatch = {
   oidcClientSecret?: string;
   oidcJitEnabled?: boolean;
   oidcAdminGroup?: string;
+  platformFrom?: string;
 };
 
 export type PublicPlatformSettings = {
@@ -178,6 +181,7 @@ export type PublicPlatformSettings = {
   oidcJitEnabled: boolean;
   oidcAdminGroup: string;
   oidcRedirectUri: string;
+  platformFrom: string;
 };
 
 type EnvSource = Record<string, string | undefined>;
@@ -286,6 +290,7 @@ export function resolvePlatformSettings(
     oidcClientSecret: firstNonEmpty(row?.oidc_client_secret, env.OIDC_CLIENT_SECRET),
     oidcJitEnabled: boolFrom(row?.oidc_jit_enabled, env.OIDC_JIT_ENABLED),
     oidcAdminGroup: firstNonEmpty(row?.oidc_admin_group, env.OIDC_ADMIN_GROUP),
+    platformFrom: firstNonEmpty(row?.platform_from, env.PLATFORM_FROM),
   };
 }
 
@@ -354,7 +359,20 @@ export function toPublicPlatformSettings(
     oidcRedirectUri: oidcRedirectUri(
       (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, ''),
     ),
+    platformFrom: resolved.platformFrom,
   };
+}
+
+export function platformSender(
+  settings: { platformFrom?: string; alertFrom?: string },
+  env: EnvSource = process.env,
+): string {
+  return firstNonEmpty(
+    settings.platformFrom,
+    settings.alertFrom,
+    env.FROM_EMAIL,
+    'info@localhost',
+  );
 }
 
 export function keepSecret(
@@ -504,6 +522,13 @@ export async function updatePlatformSettings(
         : Boolean(current?.smtp_ingress_ispconfig_insecure),
     ],
   );
+
+  if (patch.platformFrom !== undefined) {
+    await query(
+      `UPDATE platform_settings SET platform_from = $1 WHERE id = 'default'`,
+      [keepText(patch.platformFrom, current?.platform_from)],
+    );
+  }
 
   const oidcTouched = (
     patch.oidcEnabled !== undefined

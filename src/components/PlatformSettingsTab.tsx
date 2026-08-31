@@ -98,6 +98,7 @@ function formatTlsWhen(iso: string, locale: Locale): string {
 }
 
 export type SettingsSection =
+  | 'basics'
   | 'ses'
   | 'smtp'
   | 'ingress'
@@ -106,7 +107,7 @@ export type SettingsSection =
   | 'test';
 
 export default function PlatformSettingsTab({
-  section = 'ses',
+  section = 'basics',
 }: {
   section?: SettingsSection;
 }) {
@@ -149,6 +150,7 @@ export default function PlatformSettingsTab({
   const [ispconfigInsecure, setIspconfigInsecure] = useState(false);
   const [issuingCert, setIssuingCert] = useState(false);
   const [watchCertUntil, setWatchCertUntil] = useState(0);
+  const [platformFrom, setPlatformFrom] = useState('');
   const [alertEmail, setAlertEmail] = useState('');
   const [alertFrom, setAlertFrom] = useState('');
   const [testFrom, setTestFrom] = useState('');
@@ -205,6 +207,7 @@ export default function PlatformSettingsTab({
           setIspconfigPasswordConfigured,
           setIspconfigInsecure,
         });
+        setPlatformFrom(settings.platformFrom || '');
         setAlertEmail(settings.alertEmail || '');
         setAlertFrom(settings.alertFrom || '');
         setOidcEnabled(Boolean(settings.oidcEnabled));
@@ -286,6 +289,7 @@ export default function PlatformSettingsTab({
         smtpSecure,
         smtpUsername,
         smtpPassword,
+        platformFrom,
         alertEmail,
         alertFrom,
         smtpListenPorts: listenPorts,
@@ -323,6 +327,7 @@ export default function PlatformSettingsTab({
       setOidcClientId(settings.oidcClientId || '');
       setOidcJitEnabled(Boolean(settings.oidcJitEnabled));
       setOidcAdminGroup(settings.oidcAdminGroup || '');
+      setPlatformFrom(settings.platformFrom || '');
       applyTlsSettings(settings, {
         setIngressTlsConfigured,
         setIngressTlsSource,
@@ -486,6 +491,29 @@ export default function PlatformSettingsTab({
     <>
       {section !== 'test' && (
       <form onSubmit={save}>
+        {section === 'basics' && (
+      <section className="card settings-alerts">
+        <header className="cardhead">
+          <h2>{t.settings.basicsTitle}</h2>
+        </header>
+        <div className="cardbody">
+          <p className="cardlead">{t.settings.basicsLead}</p>
+          <div className="formgrid">
+            <div className="field">
+              <label>{t.settings.platformFrom}</label>
+              <input
+                type="email"
+                value={platformFrom}
+                onChange={(e) => setPlatformFrom(e.target.value)}
+                placeholder="noreply@example.com"
+              />
+              <p className="cardlead">{t.settings.platformFromHint}</p>
+            </div>
+          </div>
+          {saveFooter}
+        </div>
+      </section>
+        )}
         {section === 'ses' && (
         <section className="card settings-alerts">
           <header className="cardhead">

@@ -22,7 +22,7 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-01',
     summary:
-      'Work on main since 1.9.0: Guide tabs, profile pictures, and Authentik/OIDC sign-in.',
+      'Work on main since 1.9.0: Guide tabs, profile pictures, Authentik/OIDC, and password reset.',
     changes: [
       {
         kind: 'added',
@@ -35,6 +35,18 @@ export const RELEASES: Release[] = [
       {
         kind: 'added',
         text: 'Portal Configuration → OIDC for Authentik (or another OpenID Connect provider), with a JIT account-creation toggle and optional administrator group.',
+      },
+      {
+        kind: 'added',
+        text: 'Forgot-password flow on the sign-in page, with a one-hour reset link.',
+      },
+      {
+        kind: 'added',
+        text: 'Portal Configuration → Basics for the platform sender address used for system mail.',
+      },
+      {
+        kind: 'added',
+        text: 'Shared RelayHorizon HTML frame for platform system mail (waitlist, password reset, config test).',
       },
       {
         kind: 'fixed',
