@@ -391,6 +391,7 @@ export async function setupCustomer(
     const token = await createMcpToken({
       tenantId: core.tenant.id,
       name: 'default',
+      createdBy: core.userId,
     });
     result.mcpToken = token.token;
   }

@@ -114,6 +114,7 @@ type Dict = {
     logs: string;
     customers: string;
     users: string;
+    agents: string;
     health: string;
     backups: string;
     settings: string;
@@ -238,6 +239,29 @@ type Dict = {
     revoke: string;
     revoking: string;
     revoked: string;
+    failed: string;
+  };
+  agents: {
+    addTitle: string;
+    platformLead: string;
+    tenantLead: string;
+    endpoint: string;
+    name: string;
+    namePlaceholder: string;
+    addAction: string;
+    adding: string;
+    registry: string;
+    empty: string;
+    prefix: string;
+    lastUsed: string;
+    added: string;
+    copyOnce: string;
+    copy: string;
+    copied: string;
+    copyFailed: string;
+    revoke: string;
+    revoking: string;
+    confirmRevoke: string;
     failed: string;
   };
   portal: {
@@ -659,6 +683,7 @@ const en: Dict = {
     logs: 'Logs',
     customers: 'Customers',
     users: 'Users',
+    agents: 'Agents',
     health: 'Health',
     backups: 'Backups',
     settings: 'Configuration',
@@ -787,6 +812,31 @@ const en: Dict = {
     revoking: 'Revoking…',
     revoked: 'Platform access revoked.',
     failed: 'User update failed',
+  },
+  agents: {
+    addTitle: 'Add agent',
+    platformLead:
+      'A platform agent can use the same portal APIs as an administrator. Point an MCP client at the endpoint with this token.',
+    tenantLead:
+      'A tenant agent can only see this organization. Point an MCP client at the endpoint with this token.',
+    endpoint: 'MCP endpoint',
+    name: 'Name',
+    namePlaceholder: 'Ops copilot',
+    addAction: 'Create agent',
+    adding: 'Creating…',
+    registry: 'Agents',
+    empty: 'No agents yet.',
+    prefix: 'Prefix',
+    lastUsed: 'Last used',
+    added: 'Added',
+    copyOnce: 'Copy this token now. It is not shown again.',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyFailed: 'Could not copy the token',
+    revoke: 'Revoke',
+    revoking: 'Revoking…',
+    confirmRevoke: 'Revoke this agent token? Connected clients will stop working.',
+    failed: 'Agent update failed',
   },
   portal: {
     kicker: 'Nethorizon / portal',
@@ -1224,6 +1274,7 @@ const de: Dict = {
     logs: 'Protokolle',
     customers: 'Kunden',
     users: 'Benutzer',
+    agents: 'Agenten',
     health: 'Status',
     backups: 'Backups',
     settings: 'Konfiguration',
@@ -1354,6 +1405,32 @@ const de: Dict = {
     revoking: 'Wird entzogen…',
     revoked: 'Plattformzugang entzogen.',
     failed: 'Benutzeränderung fehlgeschlagen',
+  },
+  agents: {
+    addTitle: 'Agent hinzufügen',
+    platformLead:
+      'Ein Plattform-Agent kann dieselben Portal-APIs wie ein Administrator nutzen. MCP-Client auf den Endpunkt mit diesem Token richten.',
+    tenantLead:
+      'Ein Mandanten-Agent sieht nur diese Organisation. MCP-Client auf den Endpunkt mit diesem Token richten.',
+    endpoint: 'MCP-Endpunkt',
+    name: 'Name',
+    namePlaceholder: 'Ops-Copilot',
+    addAction: 'Agent erstellen',
+    adding: 'Wird erstellt…',
+    registry: 'Agenten',
+    empty: 'Noch keine Agenten.',
+    prefix: 'Präfix',
+    lastUsed: 'Zuletzt genutzt',
+    added: 'Hinzugefügt',
+    copyOnce: 'Token jetzt kopieren. Er wird nicht erneut angezeigt.',
+    copy: 'Kopieren',
+    copied: 'Kopiert',
+    copyFailed: 'Token konnte nicht kopiert werden',
+    revoke: 'Entziehen',
+    revoking: 'Wird entzogen…',
+    confirmRevoke:
+      'Diesen Agent-Token entziehen? Verbundene Clients funktionieren nicht mehr.',
+    failed: 'Agentänderung fehlgeschlagen',
   },
   portal: {
     kicker: 'Nethorizon / Portal',
@@ -1791,6 +1868,7 @@ const hu: Dict = {
     logs: 'Naplók',
     customers: 'Ügyfelek',
     users: 'Felhasználók',
+    agents: 'Ügynökök',
     health: 'Állapot',
     backups: 'Mentések',
     settings: 'Konfiguráció',
@@ -1921,6 +1999,32 @@ const hu: Dict = {
     revoking: 'Visszavonás…',
     revoked: 'A platformhozzáférés visszavonva.',
     failed: 'A felhasználó frissítése sikertelen',
+  },
+  agents: {
+    addTitle: 'Ügynök hozzáadása',
+    platformLead:
+      'A platformügynök ugyanazokat a portál-API-kat használhatja, mint egy adminisztrátor. MCP-klienst erre a végpontra irányítson ezzel a tokennel.',
+    tenantLead:
+      'A bérlői ügynök csak ezt a szervezetet látja. MCP-klienst erre a végpontra irányítson ezzel a tokennel.',
+    endpoint: 'MCP-végpont',
+    name: 'Név',
+    namePlaceholder: 'Ops copilot',
+    addAction: 'Ügynök létrehozása',
+    adding: 'Létrehozás…',
+    registry: 'Ügynökök',
+    empty: 'Még nincs ügynök.',
+    prefix: 'Előtag',
+    lastUsed: 'Utolsó használat',
+    added: 'Hozzáadva',
+    copyOnce: 'Másolja a tokent most. Többé nem jelenik meg.',
+    copy: 'Másolás',
+    copied: 'Másolva',
+    copyFailed: 'A token másolása sikertelen',
+    revoke: 'Visszavonás',
+    revoking: 'Visszavonás…',
+    confirmRevoke:
+      'Visszavonja ezt az ügynöktokent? A kapcsolódó kliensek leállnak.',
+    failed: 'Az ügynök frissítése sikertelen',
   },
   portal: {
     kicker: 'Nethorizon / portál',

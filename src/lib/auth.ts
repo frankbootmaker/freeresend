@@ -181,7 +181,8 @@ export async function initializeDefaultUser(): Promise<{
     [adminEmail],
   );
   let created = false;
-  if (existing.rows.length === 0) {
+  let adminId = existing.rows[0]?.id as string | undefined;
+  if (!adminId) {
     const user = await createUser(adminEmail, adminPassword, 'Admin', true);
     const tenant = await createTenant({
       name: 'Platform',
@@ -189,6 +190,7 @@ export async function initializeDefaultUser(): Promise<{
       billingEmail: adminEmail,
     });
     await addMembership(tenant.id, user.id, 'owner');
+    adminId = user.id;
     created = true;
     console.log('Default platform admin and tenant created');
   } else {
@@ -202,6 +204,10 @@ export async function initializeDefaultUser(): Promise<{
     return { created };
   }
 
-  const mcp = await createMcpToken({ tenantId: null, name: 'platform' });
+  const mcp = await createMcpToken({
+    tenantId: null,
+    name: 'platform',
+    createdBy: adminId,
+  });
   return { created, mcpToken: mcp.token };
 }

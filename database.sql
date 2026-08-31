@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS mcp_tokens (
   key_hash VARCHAR(255) NOT NULL,
   key_prefix VARCHAR(40) NOT NULL,
   scopes JSONB DEFAULT '["read"]',
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   last_used_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

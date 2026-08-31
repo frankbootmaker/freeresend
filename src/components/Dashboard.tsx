@@ -6,11 +6,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import DomainsTab from './DomainsTab';
 import ApiKeysTab from './ApiKeysTab';
+import AgentsTab from './AgentsTab';
 import EmailLogsTab from './EmailLogsTab';
 import SendingTab from './SendingTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'sending' | 'domains' | 'apikeys' | 'logs';
+type Tab = 'sending' | 'domains' | 'apikeys' | 'agents' | 'logs';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function Dashboard() {
     sending: t.nav.sending,
     domains: t.nav.domains,
     apikeys: t.nav.apiKeys,
+    agents: t.nav.agents,
     logs: t.nav.logs,
   };
 
@@ -29,6 +31,7 @@ export default function Dashboard() {
     { id: 'sending', label: tabLabels.sending },
     { id: 'domains', label: tabLabels.domains },
     { id: 'apikeys', label: tabLabels.apikeys },
+    { id: 'agents', label: tabLabels.agents },
     { id: 'logs', label: tabLabels.logs },
   ];
 
@@ -60,6 +63,7 @@ export default function Dashboard() {
       {activeTab === 'sending' && <SendingTab />}
       {activeTab === 'domains' && <DomainsTab />}
       {activeTab === 'apikeys' && <ApiKeysTab />}
+      {activeTab === 'agents' && <AgentsTab kind="tenant" />}
       {activeTab === 'logs' && <EmailLogsTab />}
     </AppShell>
   );

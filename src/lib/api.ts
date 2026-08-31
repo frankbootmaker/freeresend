@@ -176,6 +176,36 @@ class ApiClient {
     return this.request(`/admin/users/${id}`, { method: 'DELETE' });
   }
 
+  async listPlatformAgents() {
+    return this.request('/admin/agents');
+  }
+
+  async createPlatformAgent(name: string) {
+    return this.request('/admin/agents', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async revokePlatformAgent(id: string) {
+    return this.request(`/admin/agents/${id}`, { method: 'DELETE' });
+  }
+
+  async listTenantAgents() {
+    return this.request('/agents');
+  }
+
+  async createTenantAgent(name: string) {
+    return this.request('/agents', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+  }
+
+  async revokeTenantAgent(id: string) {
+    return this.request(`/agents/${id}`, { method: 'DELETE' });
+  }
+
   async getPlatformSettings() {
     return this.request("/admin/settings");
   }
