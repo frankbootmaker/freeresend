@@ -8,7 +8,17 @@ import OpsPrefs from './ops/OpsPrefs';
 export type ShellNavItem = {
   id: string;
   label: string;
+  children?: ShellNavItem[];
 };
+
+function itemIsActive(item: ShellNavItem, activeId: string): boolean {
+  return activeId === item.id
+    || Boolean(item.children?.some((child) => child.id === activeId));
+}
+
+function itemIsExpanded(item: ShellNavItem, activeId: string): boolean {
+  return Boolean(item.children?.length) && itemIsActive(item, activeId);
+}
 
 export default function AppShell({
   portal,
@@ -44,18 +54,15 @@ export default function AppShell({
         <OpsBrand />
         <nav aria-label={portal ? t.nav.portalNav : t.nav.tenantConsole}>
           {items.map((item) => (
-            <button
+            <NavButtons
               key={item.id}
-              type="button"
-              className={activeId === item.id ? 'on' : undefined}
-              aria-current={activeId === item.id ? 'page' : undefined}
-              onClick={() => {
-                onSelect(item.id);
+              item={item}
+              activeId={activeId}
+              onSelect={(id) => {
+                onSelect(id);
                 setDrawer(false);
               }}
-            >
-              {item.label}
-            </button>
+            />
           ))}
         </nav>
         <div className="railfoot">
@@ -97,16 +104,15 @@ export default function AppShell({
       {drawer && (
         <nav className="drawer open" aria-label={t.nav.tabs}>
           {items.map((item) => (
-            <button
+            <NavButtons
               key={item.id}
-              type="button"
-              onClick={() => {
-                onSelect(item.id);
+              item={item}
+              activeId={activeId}
+              onSelect={(id) => {
+                onSelect(id);
                 setDrawer(false);
               }}
-            >
-              {item.label}
-            </button>
+            />
           ))}
           {onPortalSwitch && (
             <button type="button" onClick={onPortalSwitch}>
@@ -117,5 +123,45 @@ export default function AppShell({
       )}
       <div className="main">{children}</div>
     </main>
+  );
+}
+
+function NavButtons({
+  item,
+  activeId,
+  onSelect,
+}: {
+  item: ShellNavItem;
+  activeId: string;
+  onSelect: (id: string) => void;
+}) {
+  const expanded = itemIsExpanded(item, activeId);
+  const parentActive = itemIsActive(item, activeId);
+  const childActive = item.children?.some((child) => child.id === activeId);
+  const firstChild = item.children?.[0];
+
+  return (
+    <div className={expanded ? 'navgroup open' : 'navgroup'}>
+      <button
+        type="button"
+        className={parentActive && !childActive ? 'on' : undefined}
+        aria-current={activeId === item.id ? 'page' : undefined}
+        aria-expanded={item.children ? expanded : undefined}
+        onClick={() => onSelect(firstChild && !expanded ? firstChild.id : item.id)}
+      >
+        {item.label}
+      </button>
+      {expanded && item.children?.map((child) => (
+        <button
+          key={child.id}
+          type="button"
+          className={activeId === child.id ? 'on navsub' : 'navsub'}
+          aria-current={activeId === child.id ? 'page' : undefined}
+          onClick={() => onSelect(child.id)}
+        >
+          {child.label}
+        </button>
+      ))}
+    </div>
   );
 }

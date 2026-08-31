@@ -97,7 +97,13 @@ function formatTlsWhen(iso: string, locale: Locale): string {
   return date.toLocaleString(tag, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-export default function PlatformSettingsTab() {
+export type SettingsSection = 'ses' | 'smtp' | 'ingress' | 'alerts' | 'test';
+
+export default function PlatformSettingsTab({
+  section = 'ses',
+}: {
+  section?: SettingsSection;
+}) {
   const { t, locale } = usePrefs();
   const [sesRegion, setSesRegion] = useState('us-east-1');
   const [sesConfigurationSet, setSesConfigurationSet] = useState('');
@@ -424,11 +430,26 @@ export default function PlatformSettingsTab() {
     ingressTlsConfigured
     || (ingressTlsSource === 'manual' && Boolean(ingressTlsCert.trim()));
 
+  const saveFooter = (
+    <>
+      {saveError && (
+        <div className="fr-error" role="alert">{saveError}</div>
+      )}
+      {saveMessage && (
+        <div className="fr-ok" role="status">{saveMessage}</div>
+      )}
+      <button className="primary save" type="submit">
+        {t.settings.save}
+      </button>
+    </>
+  );
+
   return (
     <>
+      {section !== 'test' && (
       <form onSubmit={save}>
-      <div className="cols">
-        <section className="card">
+        {section === 'ses' && (
+        <section className="card settings-alerts">
           <header className="cardhead">
             <h2>{t.settings.sesTitle}</h2>
           </header>
@@ -471,9 +492,12 @@ export default function PlatformSettingsTab() {
                 />
               </div>
             </div>
+            {saveFooter}
           </div>
         </section>
-        <section className="card">
+        )}
+        {section === 'smtp' && (
+        <section className="card settings-alerts">
           <header className="cardhead">
             <h2>{t.settings.smtpTitle}</h2>
           </header>
@@ -540,9 +564,11 @@ export default function PlatformSettingsTab() {
                 </select>
               </div>
             </div>
+            {saveFooter}
           </div>
         </section>
-      </div>
+        )}
+        {section === 'ingress' && (
       <section className="card settings-alerts">
         <header className="cardhead">
           <h2>{t.settings.ingressTitle}</h2>
@@ -815,8 +841,11 @@ export default function PlatformSettingsTab() {
               </div>
             </>
           )}
+          {saveFooter}
         </div>
       </section>
+        )}
+        {section === 'alerts' && (
       <section className="card settings-alerts">
         <header className="cardhead">
           <h2>{t.settings.alertTitle}</h2>
@@ -854,7 +883,10 @@ export default function PlatformSettingsTab() {
           </button>
         </div>
       </section>
+        )}
     </form>
+      )}
+      {section === 'test' && (
     <form className="settings-alerts" onSubmit={sendTest}>
       <section className="card">
         <header className="cardhead">
@@ -912,6 +944,7 @@ export default function PlatformSettingsTab() {
         </div>
       </section>
     </form>
+      )}
     </>
   );
 }
