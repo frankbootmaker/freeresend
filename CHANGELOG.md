@@ -10,6 +10,7 @@ Work on `main` since 1.9.0. The console top-bar notes show the same list.
 
 ### Added
 
+- Portal Configuration → System domain attaches the web host (or another name) as the platform sending domain and locks the programmatic From to it
 - Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs)
 - Console profile menu with optional picture upload
 - Portal Configuration → OIDC for Authentik (or another OpenID Connect provider), with a JIT account-creation toggle and optional administrator group

@@ -246,6 +246,30 @@ class ApiClient {
     });
   }
 
+  async getSystemDomain() {
+    return this.request('/admin/settings/system-domain');
+  }
+
+  async attachSystemDomain(payload: { useWebHost?: boolean; domain?: string }) {
+    return this.request('/admin/settings/system-domain', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async saveSystemDomainFrom(localPart: string) {
+    return this.request('/admin/settings/system-domain', {
+      method: 'PATCH',
+      body: JSON.stringify({ localPart }),
+    });
+  }
+
+  async verifySystemDomain() {
+    return this.request('/admin/settings/system-domain/verify', {
+      method: 'POST',
+    });
+  }
+
   async getPlatformHealth() {
     return this.request('/admin/health');
   }

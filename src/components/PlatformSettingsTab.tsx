@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { usePrefs } from '@/contexts/PrefsContext';
 import type { Locale } from '@/lib/i18n';
+import PlatformSystemDomainSection from './PlatformSystemDomainSection';
 
 function SegButton({
   active,
@@ -98,6 +99,7 @@ function formatTlsWhen(iso: string, locale: Locale): string {
 }
 
 export type SettingsSection =
+  | 'system'
   | 'basics'
   | 'ses'
   | 'smtp'
@@ -107,7 +109,7 @@ export type SettingsSection =
   | 'test';
 
 export default function PlatformSettingsTab({
-  section = 'basics',
+  section = 'system',
 }: {
   section?: SettingsSection;
 }) {
@@ -223,7 +225,7 @@ export default function PlatformSettingsTab({
             ? `${window.location.origin}/api/auth/oidc/callback`
             : String(settings.oidcRedirectUri || ''),
         );
-        setTestFrom((current) => current || settings.alertFrom || '');
+        setTestFrom((current) => current || settings.platformFrom || settings.alertFrom || '');
         setTestTo((current) => current || settings.alertEmail || '');
         if (
           settings.smtpEnabled
@@ -493,31 +495,11 @@ export default function PlatformSettingsTab({
 
   return (
     <>
-      {section !== 'test' && (
+      {(section === 'system' || section === 'basics') && (
+        <PlatformSystemDomainSection />
+      )}
+      {section !== 'test' && section !== 'system' && section !== 'basics' && (
       <form onSubmit={save}>
-        {section === 'basics' && (
-      <section className="card settings-alerts">
-        <header className="cardhead">
-          <h2>{t.settings.basicsTitle}</h2>
-        </header>
-        <div className="cardbody">
-          <p className="cardlead">{t.settings.basicsLead}</p>
-          <div className="formgrid">
-            <div className="field">
-              <label>{t.settings.platformFrom}</label>
-              <input
-                type="email"
-                value={platformFrom}
-                onChange={(e) => setPlatformFrom(e.target.value)}
-                placeholder="noreply@example.com"
-              />
-              <p className="cardlead">{t.settings.platformFromHint}</p>
-            </div>
-          </div>
-          {saveFooter}
-        </div>
-      </section>
-        )}
         {section === 'ses' && (
         <section className="card settings-alerts">
           <header className="cardhead">

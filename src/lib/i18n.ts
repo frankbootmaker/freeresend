@@ -410,6 +410,20 @@ type Dict = {
     basicsLead: string;
     platformFrom: string;
     platformFromHint: string;
+    systemDomainTitle: string;
+    systemDomainLead: string;
+    useWebHost: string;
+    webHostLabel: string;
+    webHostUnavailable: string;
+    customDomain: string;
+    attachDomain: string;
+    attachingDomain: string;
+    checkRecords: string;
+    checkingRecords: string;
+    noSystemDomain: string;
+    domainPending: string;
+    domainVerified: string;
+    fromLocalPart: string;
   };
   health: {
     title: string;
@@ -1067,12 +1081,28 @@ const en: Dict = {
     oidcButtonLabel: 'Sign-in button label',
     oidcButtonLabelHint:
       'Shown on the console Sign in page. Leave blank to use the locale default (Continue with Authentik).',
-    basicsTitle: 'Basics',
+    basicsTitle: 'System domain',
     basicsLead:
-      'Identity used when RelayHorizon sends its own mail — password resets, waitlist notices, and welcome messages.',
-    platformFrom: 'Platform sender',
+      'Sending domain and programmatic From for platform mail.',
+    platformFrom: 'Programmatic From',
     platformFromHint:
-      'Leave blank to fall back to the alert From address, then FROM_EMAIL.',
+      'Used for password resets, waitlist notices, welcome mail, and configuration tests. Must be on the system domain.',
+    systemDomainTitle: 'System domain',
+    systemDomainLead:
+      'Attach the platform sending domain, publish the DNS records, then set noreply@… on that domain. Customers keep their own domains.',
+    useWebHost: 'Use current web host',
+    webHostLabel: 'Current web host',
+    webHostUnavailable:
+      'The current web host is not a public DNS name (localhost or a bare IP).',
+    customDomain: 'or another sending domain',
+    attachDomain: 'Use this domain',
+    attachingDomain: 'Attaching…',
+    checkRecords: 'Check records',
+    checkingRecords: 'Checking…',
+    noSystemDomain: 'No system domain yet. Start with the current web host.',
+    domainPending: 'Publish every record below, then check. Sending stays blocked until they match.',
+    domainVerified: 'DNS matches. Platform mail may use this domain.',
+    fromLocalPart: 'Local part',
   },
   health: {
     title: 'Health',
@@ -1739,12 +1769,28 @@ const de: Dict = {
     oidcButtonLabel: 'Anmelde-Schaltfläche',
     oidcButtonLabelHint:
       'Text auf der Anmeldeseite. Leer lassen für die Sprachvorgabe (Weiter mit Authentik).',
-    basicsTitle: 'Grundlagen',
+    basicsTitle: 'Systemdomain',
     basicsLead:
-      'Absender für plattformeigene Nachrichten — Passwort-Zurücksetzen, Warteliste und Willkommen.',
-    platformFrom: 'Plattform-Absender',
+      'Versanddomain und programmatischer Absender für Plattformmail.',
+    platformFrom: 'Programmatischer Absender',
     platformFromHint:
-      'Leer lassen, um die Alert-Absenderadresse und danach FROM_EMAIL zu verwenden.',
+      'Für Passwort-Reset, Warteliste, Willkommen und Konfigurationstests. Muss zur Systemdomain gehören.',
+    systemDomainTitle: 'Systemdomain',
+    systemDomainLead:
+      'Plattform-Versanddomain anbinden, DNS veröffentlichen, dann noreply@… auf dieser Domain setzen. Kunden behalten eigene Domains.',
+    useWebHost: 'Aktuellen Webhost verwenden',
+    webHostLabel: 'Aktueller Webhost',
+    webHostUnavailable:
+      'Der aktuelle Webhost ist kein öffentlicher DNS-Name (localhost oder IP).',
+    customDomain: 'oder eine andere Versanddomain',
+    attachDomain: 'Diese Domain verwenden',
+    attachingDomain: 'Wird angebunden…',
+    checkRecords: 'Records prüfen',
+    checkingRecords: 'Prüfung…',
+    noSystemDomain: 'Noch keine Systemdomain. Beginnen Sie mit dem aktuellen Webhost.',
+    domainPending: 'Alle Records unten veröffentlichen, dann prüfen. Versand bleibt gesperrt, bis sie passen.',
+    domainVerified: 'DNS stimmt. Plattformmail darf diese Domain nutzen.',
+    fromLocalPart: 'Lokalteil',
   },
   health: {
     title: 'Status',
@@ -2410,12 +2456,28 @@ const hu: Dict = {
     oidcButtonLabel: 'Belépő gomb felirata',
     oidcButtonLabelHint:
       'A konzol belépő oldalán jelenik meg. Üresen a nyelvi alapértelmezés (Folytatás Authentikkal).',
-    basicsTitle: 'Alapok',
+    basicsTitle: 'Rendszerdomain',
     basicsLead:
-      'A RelayHorizon saját leveleinek feladója — jelszó-visszaállítás, várólista és üdvözlő üzenetek.',
-    platformFrom: 'Platform feladó',
+      'A platform leveleinek küldő domainje és programozott feladója.',
+    platformFrom: 'Programozott feladó',
     platformFromHint:
-      'Hagyja üresen, ha a riasztási feladót, majd a FROM_EMAIL értéket szeretné használni.',
+      'Jelszó-visszaállításhoz, várólistához, üdvözlőhöz és konfigurációs teszthez. A rendszerdomainen kell lennie.',
+    systemDomainTitle: 'Rendszerdomain',
+    systemDomainLead:
+      'Csatolja a platform küldő domainjét, tegye közzé a DNS-rekordokat, majd állítson be noreply@… címet. Az ügyfelek saját domainjei megmaradnak.',
+    useWebHost: 'Jelenlegi webhost használata',
+    webHostLabel: 'Jelenlegi webhost',
+    webHostUnavailable:
+      'A jelenlegi webhost nem nyilvános DNS-név (localhost vagy IP).',
+    customDomain: 'vagy másik küldő domain',
+    attachDomain: 'Domain használata',
+    attachingDomain: 'Csatolás…',
+    checkRecords: 'Rekordok ellenőrzése',
+    checkingRecords: 'Ellenőrzés…',
+    noSystemDomain: 'Még nincs rendszerdomain. Kezdje a jelenlegi webhosttal.',
+    domainPending: 'Tegye közzé az alábbi rekordokat, majd ellenőrizze. A küldés egyezésig tiltva marad.',
+    domainVerified: 'A DNS egyezik. A platform levelei használhatják ezt a domaint.',
+    fromLocalPart: 'Helyi rész',
   },
   health: {
     title: 'Állapot',

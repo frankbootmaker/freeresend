@@ -79,7 +79,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Configuration',
         paragraphs: [
-          'Basics sets the platform sender used for password resets, waitlist notices, and welcome mail. Leave it blank to fall back to the alert From address.',
+          'System domain attaches the platform sending domain (the current web host is the usual start), shows the DNS records to publish, and locks the programmatic From to that domain.',
           'Set SES credentials, an optional platform SMTP relay, inbound SMTP TLS, alert addresses, and Authentik/OIDC sign-in.',
           'For OIDC, paste the issuer, client ID, and secret from Authentik, and copy the callback URL into the provider application.',
           'Optional sign-in button label appears on the console Sign in page when OIDC is enabled. Leave it blank for the locale default (Continue with Authentik).',
@@ -92,7 +92,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Sign in',
         paragraphs: [
           'One Sign in page for everyone. Platform administrators open this portal; tenant members open their organization console.',
-          'Forgot password sends a one-hour reset link using the platform sender from Basics.',
+          'Forgot password sends a one-hour reset link using the programmatic From on the system domain.',
           'Create an organization on the landing page for self-signup, or provision customers from this portal.',
         ],
       },
@@ -172,7 +172,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Konfiguration',
         paragraphs: [
-          'Unter Grundlagen legen Sie den Plattform-Absender für Passwort-Zurücksetzen, Warteliste und Willkommen fest. Leer bedeutet Alert-Absender.',
+          'Unter Systemdomain binden Sie die Plattform-Versanddomain an (meist der aktuelle Webhost), veröffentlichen die DNS-Records und setzen den programmatischen Absender auf diese Domain.',
           'SES-Zugangsdaten, optionales Plattform-SMTP-Relais, eingehendes SMTP-TLS, Alert-Adressen und Authentik/OIDC-Anmeldung.',
           'Für OIDC Issuer, Client-ID und Secret aus Authentik eintragen und die Callback-URL in die Provider-Anwendung kopieren.',
           'Optionaler Anmelde-Schaltflächentext erscheint auf der Anmeldeseite, wenn OIDC aktiv ist. Leer lassen für die Sprachvorgabe (Weiter mit Authentik).',
@@ -185,7 +185,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Anmelden',
         paragraphs: [
           'Eine Anmeldeseite für alle. Plattformadministratoren öffnen dieses Portal; Mandantenmitglieder ihre Organisation.',
-          'Passwort vergessen sendet einen einstündigen Link mit dem Plattform-Absender aus Grundlagen.',
+          'Passwort vergessen sendet einen einstündigen Link mit dem programmatischen Absender der Systemdomain.',
           'Organisation auf der Landingpage selbst anlegen, oder Kunden hier im Portal provisionieren.',
         ],
       },
@@ -265,7 +265,7 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'configuration',
         title: 'Konfiguráció',
         paragraphs: [
-          'Az Alapoknál állítsa be a platform feladót a jelszó-visszaállításhoz, várólistához és üdvözlő levelekhez. Üresen a riasztási feladót használja.',
+          'A Rendszerdomain csatolja a platform küldő domainjét (általában a jelenlegi webhost), megmutatja a DNS-rekordokat, és a programozott feladót ehhez a domainhez köti.',
           'SES-hitelesítő adatok, opcionális platform SMTP-relé, bejövő SMTP TLS, riasztási címek és Authentik/OIDC-belépés.',
           'OIDC-nál írja be az Authentik issuer, client ID és secret értékeit, a callback URL-t másolja a provider alkalmazásba.',
           'Opcionális belépő gomb felirat jelenik meg a konzol belépő oldalán, ha az OIDC be van kapcsolva. Üresen a nyelvi alapértelmezés (Folytatás Authentikkal).',
@@ -278,7 +278,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Belépés',
         paragraphs: [
           'Egy belépő oldal mindenkinek. A platformadminisztrátorok ezt a portált, a bérlőtagok a szervezetüket nyitják meg.',
-          'Az elfelejtett jelszó egyórás linket küld az Alapok platform feladójával.',
+          'Az elfelejtett jelszó egyórás linket küld a rendszerdomain programozott feladójával.',
           'Szervezetet a nyitóoldalon hozhat létre, vagy ügyfeleket itt a portálon provisionálhat.',
         ],
       },

@@ -4,6 +4,10 @@ import { json, optionsResponse, emailSchema } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { sendPlatformSystemEmail } from '@/lib/mail-transport';
 import { renderSystemEmail } from '@/lib/system-email';
+import {
+  assertEmailOnDomain,
+  getPlatformSystemDomain,
+} from '@/lib/platform-domain';
 
 const schema = z.object({
   from: emailSchema,
@@ -22,6 +26,10 @@ export async function POST(request: NextRequest) {
       return json({ error: 'Platform admin required' }, 403);
     }
     const body = schema.parse(await request.json());
+    const systemDomain = await getPlatformSystemDomain();
+    if (systemDomain) {
+      assertEmailOnDomain(body.from, systemDomain.domain);
+    }
     const { html, text } = renderSystemEmail({
       title: 'Configuration test',
       lead: 'Portal Configuration reached this mailbox.',

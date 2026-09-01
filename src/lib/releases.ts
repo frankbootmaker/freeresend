@@ -26,6 +26,10 @@ export const RELEASES: Release[] = [
     changes: [
       {
         kind: 'added',
+        text: 'Portal Configuration → System domain attaches the web host (or another name) as the platform sending domain and locks the programmatic From to it.',
+      },
+      {
+        kind: 'added',
         text: 'Portal and tenant consoles include a Guide tab (administrator and sending walkthroughs).',
       },
       {

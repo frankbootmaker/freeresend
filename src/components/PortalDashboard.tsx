@@ -27,6 +27,7 @@ type Tab =
   | 'guide';
 
 const SETTINGS_SECTIONS: SettingsSection[] = [
+  'system',
   'basics',
   'ses',
   'smtp',
@@ -45,13 +46,13 @@ export default function PortalDashboard() {
   const { tenant, logout } = useAuth();
   const { t } = usePrefs();
   const [activeTab, setActiveTab] = useState<Tab>('customers');
-  const [settingsSection, setSettingsSection] = useState<SettingsSection>('basics');
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>('system');
   const tenantLabel = tenant?.name
     ? t.nav.backToTenant(tenant.name)
     : t.nav.backToConsole;
 
   const settingsChildren: ShellNavItem[] = [
-    { id: 'settings-basics', label: t.settings.basicsTitle },
+    { id: 'settings-system', label: t.settings.systemDomainTitle },
     { id: 'settings-ses', label: t.settings.sesTitle },
     { id: 'settings-smtp', label: t.settings.smtpTitle },
     { id: 'settings-ingress', label: t.settings.ingressTitle },
