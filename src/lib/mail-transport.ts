@@ -1,7 +1,9 @@
 import nodemailer from 'nodemailer';
+import { query } from './database';
 import { sendEmail as sendViaSes } from './ses';
 import type { SendEmailOptions } from './ses';
 import type { Tenant } from './tenants';
+import { getTenantBySlug } from './tenants';
 import { getResolvedPlatformSettings } from './platform-settings';
 
 export interface OutboundDkim {
@@ -115,20 +117,79 @@ async function sendViaPlatformSmtp(options: SendEmailOptions): Promise<string> {
   );
 }
 
+async function recordPlatformSystemEmailLog(input: {
+  options: SendEmailOptions;
+  messageId: string;
+  status: 'sent' | 'failed';
+  errorMessage?: string | null;
+}): Promise<void> {
+  try {
+    const tenant = await getTenantBySlug('platform');
+    if (!tenant) {
+      console.warn('No platform tenant; configuration test was not written to email logs');
+      return;
+    }
+    await query(
+      `INSERT INTO email_logs (
+        tenant_id, from_email, to_emails, cc_emails, bcc_emails, subject,
+        html_content, text_content, attachments, status, ses_message_id,
+        error_message, channel
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+      [
+        tenant.id,
+        input.options.from,
+        JSON.stringify(input.options.to),
+        JSON.stringify(input.options.cc || []),
+        JSON.stringify(input.options.bcc || []),
+        input.options.subject,
+        input.options.html || null,
+        input.options.text || null,
+        JSON.stringify(input.options.attachments || []),
+        input.status,
+        input.messageId,
+        input.errorMessage || null,
+        'platform',
+      ],
+    );
+  } catch (error: unknown) {
+    console.error('Failed to record platform system email', error);
+  }
+}
+
 export async function sendPlatformSystemEmail(
   options: SendEmailOptions,
   via?: PlatformMailVia,
 ): Promise<string> {
   const platform = await getResolvedPlatformSettings();
   const resolved = resolvePlatformVia(platform, via);
-  if (resolved === 'ses') {
-    if (!platform.sesAccessKeyId || !platform.sesSecretAccessKey) {
-      throw new Error('Platform SES is not configured');
+  try {
+    let messageId: string;
+    if (resolved === 'ses') {
+      if (!platform.sesAccessKeyId || !platform.sesSecretAccessKey) {
+        throw new Error('Platform SES is not configured');
+      }
+      messageId = await sendViaSes(options);
+    } else {
+      if (via === 'smtp' && !platform.smtpEnabled) {
+        throw new Error('Platform SMTP relay is disabled');
+      }
+      messageId = await sendViaPlatformSmtp(options);
     }
-    return sendViaSes(options);
+    await recordPlatformSystemEmailLog({
+      options,
+      messageId,
+      status: 'sent',
+    });
+    return messageId;
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
+    await recordPlatformSystemEmailLog({
+      options,
+      messageId: `failed-${Date.now()}`,
+      status: 'failed',
+      errorMessage,
+    });
+    throw error;
   }
-  if (via === 'smtp' && !platform.smtpEnabled) {
-    throw new Error('Platform SMTP relay is disabled');
-  }
-  return sendViaPlatformSmtp(options);
 }

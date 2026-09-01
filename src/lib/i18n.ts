@@ -1035,7 +1035,7 @@ const en: Dict = {
     secretSet: 'Stored — enter a new value to rotate',
     testTitle: 'Test send',
     testLead:
-      'Save configuration first. Choose SES or SMTP. From must be a SES-verified identity when using SES.',
+      'Save configuration first. Choose SES or SMTP. From must be a SES-verified identity when using SES. Successful sends appear under Logs and Health as the Platform tenant. SES 24-hour quota on Health can lag.',
     testVia: 'Outbound',
     testFrom: 'From',
     testTo: 'To',
@@ -1707,7 +1707,7 @@ const de: Dict = {
     secretSet: 'Gespeichert — neuen Wert eingeben zum Rotieren',
     testTitle: 'Testversand',
     testLead:
-      'Zuerst Konfiguration speichern. SES oder SMTP wählen. Bei SES muss der Absender eine verifizierte Identität sein.',
+      'Zuerst Konfiguration speichern. SES oder SMTP wählen. Bei SES muss der Absender eine verifizierte Identität sein. Erfolgreiche Sendungen erscheinen unter Protokolle und Gesundheit beim Mandanten Platform. Die SES-24-Stunden-Quote auf Gesundheit kann verzögert sein.',
     testVia: 'Ausgang',
     testFrom: 'Von',
     testTo: 'An',
@@ -2378,7 +2378,7 @@ const hu: Dict = {
     secretSet: 'Tárolva — új értéket adjon meg a cseréhez',
     testTitle: 'Tesztküldés',
     testLead:
-      'Előbb mentse a konfigurációt. Válasszon SES-t vagy SMTP-t. SES esetén a feladónak ellenőrzött identitásnak kell lennie.',
+      'Előbb mentse a konfigurációt. Válasszon SES-t vagy SMTP-t. SES esetén a feladónak ellenőrzött identitásnak kell lennie. A sikeres küldések a Naplókban és az Állapotban a Platform szervezet alatt jelennek meg. A Health SES 24 órás kvótája késhet.',
     testVia: 'Kimenet',
     testFrom: 'Feladó',
     testTo: 'Címzett',
