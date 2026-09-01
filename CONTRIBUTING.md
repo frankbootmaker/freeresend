@@ -1,14 +1,14 @@
-# Contributing to FreeResend
+# Contributing to RelayHorizon
 
-Thank you for your interest in contributing to FreeResend! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to RelayHorizon! This document provides guidelines and instructions for contributing.
 
 ## 🚀 Quick Start
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/eibrahim/freeresend.git
-   cd freeresend
+   git clone https://github.com/frankbootmaker/relayhorizon.git
+   cd relayhorizon
    ```
 3. **Install dependencies**:
    ```bash
@@ -42,7 +42,7 @@ When reporting bugs, please include:
 
 - Node.js version:
 - OS:
-- FreeResend version:
+- RelayHorizon version:
 
 **Steps to Reproduce:**
 
@@ -241,7 +241,7 @@ Contributors will be:
 - Credited in release notes
 - Recognized in the community
 
-Thank you for helping make FreeResend better! 🚀
+Thank you for helping make RelayHorizon better! 🚀
 
 ---
 

@@ -1,10 +1,10 @@
 # Dokploy
 
-Deploy RelayHorizon as a **Compose** service. The old idle Application has no Git repo or Postgres and should stay unused.
+Deploy RelayHorizon as a **Compose** service (not an Application). Create a new project, then add one Compose service.
 
 ## Create the service
 
-1. Connect GitHub `frankbootmaker/freeresend`.
+1. Connect GitHub `frankbootmaker/relayhorizon`, branch `main`.
 2. Use `docker-compose.yml`. Default services: `postgres`, `web`, `db-backup`.
 3. Do **not** enable the `smtp` or `dev` profiles on first deploy. Public **587/465** stay off until you deliberately expose SMTP submission.
 4. Attach the public hostname with Let's Encrypt to **`web:3000`**.

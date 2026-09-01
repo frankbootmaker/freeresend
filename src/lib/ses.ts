@@ -261,6 +261,7 @@ export async function deleteDomainIdentity(domain: string): Promise<void> {
 }
 
 export async function createConfigurationSet(domain: string): Promise<string> {
+  // SES configuration-set names stay prefixed so existing AWS sets keep matching.
   const configSetName = `freeresend-${domain.replace(/\./g, "-")}`;
 
   try {

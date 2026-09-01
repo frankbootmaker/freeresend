@@ -1,4 +1,4 @@
-# FreeResend Kubernetes Deployment
+# RelayHorizon Kubernetes Deployment
 
 Deploy RelayHorizon to a Kubernetes cluster. Prefer Compose/Dokploy ([docs/dokploy.md](../docs/dokploy.md)).
 
@@ -22,8 +22,8 @@ Deploy RelayHorizon to a Kubernetes cluster. Prefer Compose/Dokploy ([docs/dokpl
 
 ```bash
 # 1. Build and push Docker image
-docker build -t registry.digitalocean.com/curatedletters/freeresend:latest .
-docker push registry.digitalocean.com/curatedletters/freeresend:latest
+docker build -t registry.digitalocean.com/curatedletters/relayhorizon:latest .
+docker push registry.digitalocean.com/curatedletters/relayhorizon:latest
 
 # 2. Apply Kubernetes manifests
 kubectl apply -f k8s/namespace.yaml
@@ -38,15 +38,15 @@ kubectl apply -f k8s/ingress.yaml
 kubectl apply -f k8s/hpa.yaml
 
 # 3. Check deployment status
-kubectl get pods -n freeresend
-kubectl get ingress -n freeresend
+kubectl get pods -n relayhorizon
+kubectl get ingress -n relayhorizon
 ```
 
 ## Configuration Files
 
-- `namespace.yaml` - Creates freeresend namespace
+- `namespace.yaml` - Creates relayhorizon namespace
 - `secret.template.yaml` - Template for environment variables and secrets (copy to secret.yaml)
-- `deployment.yaml` - FreeResend application deployment
+- `deployment.yaml` - RelayHorizon application deployment
 - `service.yaml` - Internal service for pods
 - `ingress.yaml` - HTTPS ingress for your hostname
 - `hpa.yaml` - Horizontal pod autoscaler (2-10 replicas)
@@ -76,16 +76,16 @@ Update `secret.yaml` with your actual values:
 
 ```bash
 # Check pods
-kubectl get pods -n freeresend
+kubectl get pods -n relayhorizon
 
 # Check logs
-kubectl logs -f deployment/freeresend -n freeresend
+kubectl logs -f deployment/relayhorizon -n relayhorizon
 
 # Check ingress
-kubectl describe ingress freeresend-ingress -n freeresend
+kubectl describe ingress relayhorizon-ingress -n relayhorizon
 
 # Check HPA status
-kubectl get hpa -n freeresend
+kubectl get hpa -n relayhorizon
 ```
 
 ## Scaling
@@ -96,7 +96,7 @@ Memory is deliberately NOT a scaling trigger(memory target removed 2026-08-25, E
 
 Manual scaling:
 ```bash
-kubectl scale deployment freeresend --replicas=5 -n freeresend
+kubectl scale deployment relayhorizon --replicas=5 -n relayhorizon
 ```
 
 ## SSL Certificate
@@ -107,24 +107,24 @@ The ingress automatically provisions SSL certificates via cert-manager for your 
 
 **Pods not starting:**
 ```bash
-kubectl describe pod <pod-name> -n freeresend
-kubectl logs <pod-name> -n freeresend
+kubectl describe pod <pod-name> -n relayhorizon
+kubectl logs <pod-name> -n relayhorizon
 ```
 
 **SSL certificate issues:**
 ```bash
-kubectl describe certificate freeresend-tls -n freeresend
+kubectl describe certificate relayhorizon-tls -n relayhorizon
 kubectl describe clusterissuer letsencrypt-prod
 ```
 
 **Ingress not working:**
 ```bash
-kubectl describe ingress freeresend-ingress -n freeresend
+kubectl describe ingress relayhorizon-ingress -n relayhorizon
 ```
 
 ## Clean Up
 
 ```bash
 # Delete all resources
-kubectl delete namespace freeresend
+kubectl delete namespace relayhorizon
 ```

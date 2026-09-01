@@ -14,7 +14,7 @@ This guide will help you set up RelayHorizon from scratch. Prefer [`docs/docker.
    brew services start postgresql
 
    # Create database
-   createdb freeresend
+   createdb relayhorizon
    ```
 
 2. **Option B: Hosted PostgreSQL**
@@ -157,10 +157,10 @@ curl -X POST http://localhost:3000/api/emails \
 
 ```bash
 # Build image
-docker build -t freeresend .
+docker build -t relayhorizon .
 
 # Run container
-docker run -p 3000:3000 --env-file .env.local freeresend
+docker run -p 3000:3000 --env-file .env.local relayhorizon
 ```
 
 ### Option 3: Traditional Server

@@ -8,7 +8,7 @@
 - `smtp` — profile `smtp`, submission listener on **2525** (and 587/465 when you publish them)
 - `mailhog` — profile `dev`, SMTP 1025, UI 8025
 
-Password and database name come from `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` (defaults `freeresend`). Compose interpolates those from a project `.env` or the Dokploy environment — not `.env.local`. Use a URL-safe password and set the same values on `postgres`, `web`, and `db-backup`.
+Password and database name come from `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` (defaults `relayhorizon`). Compose interpolates those from a project `.env` or the Dokploy environment — not `.env.local`. Use a URL-safe password in production and set the same values on `postgres`, `web`, and `db-backup`.
 
 Keep `postgres` on the Compose project network only. Do not attach it to a shared Dokploy/Traefik network (duplicate DNS aliases break auth).
 
@@ -22,10 +22,10 @@ docker compose up -d postgres
 # wait until healthy
 npm install
 npm run dev
-curl -X POST http://localhost:3000/api/setup
+curl -X POST http://localhost:3001/api/setup
 ```
 
-Open http://localhost:3000 — login with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. If the Next app is on **3001**, use that origin instead.
+Open http://localhost:3001 — login with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Port **3001** is the local Next port on this host because **3000** is already used by other services. Dokploy still targets the container’s **`web:3000`**.
 
 SMTP sink:
 

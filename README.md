@@ -44,8 +44,8 @@ RelayHorizon lets you host your own email service using Amazon SES or an SMTP re
 1. **Clone and install dependencies:**
 
 ```bash
-git clone <your-repo>
-cd freeresend
+git clone https://github.com/frankbootmaker/relayhorizon.git
+cd relayhorizon
 npm install
 ```
 
@@ -142,7 +142,7 @@ RelayHorizon is **100% compatible** with the [Resend Node.js SDK](https://github
 Set the `RESEND_BASE_URL` environment variable:
 
 ```bash
-export RESEND_BASE_URL="https://your-freeresend-domain.com/api"
+export RESEND_BASE_URL="https://your-relayhorizon-domain.com/api"
 ```
 
 Then use Resend exactly as before:
@@ -151,7 +151,7 @@ Then use Resend exactly as before:
 import { Resend } from "resend";
 
 // No changes needed - RelayHorizon API key works with Resend SDK!
-const resend = new Resend("your-freeresend-api-key");
+const resend = new Resend("your-relayhorizon-api-key");
 
 const { data, error } = await resend.emails.send({
   from: "onboarding@yourdomain.com",
@@ -164,10 +164,10 @@ const { data, error } = await resend.emails.send({
 ### Method 2: Direct API
 
 ```javascript
-const response = await fetch("https://your-freeresend-domain.com/api/emails", {
+const response = await fetch("https://your-relayhorizon-domain.com/api/emails", {
   method: "POST",
   headers: {
-    Authorization: "Bearer your-freeresend-api-key",
+    Authorization: "Bearer your-relayhorizon-api-key",
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
@@ -335,7 +335,7 @@ npm run lint
 ## Repository Structure
 
 ```
-freeresend/
+relayhorizon/
 ├── src/
 │   ├── app/                 # Next.js App Router
 │   │   ├── api/            # API routes
@@ -374,7 +374,7 @@ We welcome contributions! Here's how to get started:
 ### Development Setup
 
 1. **Fork the repository** on GitHub
-2. **Clone your fork**: `git clone https://github.com/eibrahim/freeresend.git`
+2. **Clone your fork**: `git clone https://github.com/frankbootmaker/relayhorizon.git`
 3. **Install dependencies**: `npm install`
 4. **Set up environment** following the Quick Start guide above
 5. **Run tests**: `node test-email.js`
@@ -416,7 +416,7 @@ MIT License - see LICENSE file for details.
 - 🔎 **Deployment Review**: In-app [SES, DNS, webhook, and launch-risk plan](/deployment-review)
 - 📬 **DNS Checker**: [Email DNS readiness checker](/tools/email-dns-checker)
 - 📨 **SES Request Helper**: [SES production access request helper](/tools/ses-production-request-helper)
-- 🐛 **Issues**: Report bugs via [GitHub Issues](https://github.com/eibrahim/freeresend/issues)
+- 🐛 **Issues**: Report bugs via [GitHub Issues](https://github.com/frankbootmaker/relayhorizon/issues)
 - 💡 **Feature Requests**: Suggest improvements via GitHub Issues
 - 🚀 **Professional Support**: Custom development and enterprise support available via [EliteCoders](https://elitecoders.co/)
 

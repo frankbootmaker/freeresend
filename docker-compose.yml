@@ -1,6 +1,12 @@
+# Compose project name is fixed so backups and `docker compose -p` keep
+# working after the folder was renamed from freeresend.
+name: relayhorizon
+
 # Interpolation (${POSTGRES_PASSWORD}, …) reads the project `.env` or the
 # Dokploy compose environment — not `.env.local`. Use a URL-safe password
 # (letters, numbers, hyphen, underscore). Override the default in production.
+# Existing volumes keep the user/database created on first init — set
+# POSTGRES_* to those values (do not rely on these defaults after a rename).
 #
 # Postgres is published on loopback only so local `npm run dev` can reach
 # :5436. Remove the postgres `ports` block on Dokploy if you want no host
@@ -10,16 +16,16 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-freeresend}
-      POSTGRES_USER: ${POSTGRES_USER:-freeresend}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-freeresend}
+      POSTGRES_DB: ${POSTGRES_DB:-relayhorizon}
+      POSTGRES_USER: ${POSTGRES_USER:-relayhorizon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-relayhorizon}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "127.0.0.1:${POSTGRES_HOST_PORT:-5436}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-freeresend}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-relayhorizon}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -34,7 +40,7 @@ services:
         required: false
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-freeresend}:${POSTGRES_PASSWORD:-freeresend}@postgres:5432/${POSTGRES_DB:-freeresend}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-relayhorizon}:${POSTGRES_PASSWORD:-relayhorizon}@postgres:5432/${POSTGRES_DB:-relayhorizon}
       DATABASE_SSL: "false"
       BACKUP_DIR: /backups
     volumes:
@@ -76,7 +82,7 @@ services:
       - path: .env.local
         required: false
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-freeresend}:${POSTGRES_PASSWORD:-freeresend}@postgres:5432/${POSTGRES_DB:-freeresend}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-relayhorizon}:${POSTGRES_PASSWORD:-relayhorizon}@postgres:5432/${POSTGRES_DB:-relayhorizon}
       DATABASE_SSL: "false"
       SMTP_LISTEN_HOST: 0.0.0.0
       SMTP_LISTEN_PORTS: "2525,587"
@@ -93,9 +99,9 @@ services:
       BACKUP_DIR: /backups
       POSTGRES_HOST: postgres
       POSTGRES_PORT: "5432"
-      POSTGRES_USER: ${POSTGRES_USER:-freeresend}
-      POSTGRES_DB: ${POSTGRES_DB:-freeresend}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-freeresend}
+      POSTGRES_USER: ${POSTGRES_USER:-relayhorizon}
+      POSTGRES_DB: ${POSTGRES_DB:-relayhorizon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-relayhorizon}
       BACKUP_ENABLED: "true"
       BACKUP_INTERVAL_SECONDS: "86400"
     volumes:

@@ -14,8 +14,8 @@ fi
 
 host="${POSTGRES_HOST:-localhost}"
 port="${POSTGRES_PORT:-5432}"
-user="${POSTGRES_USER:-freeresend}"
-db="${POSTGRES_DB:-freeresend}"
+user="${POSTGRES_USER:-relayhorizon}"
+db="${POSTGRES_DB:-relayhorizon}"
 
 echo "Terminating other sessions…"
 PGPASSWORD="${POSTGRES_PASSWORD:-}" psql -h "$host" -p "$port" -U "$user" -d "$db" \

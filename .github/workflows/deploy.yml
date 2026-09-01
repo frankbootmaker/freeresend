@@ -7,7 +7,7 @@ on:
 
 env:
   REGISTRY: registry.digitalocean.com/curatedletters
-  IMAGE_NAME: freeresend
+  IMAGE_NAME: relayhorizon
 
 jobs:
   deploy:
@@ -52,7 +52,7 @@ jobs:
           --docker-username=${{ secrets.DO_API_TOKEN }} \
           --docker-password=${{ secrets.DO_API_TOKEN }} \
           --docker-email=${{ secrets.ADMIN_EMAIL }} \
-          -n freeresend \
+          -n relayhorizon \
           --dry-run=client -o yaml | kubectl apply -f -
 
     - name: Deploy to Kubernetes
@@ -70,19 +70,19 @@ jobs:
         kubectl apply -f k8s/hpa.yaml
         
         # Update image to latest version
-        kubectl set image deployment/freeresend \
-          freeresend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-          -n freeresend
+        kubectl set image deployment/relayhorizon \
+          relayhorizon=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          -n relayhorizon
 
     - name: Wait for deployment
       run: |
-        kubectl rollout status deployment/freeresend -n freeresend --timeout=600s
+        kubectl rollout status deployment/relayhorizon -n relayhorizon --timeout=600s
 
     - name: Get deployment status
       run: |
-        kubectl get pods -n freeresend
-        kubectl get services -n freeresend  
-        kubectl get ingress -n freeresend
+        kubectl get pods -n relayhorizon
+        kubectl get services -n relayhorizon  
+        kubectl get ingress -n relayhorizon
         echo ""
         echo "🎉 Deployment completed!"
-        echo "🌐 Application available at: https://www.freeresend.com"
+        echo "🌐 Application available at your configured hostname"

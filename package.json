@@ -1,16 +1,16 @@
 {
-  "name": "freeresend",
+  "name": "relayhorizon",
   "version": "1.9.0",
   "description": "Self-hosted, open-source alternative to Resend for sending transactional emails with Amazon SES",
   "author": "Emad Ibrahim <eibrahim@gmail.com> (https://x.com/eibrahim)",
   "license": "MIT",
-  "homepage": "https://github.com/eibrahim/freeresend#readme",
+  "homepage": "https://github.com/frankbootmaker/relayhorizon#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eibrahim/freeresend.git"
+    "url": "git+https://github.com/frankbootmaker/relayhorizon.git"
   },
   "bugs": {
-    "url": "https://github.com/eibrahim/freeresend/issues"
+    "url": "https://github.com/frankbootmaker/relayhorizon/issues"
   },
   "keywords": [
     "email",
@@ -24,7 +24,7 @@
     "typescript"
   ],
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --port 3001",
     "smtp": "tsx src/smtp/server.ts",
     "build": "next build",
     "start": "next start",

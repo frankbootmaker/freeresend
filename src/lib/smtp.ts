@@ -59,6 +59,7 @@ function getSmtpServer(region: string): string {
  */
 export async function createSmtpCredentials(domain: string): Promise<SmtpCredentials> {
   const region = process.env.AWS_REGION || "us-east-1";
+  // IAM user names stay prefixed so existing AWS users keep matching.
   const userName = `freeresend-smtp-${domain.replace(/\./g, "-")}`;
 
   try {

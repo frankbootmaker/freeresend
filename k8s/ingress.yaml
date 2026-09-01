@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: freeresend-ingress
-  namespace: freeresend
+  name: relayhorizon-ingress
+  namespace: relayhorizon
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -17,27 +17,16 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - www.freeresend.com
-        - freeresend.com
-      secretName: freeresend-tls
+        - relayhorizon.example.com
+      secretName: relayhorizon-tls
   rules:
-    - host: www.freeresend.com
+    - host: relayhorizon.example.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: freeresend
-                port:
-                  number: 80
-    - host: freeresend.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: freeresend
+                name: relayhorizon
                 port:
                   number: 80

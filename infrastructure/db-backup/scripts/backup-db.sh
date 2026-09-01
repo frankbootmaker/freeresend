@@ -20,8 +20,8 @@ else
 fi
 
 dump_via_host() {
-  local db="${POSTGRES_DB:-freeresend}"
-  local user="${POSTGRES_USER:-freeresend}"
+  local db="${POSTGRES_DB:-relayhorizon}"
+  local user="${POSTGRES_USER:-relayhorizon}"
   local host="${POSTGRES_HOST}"
   local port="${POSTGRES_PORT:-5432}"
   echo "Dumping ${user}@${host}:${port}/${db} → ${OUT}"

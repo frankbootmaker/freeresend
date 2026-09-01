@@ -100,7 +100,7 @@ export default function PricingPage() {
               Try RelayHorizon Free
             </Link>
             <a
-              href="https://github.com/eibrahim/freeresend"
+              href="https://github.com/frankbootmaker/relayhorizon"
               target="_blank"
               rel="noopener noreferrer"
               className="border-2 border-white text-white px-8 py-3 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold"

@@ -58,7 +58,7 @@ if [[ -n "${POSTGRES_HOST:-}" ]]; then
   for _ in $(seq 1 60); do
     if PGPASSWORD="${POSTGRES_PASSWORD:-}" pg_isready \
       -h "$POSTGRES_HOST" -p "${POSTGRES_PORT:-5432}" \
-      -U "${POSTGRES_USER:-freeresend}" >/dev/null 2>&1; then
+      -U "${POSTGRES_USER:-relayhorizon}" >/dev/null 2>&1; then
       break
     fi
     sleep 2

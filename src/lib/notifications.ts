@@ -1,4 +1,5 @@
 import { sendPlatformSystemEmail } from './mail-transport';
+import { GITHUB_REPO_URL } from './brand';
 import {
   getResolvedPlatformSettings,
   platformSender,
@@ -130,12 +131,12 @@ export async function sendWelcomeEmail(
       '- We run the infrastructure; you keep the Resend-compatible API',
       '- Point RESEND_BASE_URL at your instance when it is live',
       '',
-      'Self-hosted: https://github.com/eibrahim/freeresend',
+      `Self-hosted: ${GITHUB_REPO_URL}`,
       `Signup ID: ${signupId}`,
     ].join('\n'),
     cta: {
       label: 'Explore self-hosted',
-      href: 'https://github.com/eibrahim/freeresend',
+      href: GITHUB_REPO_URL,
     },
     footerNote: `You are receiving this because you joined the waitlist. Signup ID: ${signupId}`,
   });

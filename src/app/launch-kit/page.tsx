@@ -47,7 +47,7 @@ export default function LaunchKitPage() {
               Guide
             </Link>
             <a
-              href="https://github.com/eibrahim/freeresend"
+              href="https://github.com/frankbootmaker/relayhorizon"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-gray-600 hover:text-gray-900"

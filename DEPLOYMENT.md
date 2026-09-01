@@ -1,4 +1,4 @@
-# FreeResend Deployment Guide
+# RelayHorizon Deployment Guide
 
 ## Quick Deploy to Vercel
 
@@ -67,7 +67,7 @@ vercel env add DATABASE_URL
 ```
 
 #### Option C: One-Click Deploy
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Feibrahim%2Ffreeresend)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffrankbootmaker%2Frelayhorizon)
 
 ### 4. Domain Configuration
 
@@ -185,7 +185,7 @@ vercel --prod
 
 - **Documentation**: Check README.md and SETUP.md
 - **Launch Kit**: Optional deployment checklist at [/launch-kit](/launch-kit)
-- **Issues**: [GitHub Issues](https://github.com/eibrahim/freeresend/issues)
+- **Issues**: [GitHub Issues](https://github.com/frankbootmaker/relayhorizon/issues)
 - **Professional Support**: [EliteCoders](https://elitecoders.co/)
 
 ---

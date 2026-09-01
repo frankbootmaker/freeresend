@@ -4,6 +4,11 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { pipeline } from 'node:stream/promises';
 import type { Readable, Writable } from 'node:stream';
 import { rotateDumpArtifacts as rotateByPolicy } from '@/lib/backup-rotate';
+import {
+  DEFAULT_COMPOSE_PROJECT,
+  DEFAULT_POSTGRES_DB,
+  DEFAULT_POSTGRES_USER,
+} from '@/lib/brand';
 
 export const DUMP_NAME_RE = /^relayhorizon-[A-Za-z0-9._-]+\.dump$/;
 
@@ -177,20 +182,20 @@ export function parseDatabaseUrl(databaseUrl: string): {
   try {
     const url = new URL(databaseUrl);
     return {
-      user: decodeURIComponent(url.username || 'freeresend'),
+      user: decodeURIComponent(url.username || DEFAULT_POSTGRES_USER),
       password: decodeURIComponent(url.password || ''),
       database: decodeURIComponent(
-        (url.pathname || '/freeresend').replace(/^\//, '').split('?')[0]
-        || 'freeresend',
+        (url.pathname || `/${DEFAULT_POSTGRES_DB}`).replace(/^\//, '').split('?')[0]
+        || DEFAULT_POSTGRES_DB,
       ),
       host: url.hostname || 'localhost',
       port: url.port || '5432',
     };
   } catch {
     return {
-      user: 'freeresend',
+      user: DEFAULT_POSTGRES_USER,
       password: '',
-      database: 'freeresend',
+      database: DEFAULT_POSTGRES_DB,
       host: 'localhost',
       port: '5432',
     };
@@ -252,7 +257,7 @@ async function which(bin: string): Promise<boolean> {
 async function resolvePgTool(bin: PgBin): Promise<PgTool | null> {
   if (await which(bin)) return { kind: 'host', bin };
   if (!(await which('docker'))) return null;
-  const project = process.env.COMPOSE_PROJECT_NAME?.trim() || 'freeresend';
+  const project = process.env.COMPOSE_PROJECT_NAME?.trim() || DEFAULT_COMPOSE_PROJECT;
   const service = process.env.BACKUP_DOCKER_POSTGRES_SERVICE?.trim() || 'postgres';
   const running = await runCommand('docker', [
     'compose', '-p', project, 'ps', '-q', service,
