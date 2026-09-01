@@ -173,6 +173,7 @@ describe("WaitlistSignup Component", () => {
             estimatedVolume: 50000,
             currentProvider: "Resend",
             referralSource: "",
+            locale: "en",
           }),
           signal: expect.any(AbortSignal),
         });
@@ -495,6 +496,7 @@ describe("WaitlistSignup Component", () => {
           },
           body: JSON.stringify({
             email: "test@example.com",
+            locale: "en",
             utmSource: "google",
             utmMedium: "cpc",
             utmCampaign: "launch",

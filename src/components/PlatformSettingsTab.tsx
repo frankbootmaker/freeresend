@@ -375,6 +375,7 @@ export default function PlatformSettingsTab({
         from: testFrom.trim(),
         to: testTo.trim(),
         via: testVia,
+        locale,
       });
       setTestMessage(
         t.settings.testSent(res.data.via, res.data.messageId || ''),

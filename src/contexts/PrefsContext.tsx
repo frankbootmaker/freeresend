@@ -12,12 +12,13 @@ import {
   dictionaries,
   isLocale,
   isTheme,
+  LOCALE_STORAGE_KEY,
   type Locale,
   type Messages,
   type Theme,
 } from '@/lib/i18n';
+import { persistLocaleToProfile } from '@/lib/persist-locale';
 
-const LOCALE_KEY = 'fr-locale';
 const THEME_KEY = 'fr-theme';
 
 type PrefsContextType = {
@@ -35,7 +36,7 @@ export function PrefsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('dark');
 
   useEffect(() => {
-    const storedLocale = window.localStorage.getItem(LOCALE_KEY);
+    const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     const storedTheme = window.localStorage.getItem(THEME_KEY);
     const nextLocale = isLocale(storedLocale) ? storedLocale : 'en';
     const nextTheme = isTheme(storedTheme) ? storedTheme : 'dark';
@@ -47,8 +48,9 @@ export function PrefsProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
-    window.localStorage.setItem(LOCALE_KEY, next);
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, next);
     document.documentElement.lang = next;
+    persistLocaleToProfile(next);
   }, []);
 
   const setTheme = useCallback((next: Theme) => {

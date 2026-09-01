@@ -3,7 +3,9 @@ import { z } from 'zod';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { sendPlatformSystemEmail } from '@/lib/mail-transport';
+import { resolveMailLocale } from '@/lib/mail-locale';
 import { renderSystemEmail } from '@/lib/system-email';
+import { systemMailCopy } from '@/lib/system-mail-i18n';
 import {
   assertEmailOnDomain,
   getPlatformSystemDomain,
@@ -13,6 +15,7 @@ const schema = z.object({
   from: emailSchema,
   to: emailSchema,
   via: z.enum(['ses', 'smtp']),
+  locale: z.enum(['en', 'de', 'hu']).optional(),
 });
 
 export async function OPTIONS() {
@@ -30,22 +33,23 @@ export async function POST(request: NextRequest) {
     if (systemDomain) {
       assertEmailOnDomain(body.from, systemDomain.domain);
     }
+    const locale = await resolveMailLocale({
+      userId: session.user.id,
+      requested: body.locale,
+    });
+    const copy = systemMailCopy(locale).configTest;
     const { html, text } = renderSystemEmail({
-      title: 'Configuration test',
-      lead: 'Portal Configuration reached this mailbox.',
-      bodyHtml:
-        `<p style="margin:0 0 12px;">This is a test message from RelayHorizon portal Configuration.</p>`
-        + `<p style="margin:0;">Transport: <strong>${body.via}</strong></p>`,
-      bodyText:
-        'This is a test message from RelayHorizon portal Configuration. '
-        + `Transport: ${body.via}.`,
-      footerNote: `Sent via ${body.via}.`,
+      title: copy.title,
+      lead: copy.lead,
+      bodyHtml: copy.bodyHtml(body.via),
+      bodyText: copy.bodyText(body.via),
+      footerNote: copy.footer(body.via),
     });
     const messageId = await sendPlatformSystemEmail(
       {
         from: body.from,
         to: [body.to],
-        subject: 'RelayHorizon configuration test',
+        subject: copy.subject,
         text,
         html,
         tags: { type: 'platform_config_test' },

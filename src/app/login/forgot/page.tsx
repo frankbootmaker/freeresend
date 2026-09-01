@@ -8,7 +8,7 @@ import OpsBrand from '@/components/ops/OpsBrand';
 import OpsPrefs from '@/components/ops/OpsPrefs';
 
 export default function ForgotPasswordPage() {
-  const { t } = usePrefs();
+  const { t, locale } = usePrefs();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     try {
-      await api.forgotPassword(email);
+      await api.forgotPassword(email, locale);
       setSent(true);
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.login.forgotFailed);

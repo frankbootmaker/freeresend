@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   name VARCHAR(255),
   avatar TEXT,
+  locale VARCHAR(8),
   is_platform_admin BOOLEAN NOT NULL DEFAULT FALSE,
   email_verified_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

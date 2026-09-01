@@ -1,4 +1,4 @@
-import { dictionaries } from '../i18n';
+import { dictionaries, readBrowserLocale } from '../i18n';
 
 describe('i18n dictionaries', () => {
   it('covers en, de, and hu landing headlines', () => {
@@ -34,5 +34,6 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.login.title).toBe('Sign in');
     expect(dictionaries.en.register.useExisting).toMatch(/already have an account/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);
+    expect(readBrowserLocale()).toBe('en');
   });
 });

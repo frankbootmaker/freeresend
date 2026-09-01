@@ -103,10 +103,10 @@ class ApiClient {
     return this.request("/auth/oidc");
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, locale?: string) {
     return this.request("/auth/forgot-password", {
       method: "POST",
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, locale }),
     });
   }
 
@@ -117,7 +117,11 @@ class ApiClient {
     });
   }
 
-  async updateProfile(payload: { name?: string; avatar?: string | null }) {
+  async updateProfile(payload: {
+    name?: string;
+    avatar?: string | null;
+    locale?: string;
+  }) {
     const response = await this.request("/auth/me", {
       method: "PATCH",
       body: JSON.stringify(payload),
@@ -285,6 +289,7 @@ class ApiClient {
     from: string;
     to: string;
     via: 'ses' | 'smtp';
+    locale?: string;
   }) {
     return this.request('/admin/settings/test-email', {
       method: 'POST',

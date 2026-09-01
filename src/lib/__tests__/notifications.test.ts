@@ -1,9 +1,14 @@
 import { sendWaitlistNotification, sendWelcomeEmail } from '../notifications';
 import { sendPlatformSystemEmail } from '../mail-transport';
+import { resolveMailLocale } from '../mail-locale';
 import { getResolvedPlatformSettings } from '../platform-settings';
 
 jest.mock('../mail-transport', () => ({
   sendPlatformSystemEmail: jest.fn(),
+}));
+
+jest.mock('../mail-locale', () => ({
+  resolveMailLocale: jest.fn(async () => 'en'),
 }));
 
 jest.mock('../platform-settings', () => ({
@@ -17,6 +22,9 @@ jest.mock('../platform-settings', () => ({
 
 const mockSendEmail = sendPlatformSystemEmail as jest.MockedFunction<
   typeof sendPlatformSystemEmail
+>;
+const mockResolveLocale = resolveMailLocale as jest.MockedFunction<
+  typeof resolveMailLocale
 >;
 const mockGetSettings = getResolvedPlatformSettings as jest.MockedFunction<
   typeof getResolvedPlatformSettings
@@ -47,6 +55,7 @@ describe('Notifications', () => {
     process.env.FROM_EMAIL = 'info@localhost';
     process.env.NEXTAUTH_URL = 'http://localhost:3000';
     mockGetSettings.mockImplementation(async () => resolvedFromEnv());
+    mockResolveLocale.mockResolvedValue('en');
   });
 
   afterEach(() => {
@@ -149,6 +158,19 @@ describe('Notifications', () => {
       expect(emailCall.from).toBe('RelayHorizon Notifications <info@localhost>');
     });
 
+    it('renders German admin notice when the stored locale is de', async () => {
+      mockResolveLocale.mockResolvedValueOnce('de');
+      mockSendEmail.mockResolvedValueOnce('message-id-123');
+
+      await sendWaitlistNotification(mockNotificationData);
+
+      const emailCall = mockSendEmail.mock.calls[0][0];
+      expect(emailCall.subject).toBe(
+        'Neue Wartelisten-Anmeldung: user@example.com',
+      );
+      expect(emailCall.html).toContain('50.000 E-Mails/Monat');
+    });
+
     it('uses configured FROM_EMAIL when available', async () => {
       process.env.FROM_EMAIL = 'custom@example.com';
       mockSendEmail.mockResolvedValueOnce('message-id-123');
@@ -177,6 +199,20 @@ describe('Notifications', () => {
           signup_id: 'signup-id-456',
         },
       });
+    });
+
+    it('renders German welcome mail when the visitor locale is de', async () => {
+      mockResolveLocale.mockResolvedValueOnce('de');
+      mockSendEmail.mockResolvedValueOnce('message-id-456');
+
+      await sendWelcomeEmail('user@example.com', 'signup-id-456', 'de');
+
+      expect(mockSendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subject: 'Sie stehen auf der RelayHorizon-Warteliste',
+          html: expect.stringContaining('Sie stehen auf der Warteliste'),
+        }),
+      );
     });
 
     it('includes signup ID in welcome email', async () => {

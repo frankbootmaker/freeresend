@@ -37,6 +37,7 @@ const WaitlistSignupSchema = z.object({
   utmSource: z.string().max(100).optional(),
   utmMedium: z.string().max(100).optional(),
   utmCampaign: z.string().max(100).optional(),
+  locale: z.enum(["en", "de", "hu"]).optional(),
 });
 
 describe('Waitlist API Logic', () => {
@@ -105,6 +106,25 @@ describe('Waitlist API Logic', () => {
       };
 
       const result = WaitlistSignupSchema.safeParse(invalidData);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept a website locale', () => {
+      const result = WaitlistSignupSchema.safeParse({
+        email: 'test@example.com',
+        locale: 'de',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.locale).toBe('de');
+      }
+    });
+
+    it('should reject an unsupported locale', () => {
+      const result = WaitlistSignupSchema.safeParse({
+        email: 'test@example.com',
+        locale: 'fr',
+      });
       expect(result.success).toBe(false);
     });
 

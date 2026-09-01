@@ -1,5 +1,6 @@
 import { sendPlatformSystemEmail } from './mail-transport';
 import { GITHUB_REPO_URL } from './brand';
+import { resolveMailLocale } from './mail-locale';
 import {
   getResolvedPlatformSettings,
   platformSender,
@@ -8,6 +9,7 @@ import {
   emailInfoTable,
   renderSystemEmail,
 } from './system-email';
+import { systemMailCopy } from './system-mail-i18n';
 
 export interface WaitlistNotificationData {
   email: string;
@@ -23,11 +25,6 @@ export interface WaitlistNotificationData {
   createdAt: string;
 }
 
-function formatVolume(volume?: number): string {
-  if (volume === undefined || volume === null) return 'Not specified';
-  return `${volume.toLocaleString()} emails/month`;
-}
-
 export async function sendWaitlistNotification(
   data: WaitlistNotificationData,
 ): Promise<void> {
@@ -40,46 +37,58 @@ export async function sendWaitlistNotification(
     return;
   }
 
+  const locale = await resolveMailLocale({ email: adminEmail });
+  const copy = systemMailCopy(locale);
+
   const utmInfo = [
     data.utmSource && `Source: ${data.utmSource}`,
     data.utmMedium && `Medium: ${data.utmMedium}`,
     data.utmCampaign && `Campaign: ${data.utmCampaign}`,
   ].filter(Boolean).join(' | ');
 
-  const subject = `New waitlist signup: ${data.email}`;
+  const subject = copy.waitlistNotify.subject(data.email);
   const origin = (process.env.NEXTAUTH_URL || '').replace(/\/$/, '');
+  const volume = copy.waitlistNotify.formatVolume(data.estimatedVolume);
+  const unspecified = copy.waitlistNotify.unspecified;
+  const signupTime = new Date(data.createdAt).toLocaleString(copy.dateLocale);
   const rows = [
-    { label: 'Email', value: data.email, emphasize: true },
-    { label: 'Expected volume', value: formatVolume(data.estimatedVolume) },
-    { label: 'Current provider', value: data.currentProvider || 'Not specified' },
-    { label: 'Referral source', value: data.referralSource || 'Not specified' },
-    { label: 'Signup time', value: new Date(data.createdAt).toLocaleString() },
-    { label: 'Signup ID', value: data.signupId },
+    { label: copy.waitlistNotify.email, value: data.email, emphasize: true },
+    { label: copy.waitlistNotify.volume, value: volume },
+    {
+      label: copy.waitlistNotify.provider,
+      value: data.currentProvider || unspecified,
+    },
+    {
+      label: copy.waitlistNotify.referral,
+      value: data.referralSource || unspecified,
+    },
+    { label: copy.waitlistNotify.signupTime, value: signupTime },
+    { label: copy.waitlistNotify.signupId, value: data.signupId },
   ];
   if (utmInfo) {
-    rows.push({ label: 'UTM', value: utmInfo });
+    rows.push({ label: copy.waitlistNotify.utm, value: utmInfo });
   }
 
   const { html, text } = renderSystemEmail({
-    title: 'New waitlist signup',
-    lead: 'Someone joined the RelayHorizon hosted waitlist.',
+    title: copy.waitlistNotify.title,
+    lead: copy.waitlistNotify.lead,
     bodyHtml:
       emailInfoTable(rows)
       + `<p style="margin:0;color:#5c7266;font:400 14px/1.5 'Avenir Next',Avenir,'Segoe UI',sans-serif;">`
-      + `Review volume for tier planning, and reach out if they look like a high-volume prospect.</p>`,
+      + `${copy.waitlistNotify.review}</p>`,
     bodyText: [
-      `Email: ${data.email}`,
-      `Expected volume: ${formatVolume(data.estimatedVolume)}`,
-      `Current provider: ${data.currentProvider || 'Not specified'}`,
-      `Referral source: ${data.referralSource || 'Not specified'}`,
-      `Signup time: ${new Date(data.createdAt).toLocaleString()}`,
-      `Signup ID: ${data.signupId}`,
-      utmInfo ? `UTM: ${utmInfo}` : '',
+      `${copy.waitlistNotify.email}: ${data.email}`,
+      `${copy.waitlistNotify.volume}: ${volume}`,
+      `${copy.waitlistNotify.provider}: ${data.currentProvider || unspecified}`,
+      `${copy.waitlistNotify.referral}: ${data.referralSource || unspecified}`,
+      `${copy.waitlistNotify.signupTime}: ${signupTime}`,
+      `${copy.waitlistNotify.signupId}: ${data.signupId}`,
+      utmInfo ? `${copy.waitlistNotify.utm}: ${utmInfo}` : '',
     ].filter(Boolean).join('\n'),
     cta: origin
-      ? { label: 'View waitlist', href: `${origin}/admin/waitlist` }
+      ? { label: copy.waitlistNotify.cta, href: `${origin}/admin/waitlist` }
       : undefined,
-    footerNote: 'Sent because someone joined the hosted waitlist.',
+    footerNote: copy.waitlistNotify.footer,
   });
 
   try {
@@ -103,49 +112,51 @@ export async function sendWaitlistNotification(
 export async function sendWelcomeEmail(
   email: string,
   signupId: string,
+  localeHint?: unknown,
 ): Promise<void> {
   const settings = await getResolvedPlatformSettings();
   const fromEmail = platformSender(settings);
-  const subject = 'You are on the RelayHorizon waitlist';
+  const locale = await resolveMailLocale({ email, requested: localeHint });
+  const copy = systemMailCopy(locale);
+  const welcome = copy.waitlistWelcome;
 
   const { html, text } = renderSystemEmail({
-    title: 'You are on the waitlist',
-    lead: 'We will notify you when the hosted service is ready.',
+    title: welcome.title,
+    lead: welcome.lead,
     bodyHtml: `
-      <p style="margin:0 0 14px;">Thanks for joining the RelayHorizon hosted waitlist.
-      You are in line for early access to the managed outbound email service.</p>
-      <p style="margin:0 0 8px;font-weight:600;">What to expect</p>
+      <p style="margin:0 0 14px;">${welcome.thanks}</p>
+      <p style="margin:0 0 8px;font-weight:600;">${welcome.expectTitle}</p>
       <ul style="margin:0 0 16px;padding-left:20px;color:#1a2f24;">
-        <li style="margin:0 0 8px;">Lower cost than many premium transactional providers</li>
-        <li style="margin:0 0 8px;">We run the infrastructure; you keep the Resend-compatible API</li>
-        <li style="margin:0 0 8px;">Point <code style="font-family:SFMono-Regular,Consolas,monospace;font-size:13px;">RESEND_BASE_URL</code> at your instance when it is live</li>
+        <li style="margin:0 0 8px;">${welcome.expect1}</li>
+        <li style="margin:0 0 8px;">${welcome.expect2}</li>
+        <li style="margin:0 0 8px;">${welcome.expect3}</li>
       </ul>
-      <p style="margin:0;">While you wait, you can try the open-source self-hosted build on GitHub.</p>
+      <p style="margin:0;">${welcome.whileYouWait}</p>
     `,
     bodyText: [
-      'Thanks for joining the RelayHorizon hosted waitlist.',
-      'We will notify you when the hosted service is ready.',
+      welcome.thanks,
+      welcome.lead,
       '',
-      'What to expect:',
-      '- Lower cost than many premium transactional providers',
-      '- We run the infrastructure; you keep the Resend-compatible API',
-      '- Point RESEND_BASE_URL at your instance when it is live',
+      `${welcome.expectTitle}:`,
+      `- ${welcome.expect1}`,
+      `- ${welcome.expect2}`,
+      `- ${welcome.expect3}`,
       '',
       `Self-hosted: ${GITHUB_REPO_URL}`,
       `Signup ID: ${signupId}`,
     ].join('\n'),
     cta: {
-      label: 'Explore self-hosted',
+      label: welcome.cta,
       href: GITHUB_REPO_URL,
     },
-    footerNote: `You are receiving this because you joined the waitlist. Signup ID: ${signupId}`,
+    footerNote: welcome.footer(signupId),
   });
 
   try {
     await sendPlatformSystemEmail({
       from: `RelayHorizon <${fromEmail}>`,
       to: [email],
-      subject,
+      subject: welcome.subject,
       html,
       text,
       tags: {

@@ -22,6 +22,7 @@ Work on `main` since 1.9.0. The console top-bar notes show the same list.
 ### Changed
 
 - Sign-in and self-signup copy clarify the shared console login versus creating a new organization
+- Waitlist, password-reset, and configuration-test mail use the recipient’s last website locale (EN, DE, or HU)
 
 ### Fixed
 

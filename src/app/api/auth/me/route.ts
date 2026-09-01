@@ -9,10 +9,17 @@ const profileSchema = z
   .object({
     name: z.string().min(1).max(80).optional(),
     avatar: z.string().nullable().optional(),
+    locale: z.enum(['en', 'de', 'hu']).optional(),
   })
-  .refine((body) => body.name !== undefined || body.avatar !== undefined, {
-    message: 'Nothing to update',
-  });
+  .refine(
+    (body) =>
+      body.name !== undefined
+      || body.avatar !== undefined
+      || body.locale !== undefined,
+    {
+      message: 'Nothing to update',
+    },
+  );
 
 async function sessionData(authUser: AuthUser) {
   const user = await attachProfile(authUser);

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { persistStoredLocaleToProfile } from "@/lib/persist-locale";
 
 export interface AuthUser {
   id: string;
@@ -44,6 +45,7 @@ interface AuthContextType {
   updateProfile: (payload: {
     name?: string;
     avatar?: string | null;
+    locale?: string;
   }) => Promise<void>;
   logout: () => void;
 }
@@ -70,6 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setMemberships(data.memberships || []);
     if (data.user?.tenantId) {
       api.setTenantId(data.user.tenantId);
+    }
+    if (data.user) {
+      persistStoredLocaleToProfile();
     }
   };
 
@@ -120,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (payload: {
     name?: string;
     avatar?: string | null;
+    locale?: string;
   }) => {
     const response = await api.updateProfile(payload);
     applySession({

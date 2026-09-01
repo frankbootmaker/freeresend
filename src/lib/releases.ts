@@ -58,6 +58,10 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'changed',
+        text: 'Waitlist, password-reset, and configuration-test mail use the recipient’s last website locale (EN, DE, or HU).',
+      },
+      {
+        kind: 'changed',
         text: 'Sign-in and self-signup copy clarify the shared console login versus creating a new organization.',
       },
       {

@@ -8,6 +8,7 @@ import {
 
 const schema = z.object({
   email: emailSchema,
+  locale: z.enum(['en', 'de', 'hu']).optional(),
 });
 
 export async function OPTIONS() {
@@ -16,8 +17,12 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = schema.parse(await request.json());
-    await requestPasswordReset(email, passwordResetOrigin(request.headers));
+    const { email, locale } = schema.parse(await request.json());
+    await requestPasswordReset(
+      email,
+      passwordResetOrigin(request.headers),
+      locale,
+    );
     return json({
       success: true,
       data: { sent: true },

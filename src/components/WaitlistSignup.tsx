@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Mail, Loader2, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { readBrowserLocale } from "@/lib/locale";
 
 interface WaitlistSignupProps {
   estimatedVolume?: number;
@@ -25,6 +26,7 @@ interface FormData {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  locale?: string;
 }
 
 interface ApiResponse {
@@ -216,6 +218,7 @@ export default function WaitlistSignup({
         estimatedVolume: formState.volume ? parseInt(formState.volume.toString(), 10) : undefined,
         currentProvider: formState.currentProvider.trim() || undefined,
         referralSource: (typeof document !== "undefined" ? document.referrer : "") || undefined,
+        locale: readBrowserLocale(),
         ...utmParams,
       };
 

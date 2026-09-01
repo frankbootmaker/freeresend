@@ -33,4 +33,4 @@ Optional. Configure endpoint, bucket, and keys in Portal → Backups (empty/`***
 
 ## Local `npm run dev`
 
-`BACKUP_DIR` defaults to `./backups` (gitignored). Export uses host `pg_dump` or `docker compose -p relayhorizon exec postgres`. On existing databases apply every `database-migrate-*.sql` (`ops`, `oidc`, `user-profile`, and the others).
+`BACKUP_DIR` defaults to `./backups` (gitignored). Export uses host `pg_dump` or `docker compose -p relayhorizon exec postgres`. On existing databases apply every `database-migrate-*.sql` (`ops`, `oidc`, `user-profile`, `user-locale`, and the others).

@@ -1,8 +1,10 @@
 import { query } from './database';
+import { saveUserLocale } from './mail-locale';
 import {
   normalizeAvatar,
   normalizeDisplayName,
 } from './profile-shared';
+import type { Locale } from './locale';
 
 export type UserProfile = {
   name: string;
@@ -42,11 +44,20 @@ export async function readUserProfile(userId: string): Promise<UserProfile | nul
 
 export async function updateUserProfile(
   userId: string,
-  patch: { name?: string; avatar?: string | null },
+  patch: { name?: string; avatar?: string | null; locale?: Locale },
 ): Promise<UserProfile> {
   const current = await readUserProfile(userId);
   if (!current) {
     throw new Error('User not found');
+  }
+  const localeOnly =
+    patch.name === undefined
+    && !Object.prototype.hasOwnProperty.call(patch, 'avatar');
+  if (patch.locale) {
+    await saveUserLocale(userId, patch.locale);
+  }
+  if (localeOnly) {
+    return current;
   }
   const name = normalizeDisplayName(patch.name) ?? current.name;
   const avatar = Object.prototype.hasOwnProperty.call(patch, 'avatar')

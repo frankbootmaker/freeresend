@@ -2,12 +2,14 @@ import { createHash } from 'crypto';
 import { hashPassword, randomToken } from './auth-crypto';
 import { query } from './database';
 import { sendPlatformSystemEmail } from './mail-transport';
+import { resolveMailLocale } from './mail-locale';
 import { requestOrigin } from './oidc';
 import {
   getResolvedPlatformSettings,
   platformSender,
 } from './platform-settings';
 import { renderSystemEmail } from './system-email';
+import { systemMailCopy } from './system-mail-i18n';
 
 export const RESET_TTL_MS = 60 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 5 * 60 * 1000;
@@ -23,6 +25,7 @@ function resetLink(origin: string, token: string): string {
 export async function requestPasswordReset(
   email: string,
   origin: string,
+  requestedLocale?: unknown,
 ): Promise<void> {
   const normalized = email.trim().toLowerCase();
   const found = await query(
@@ -64,23 +67,27 @@ export async function requestPasswordReset(
   const settings = await getResolvedPlatformSettings();
   const from = platformSender(settings);
   const link = resetLink(origin, token);
+  const locale = await resolveMailLocale({
+    userId,
+    email: normalized,
+    requested: requestedLocale,
+  });
+  const copy = systemMailCopy(locale).passwordReset;
   const { html, text } = renderSystemEmail({
-    title: 'Reset your password',
-    lead: 'This link expires in one hour.',
+    title: copy.title,
+    lead: copy.lead,
     bodyHtml:
-      `<p style="margin:0 0 14px;">Use the button below to choose a new password for your RelayHorizon account.</p>`
-      + `<p style="margin:0;color:#5c7266;font-size:14px;">If you did not ask for this, you can ignore the message.</p>`,
-    bodyText:
-      `Use this link to choose a new password. It expires in one hour.\n\n${link}\n\n`
-      + 'If you did not ask for this, you can ignore the message.',
-    cta: { label: 'Choose a new password', href: link },
-    footerNote: 'Password reset for your RelayHorizon operator account.',
+      copy.bodyHtml
+      + `<p style="margin:0;color:#5c7266;font-size:14px;">${copy.ignore}</p>`,
+    bodyText: copy.bodyText(link),
+    cta: { label: copy.cta, href: link },
+    footerNote: copy.footer,
   });
   try {
     await sendPlatformSystemEmail({
       from,
       to: [normalized],
-      subject: 'Reset your RelayHorizon password',
+      subject: copy.subject,
       text,
       html,
     });

@@ -19,6 +19,7 @@ const WaitlistSignupSchema = z.object({
   utmSource: z.string().max(100).optional(),
   utmMedium: z.string().max(100).optional(),
   utmCampaign: z.string().max(100).optional(),
+  locale: z.enum(["en", "de", "hu"]).optional(),
 });
 
 
@@ -93,7 +94,7 @@ async function handlePost(req: NextRequest): Promise<NextResponse> {
         createdAt: signup.created_at,
       }),
       // Send welcome email to user
-      sendWelcomeEmail(signup.email, signup.id),
+      sendWelcomeEmail(signup.email, signup.id, validatedBody.locale),
     ]).catch((error) => {
       console.error("Failed to send waitlist notifications:", error);
       // Don't fail the request if notifications fail

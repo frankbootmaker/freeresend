@@ -1,5 +1,12 @@
-export const LOCALES = ['en', 'de', 'hu'] as const;
-export type Locale = (typeof LOCALES)[number];
+export {
+  LOCALES,
+  LOCALE_STORAGE_KEY,
+  isLocale,
+  readBrowserLocale,
+  type Locale,
+} from './locale';
+import type { Locale } from './locale';
+
 export type Theme = 'dark' | 'light';
 
 export const LOCALE_LABEL: Record<Locale, string> = {
@@ -7,10 +14,6 @@ export const LOCALE_LABEL: Record<Locale, string> = {
   de: 'DE',
   hu: 'HU',
 };
-
-export function isLocale(value: string | null): value is Locale {
-  return value === 'en' || value === 'de' || value === 'hu';
-}
 
 export function isTheme(value: string | null): value is Theme {
   return value === 'dark' || value === 'light';
