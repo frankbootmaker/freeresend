@@ -16,10 +16,12 @@ describe('releases', () => {
     expect(displayVersion()).toBe(`v${APP_VERSION}`);
   });
 
-  it('uses ISO dates and at least one change per release', () => {
+  it('uses ISO dates and at least one change per shipped release', () => {
     for (const release of RELEASES) {
       expect(release.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(release.changes.length).toBeGreaterThan(0);
+      if (release.version !== UNRELEASED_VERSION) {
+        expect(release.changes.length).toBeGreaterThan(0);
+      }
     }
   });
 });

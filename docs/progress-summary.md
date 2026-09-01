@@ -68,7 +68,7 @@ Existing databases need every `database-migrate-*.sql` once (`platform-settings`
 - Incoming mail / hosting mailboxes.
 - Bounce/complaint webhook mail to the alert address (avoided so far to prevent noise and loops).
 
-Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is still `v` plus `APP_VERSION` (1.9.0) until you cut a release.
+Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is **v1.9.1**.
 
 ## Local run
 

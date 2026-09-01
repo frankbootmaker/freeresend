@@ -93,6 +93,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'One Sign in page for everyone. Platform administrators open this portal; tenant members open their organization console.',
           'Forgot password sends a one-hour reset link using the programmatic From on the system domain.',
+          'Password-reset, waitlist, and configuration-test mail use the last website language (EN, DE, or HU) stored on the recipient.',
           'Create an organization on the landing page for self-signup, or provision customers from this portal.',
         ],
       },
@@ -186,6 +187,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Eine Anmeldeseite für alle. Plattformadministratoren öffnen dieses Portal; Mandantenmitglieder ihre Organisation.',
           'Passwort vergessen sendet einen einstündigen Link mit dem programmatischen Absender der Systemdomain.',
+          'Passwort-Reset, Warteliste und Konfigurationstest verwenden die zuletzt gewählte Website-Sprache (EN, DE oder HU) des Empfängers.',
           'Organisation auf der Landingpage selbst anlegen, oder Kunden hier im Portal provisionieren.',
         ],
       },
@@ -279,6 +281,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Egy belépő oldal mindenkinek. A platformadminisztrátorok ezt a portált, a bérlőtagok a szervezetüket nyitják meg.',
           'Az elfelejtett jelszó egyórás linket küld a rendszerdomain programozott feladójával.',
+          'A jelszó-visszaállítás, a várólista és a konfigurációs teszt a címzett utoljára használt webhelynyelvét követi (EN, DE vagy HU).',
           'Szervezetet a nyitóoldalon hozhat létre, vagy ügyfeleket itt a portálon provisionálhat.',
         ],
       },
@@ -306,6 +309,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'This console',
         paragraphs: [
           'This is the tenant sending console. Ingress is how applications hand mail to RelayHorizon. Egress is how RelayHorizon delivers it.',
+          'EN, DE, and HU are in the header. Password-reset mail uses the language you last selected.',
         ],
       },
       {
@@ -369,6 +373,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Diese Konsole',
         paragraphs: [
           'Das ist die Versandkonsole des Mandanten. Ingress ist, wie Anwendungen Post übergeben. Egress ist, wie RelayHorizon zustellt.',
+          'EN, DE und HU stehen in der Kopfzeile. Die Passwort-Reset-Mail nutzt die zuletzt gewählte Sprache.',
         ],
       },
       {
@@ -432,6 +437,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Ez a konzol',
         paragraphs: [
           'Ez a bérlő küldőkonzolja. A bejövő út az, ahogy az alkalmazások átadják a levelet. A kimenő út az, ahogy a RelayHorizon kézbesít.',
+          'Az EN, DE és HU a fejlécben van. A jelszó-visszaállító levél az utoljára választott nyelvet használja.',
         ],
       },
       {

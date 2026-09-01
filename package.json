@@ -1,6 +1,6 @@
 {
   "name": "relayhorizon",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Self-hosted, open-source alternative to Resend for sending transactional emails with Amazon SES",
   "author": "Emad Ibrahim <eibrahim@gmail.com> (https://x.com/eibrahim)",
   "license": "MIT",

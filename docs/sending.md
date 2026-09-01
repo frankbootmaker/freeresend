@@ -1,5 +1,9 @@
 # Sending
 
+The tenant **Guide** tab is the in-console version of this walkthrough.
+
+The sending console and portal share **EN, DE, and HU** in the header. Forgot-password mail uses the language last selected on the site.
+
 ## How apps submit (ingress)
 
 Each tenant chooses one of:

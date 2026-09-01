@@ -6,7 +6,11 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-Work on `main` since 1.9.0. The console top-bar notes show the same list.
+Nothing staged after 1.9.1.
+
+## 1.9.1 — 2026-09-01
+
+Guides, profile, OIDC, password reset, system domain, and locale-aware system mail.
 
 ### Added
 

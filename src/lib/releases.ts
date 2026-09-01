@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.9.0';
+export const APP_VERSION = '1.9.1';
 
 export type ReleaseChangeKind = 'added' | 'changed' | 'fixed';
 
@@ -21,8 +21,14 @@ export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
     date: '2026-09-01',
+    summary: 'Work on development since 1.9.1.',
+    changes: [],
+  },
+  {
+    version: '1.9.1',
+    date: '2026-09-01',
     summary:
-      'Work on main since 1.9.0: guides, profile, OIDC (custom button label), password reset, and branded system mail.',
+      'Guides, profile, OIDC, password reset, system domain, and locale-aware system mail.',
     changes: [
       {
         kind: 'added',
