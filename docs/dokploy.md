@@ -7,7 +7,7 @@ Deploy RelayHorizon as a **Compose** service (not an Application). Create a new 
 1. Connect GitHub `frankbootmaker/relayhorizon` (`main` for production, `development` for the development instance).
 2. Use `docker-compose.yml`. Default services: `postgres`, `web`, `db-backup`.
 3. Do **not** enable the `smtp` or `dev` profiles on first deploy. Public **587/465** stay off until you deliberately expose SMTP submission.
-4. Attach the public hostname with Let's Encrypt to **`web:3000`** (container port). Host publish is **3001** (`WEB_HOST_PORT`) so it does not collide with other stacks on 3000.
+4. Attach the public hostname with Let's Encrypt to **`web:3000`** (container port). Host publish is **3001** (`WEB_HOST_PORT`) so it does not collide with other stacks on 3000. Traefik must use **3000**, not the host publish port. `web` builds the `production` stage (`node server.js`); do not leave the image target unset or Compose will not serve HTTP.
 5. Keep `postgres` on the Compose project network only. Do not attach it to a shared Dokploy or Traefik network (duplicate DNS aliases break auth).
 6. If compose fails on `env_file`, delete the `env_file` blocks — Dokploy injects env in the UI. Those blocks are `required: false` so a missing `.env.local` is fine.
 

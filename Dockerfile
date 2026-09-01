@@ -12,7 +12,13 @@ COPY package*.json ./
 RUN npm ci --include=dev
 RUN npm run build
 
-# Production stage
+FROM builder AS smtp
+WORKDIR /app
+ENV NODE_ENV=production
+EXPOSE 2525 587 465
+CMD ["npx", "tsx", "src/smtp/server.ts"]
+
+# Last stage is the default image. `web` must stay Next.js, not SMTP.
 FROM base AS production
 WORKDIR /app
 
@@ -27,9 +33,3 @@ COPY --from=builder /app/.next/static ./.next/static
 EXPOSE 3000
 
 CMD ["node", "server.js"]
-
-FROM builder AS smtp
-WORKDIR /app
-ENV NODE_ENV=production
-EXPOSE 2525 587 465
-CMD ["npx", "tsx", "src/smtp/server.ts"]
