@@ -36,8 +36,8 @@ Postgres is bound to `127.0.0.1:5436` on the VPS. Remove the postgres `ports` bl
 ## First boot
 
 1. Deploy and wait until `postgres` is healthy, then `web`.
-2. `POST https://<host>/api/setup` once. Store `mcpToken` if the response includes it.
-3. Sign in at `/portal` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+2. `POST https://<host>/api/setup` once (again after you change `ADMIN_EMAIL` / `ADMIN_PASSWORD` in Dokploy). Store `mcpToken` if the response includes it. Env vars do not become the login until this runs.
+3. Sign in at `/portal` with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Do not wrap the values in quotes in the Compose environment.
 4. **Configuration** — **Basics** (platform sender), SES credentials or the platform SMTP relay. Optional **OIDC** (Authentik or another IdP): paste issuer/client credentials, callback URL `/api/auth/oidc/callback`, and an optional sign-in button label. Enable JIT only if a first IdP sign-in should create a local user.
 5. **Health** — database, SES/SMTP, and backup sidecar heartbeat.
 6. Provision one customer, publish MX/SPF/DKIM/DMARC, send a test.

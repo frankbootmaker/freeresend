@@ -6,6 +6,7 @@ import {
   addMembership,
   createTenant,
   getMembershipsForUser,
+  getTenantBySlug,
 } from './tenants';
 import type { MembershipRole } from './tenants';
 import { createMcpToken } from './mcp-tokens';
@@ -22,6 +23,10 @@ export interface AuthUser {
 }
 
 export { hashPassword, verifyPassword };
+
+function normalizeLoginEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
 
 export function generateJWT(user: AuthUser): string {
   return jwt.sign(
@@ -66,7 +71,7 @@ export async function createUser(
     `INSERT INTO users (email, password_hash, name, is_platform_admin)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [email, passwordHash, name, isPlatformAdmin],
+    [normalizeLoginEmail(email), passwordHash, name, isPlatformAdmin],
   );
   if (result.rows.length === 0) {
     throw new Error('Failed to create user');
@@ -133,9 +138,10 @@ export async function authenticateUser(
   tenantId?: string,
 ): Promise<AuthUser | null> {
   try {
-    const result = await query('SELECT * FROM users WHERE email = $1 LIMIT 1', [
-      email,
-    ]);
+    const result = await query(
+      'SELECT * FROM users WHERE lower(email) = $1 LIMIT 1',
+      [normalizeLoginEmail(email)],
+    );
     if (result.rows.length === 0) return null;
     const user = result.rows[0];
     const isValid = await verifyPassword(password, user.password_hash);
@@ -166,7 +172,9 @@ export async function initializeDefaultUser(): Promise<{
   created: boolean;
   mcpToken?: string;
 }> {
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL
+    ? normalizeLoginEmail(process.env.ADMIN_EMAIL)
+    : '';
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
@@ -177,25 +185,36 @@ export async function initializeDefaultUser(): Promise<{
   }
 
   const existing = await query(
-    'SELECT id FROM users WHERE email = $1 LIMIT 1',
+    'SELECT id FROM users WHERE lower(email) = $1 LIMIT 1',
     [adminEmail],
   );
   let created = false;
   let adminId = existing.rows[0]?.id as string | undefined;
   if (!adminId) {
     const user = await createUser(adminEmail, adminPassword, 'Admin', true);
-    const tenant = await createTenant({
+    adminId = user.id;
+    created = true;
+    console.log('Default platform admin created');
+  } else {
+    const passwordHash = await hashPassword(adminPassword);
+    await query(
+      `UPDATE users
+       SET password_hash = $1, email = $2, is_platform_admin = true
+       WHERE id = $3`,
+      [passwordHash, adminEmail, adminId],
+    );
+    console.log('Default platform admin password synced from environment');
+  }
+
+  let tenant = await getTenantBySlug('platform');
+  if (!tenant) {
+    tenant = await createTenant({
       name: 'Platform',
       slug: 'platform',
       billingEmail: adminEmail,
     });
-    await addMembership(tenant.id, user.id, 'owner');
-    adminId = user.id;
-    created = true;
-    console.log('Default platform admin and tenant created');
-  } else {
-    console.log('Default admin user already exists');
   }
+  await addMembership(tenant.id, adminId, 'owner');
 
   const existingMcp = await query(
     'SELECT id FROM mcp_tokens WHERE tenant_id IS NULL LIMIT 1',

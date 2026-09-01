@@ -9,7 +9,7 @@ export async function POST() {
       success: true,
       message: result.created
         ? "Platform admin initialized successfully"
-        : "Platform admin already exists",
+        : "Platform admin password synced from ADMIN_EMAIL / ADMIN_PASSWORD",
       mcpToken: result.mcpToken,
       hint: result.mcpToken
         ? "Store the platform MCP token now; it is not shown again."
