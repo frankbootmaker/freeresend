@@ -3,7 +3,7 @@
 ## Services
 
 - `postgres` — loopback **5436** (container 5432) so it does not collide with other local databases; init from `database.sql`
-- `web` — loopback **3000**, production Next standalone image (mounts `/backups`); healthcheck hits `/api/health`
+- `web` — container **3000**, published on loopback **3001** (`WEB_HOST_PORT`) so it does not collide with other stacks; healthcheck hits `/api/health`
 - `db-backup` — scheduled `pg_dump -Fc` onto volume `relayhorizon_backups`
 - `smtp` — profile `smtp`, submission listener on **2525** (and 587/465 when you publish them)
 - `mailhog` — profile `dev`, SMTP 1025, UI 8025
@@ -25,7 +25,7 @@ npm run dev
 curl -X POST http://localhost:3001/api/setup
 ```
 
-Open http://localhost:3001 — login with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Port **3001** is the local Next port on this host because **3000** is already used by other services. Dokploy still targets the container’s **`web:3000`**.
+Open http://localhost:3001 — login with `ADMIN_EMAIL` / `ADMIN_PASSWORD`. Compose publishes **3001→3000**; Next still listens on **3000** inside the container. Dokploy Traefik should target **`web:3000`**.
 
 SMTP sink:
 

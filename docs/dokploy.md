@@ -4,10 +4,10 @@ Deploy RelayHorizon as a **Compose** service (not an Application). Create a new 
 
 ## Create the service
 
-1. Connect GitHub `frankbootmaker/relayhorizon`, branch `main`.
+1. Connect GitHub `frankbootmaker/relayhorizon` (`main` for production, `development` for the development instance).
 2. Use `docker-compose.yml`. Default services: `postgres`, `web`, `db-backup`.
 3. Do **not** enable the `smtp` or `dev` profiles on first deploy. Public **587/465** stay off until you deliberately expose SMTP submission.
-4. Attach the public hostname with Let's Encrypt to **`web:3000`**.
+4. Attach the public hostname with Let's Encrypt to **`web:3000`** (container port). Host publish is **3001** (`WEB_HOST_PORT`) so it does not collide with other stacks on 3000.
 5. Keep `postgres` on the Compose project network only. Do not attach it to a shared Dokploy or Traefik network (duplicate DNS aliases break auth).
 6. If compose fails on `env_file`, delete the `env_file` blocks — Dokploy injects env in the UI. Those blocks are `required: false` so a missing `.env.local` is fine.
 
@@ -27,6 +27,7 @@ Set these in the Dokploy compose environment (used both for interpolation and th
 | `AWS_REGION` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | Required if egress is SES |
 | `CRON_SECRET` | Required for `POST /api/cron/ops` |
 | `DATABASE_SSL` | `false` for the bundled Postgres |
+| `WEB_HOST_PORT` | Host bind for `web` (default **3001**). Leave at 3001 when 3000 is already taken. Traefik still uses container **3000**. |
 
 `web` overrides `DATABASE_URL` to `postgres:5432` so a host-oriented URL in another env file cannot leak into the container.
 
