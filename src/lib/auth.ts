@@ -170,6 +170,7 @@ export async function readPlatformAdminFlag(
 
 export async function initializeDefaultUser(): Promise<{
   created: boolean;
+  skipped?: boolean;
   mcpToken?: string;
 }> {
   const adminEmail = process.env.ADMIN_EMAIL
@@ -181,7 +182,7 @@ export async function initializeDefaultUser(): Promise<{
     console.warn(
       'ADMIN_EMAIL and ADMIN_PASSWORD not set. Skipping default user creation.',
     );
-    return { created: false };
+    return { created: false, skipped: true };
   }
 
   const existing = await query(

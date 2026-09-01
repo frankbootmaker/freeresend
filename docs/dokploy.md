@@ -15,7 +15,7 @@ See [docker.md](docker.md) for service roles.
 
 ## Environment
 
-Set these in the Dokploy compose environment (used both for interpolation and the containers). Do not copy `.env.local` defaults into production.
+Set these in the Dokploy compose environment. Compose writes them to `.env` (interpolation) and `web` loads that file so Next.js sees `ADMIN_*`, `NEXTAUTH_*`, and SES keys. Do not copy `.env.local` defaults into production.
 
 | Variable | Production |
 | --- | --- |
