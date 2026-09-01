@@ -5,6 +5,7 @@ import {
   parsePortList,
   resolveSmtpListenPorts,
   SMTP_INGRESS_PORTS,
+  type EnvLike,
 } from './smtp-listen';
 import type { ResolvedPlatformSettings } from './platform-settings';
 
@@ -41,7 +42,7 @@ export function parseTlsMode(
 
 export function listenPortsFromStored(
   stored: string | null | undefined,
-  env: NodeJS.ProcessEnv = process.env,
+  env: EnvLike = process.env,
 ): number[] {
   const fromRow = parsePortList(stored || undefined);
   if (fromRow.length > 0) return normalizeSmtpListenPorts(fromRow);

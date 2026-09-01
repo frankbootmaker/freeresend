@@ -1,5 +1,6 @@
 export const SMTP_INGRESS_PORTS = [2525, 587, 465] as const;
 export type SmtpIngressPort = (typeof SMTP_INGRESS_PORTS)[number];
+export type EnvLike = Record<string, string | undefined>;
 
 const DEFAULT_LISTEN_PORTS = [2525, 587];
 const ALLOWED = new Set<number>(SMTP_INGRESS_PORTS);
@@ -17,7 +18,7 @@ export function parsePortList(value: string | undefined): number[] {
 }
 
 export function resolveSmtpListenPorts(
-  env: NodeJS.ProcessEnv = process.env,
+  env: EnvLike = process.env,
 ): number[] {
   const fromList = parsePortList(env.SMTP_LISTEN_PORTS);
   if (fromList.length > 0) return fromList;
@@ -30,7 +31,7 @@ export function resolveSmtpListenPorts(
 }
 
 export function resolveSmtpPublicPorts(
-  env: NodeJS.ProcessEnv = process.env,
+  env: EnvLike = process.env,
   listenPorts?: number[],
 ): { port: number; ports: number[] } {
   const fromList = parsePortList(env.SMTP_PUBLIC_PORTS);
