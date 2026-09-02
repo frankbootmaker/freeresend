@@ -319,7 +319,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'sending',
         title: 'Sending',
         paragraphs: [
-          'HTTPS is Resend-compatible POST /api/emails with a Bearer API key.',
+          'HTTPS is Resend-compatible. Set RESEND_BASE_URL to https://<host>/api (not /api/emails). Raw clients POST /api/emails with a Bearer API key.',
           'SMTP username is relayhorizon. The password is an API key. Closed channels return HTTPS 403 or SMTP 535/550.',
           'SES uses the platform AWS keys. SMTP egress uses your upstream host, or the platform relay if you leave host empty.',
         ],
@@ -392,7 +392,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'sending',
         title: 'Versand',
         paragraphs: [
-          'HTTPS ist Resend-kompatibel: POST /api/emails mit Bearer-API-Schlüssel.',
+          'HTTPS ist Resend-kompatibel. RESEND_BASE_URL auf https://<host>/api setzen (nicht /api/emails). Direkte Clients senden POST /api/emails mit Bearer-API-Schlüssel.',
           'SMTP-Benutzername ist relayhorizon. Das Passwort ist ein API-Schlüssel. Geschlossene Kanäle liefern HTTPS 403 oder SMTP 535/550.',
           'SES nutzt die Plattform-AWS-Schlüssel. SMTP-Egress nutzt Ihren Upstream oder das Plattform-Relais, wenn der Host leer bleibt.',
         ],
@@ -465,7 +465,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'sending',
         title: 'Küldés',
         paragraphs: [
-          'A HTTPS Resend-kompatibilis POST /api/emails Bearer API-kulccsal.',
+          'A HTTPS Resend-kompatibilis. A RESEND_BASE_URL legyen https://<host>/api (ne /api/emails). Közvetlen kliens: POST /api/emails Bearer API-kulccsal.',
           'Az SMTP felhasználónév: relayhorizon. A jelszó egy API-kulcs. Lezárt csatorna HTTPS 403 vagy SMTP 535/550.',
           'A SES a platform AWS-kulcsait használja. SMTP kimenetnél a saját upstream, vagy üres hostnál a platform relé.',
         ],

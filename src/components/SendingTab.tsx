@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api } from '@/lib/api';
-import { DEFAULT_SES_CONFIGURATION_SET } from '@/lib/brand';
+import { DEFAULT_SES_CONFIGURATION_SET, SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { usePrefs } from '@/contexts/PrefsContext';
 
 type Ingress = 'https' | 'smtp' | 'both';
@@ -115,6 +115,14 @@ export default function SendingTab() {
   };
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const showHttps = ingress === 'https' || ingress === 'both';
+  const showSmtp = ingress === 'smtp' || ingress === 'both';
+  const ingressLead =
+    ingress === 'smtp'
+      ? t.sending.smtpIngressHint
+      : ingress === 'both'
+        ? t.sending.bothHint
+        : t.sending.httpsHint;
 
   return (
     <form onSubmit={save}>
@@ -138,33 +146,34 @@ export default function SendingTab() {
                 {t.sending.both}
               </SegButton>
             </div>
-            <p className="cardlead">{t.sending.smtpIngressHint}</p>
+            <p className="cardlead">{ingressLead}</p>
             <div className="formgrid">
-              <div className="field">
-                <label>{t.sending.publicApiUrl}</label>
-                <input readOnly value={`${origin}/api/emails`} />
-              </div>
-              <div className="field">
-                <label>{t.sending.smtpHost}</label>
-                <input readOnly value={smtpIngress.host} />
-              </div>
-              <div className="field">
-                <label>{t.sending.smtpPort}</label>
-                <input
-                  readOnly
-                  value={smtpIngress.ports.join(', ')}
-                />
-              </div>
-              <div className="field">
-                <label>{t.sending.tlsMode}</label>
-                <select
-                  value={secure ? 'required' : 'opportunistic'}
-                  onChange={(e) => setSecure(e.target.value === 'required')}
-                >
-                  <option value="required">{t.sending.tlsRequired}</option>
-                  <option value="opportunistic">{t.sending.tlsOpportunistic}</option>
-                </select>
-              </div>
+              {showHttps && (
+                <>
+                  <div className="field">
+                    <label>{t.sending.publicApiUrl}</label>
+                    <input readOnly value={`${origin}/api`} />
+                  </div>
+                  <p className="cardlead">{t.sending.resendBaseHint}</p>
+                </>
+              )}
+              {showSmtp && (
+                <>
+                  <div className="field">
+                    <label>{t.sending.smtpHost}</label>
+                    <input readOnly value={smtpIngress.host} />
+                  </div>
+                  <div className="field">
+                    <label>{t.sending.smtpPort}</label>
+                    <input readOnly value={smtpIngress.ports.join(', ')} />
+                  </div>
+                  <div className="field">
+                    <label>{t.sending.smtpUser}</label>
+                    <input readOnly value={SMTP_SUBMISSION_USERNAME} />
+                  </div>
+                  <p className="cardlead">{t.sending.smtpPassHint}</p>
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -210,6 +219,16 @@ export default function SendingTab() {
                     value={port}
                     onChange={(e) => setPort(Number(e.target.value))}
                   />
+                </div>
+                <div className="field">
+                  <label>{t.sending.tlsMode}</label>
+                  <select
+                    value={secure ? 'required' : 'opportunistic'}
+                    onChange={(e) => setSecure(e.target.value === 'required')}
+                  >
+                    <option value="required">{t.sending.tlsRequired}</option>
+                    <option value="opportunistic">{t.sending.tlsOpportunistic}</option>
+                  </select>
                 </div>
                 <div className="field">
                   <label>{t.sending.username}</label>

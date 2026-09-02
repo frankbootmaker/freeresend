@@ -8,7 +8,7 @@ The sending console and portal share **EN, DE, and HU** in the header. Forgot-pa
 
 Each tenant chooses one of:
 
-- `https` — Resend-compatible `POST /api/emails`
+- `https` — Resend SDK `RESEND_BASE_URL=https://<host>/api` (SDK POSTs `/emails`). Raw clients `POST /api/emails`
 - `smtp` — SMTP submission (`npm run smtp`, default port **2525**)
 - `both`
 
