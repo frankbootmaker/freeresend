@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 interface EmailLog {
   id: string;
@@ -29,16 +31,19 @@ export default function EmailLogsTab() {
   const [emails, setEmails] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedEmail, setSelectedEmail] = useState<EmailLog | null>(null);
-  const [search, setSearch] = useState('');
+  const [q, setQ] = useState('');
+  const [from, setFrom] = useState('');
   const [filters, setFilters] = useState({
+    q: '',
+    from: '',
     domain_id: '',
     status: '',
     page: 1,
-    limit: 50,
+    limit: DEFAULT_PAGE_SIZE,
   });
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: DEFAULT_PAGE_SIZE,
     total: 0,
     totalPages: 0,
   });
@@ -50,8 +55,8 @@ export default function EmailLogsTab() {
         Object.entries(filters).filter(([, value]) => value !== ''),
       );
       const response = await api.getEmailLogs(params);
-      setEmails(response.data.emails);
-      setPagination(response.data.pagination);
+      setEmails(response.data.emails || []);
+      if (response.data.pagination) setPagination(response.data.pagination);
     } catch (error) {
       console.error('Failed to load emails:', error);
     } finally {
@@ -76,17 +81,6 @@ export default function EmailLogsTab() {
   const handlePageChange = (newPage: number) => {
     setFilters({ ...filters, page: newPage });
   };
-
-  const filteredEmails = search.trim()
-    ? emails.filter(
-        (email) =>
-          email.id.includes(search.trim()) ||
-          email.to_emails.some((to) =>
-            to.toLowerCase().includes(search.trim().toLowerCase()),
-          ) ||
-          email.subject?.toLowerCase().includes(search.trim().toLowerCase()),
-      )
-    : emails;
 
   const statusLabel = (status: EmailLog['status']) => {
     const labels: Record<EmailLog['status'], string> = {
@@ -114,13 +108,24 @@ export default function EmailLogsTab() {
           <div className="filters">
             <input
               placeholder={t.logs.search}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setFilters({ ...filters, q, from, page: 1 });
+                }
+              }}
             />
             <select
               value={filters.status}
               onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value, page: 1 })
+                setFilters({
+                  ...filters,
+                  status: e.target.value,
+                  q,
+                  from,
+                  page: 1,
+                })
               }
             >
               <option value="">{t.logs.anyStatus}</option>
@@ -130,13 +135,20 @@ export default function EmailLogsTab() {
               <option value="failed">{t.logs.failed}</option>
               <option value="complained">{t.logs.complained}</option>
             </select>
-            <input type="date" />
-            <button type="button" onClick={() => loadEmails()}>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setFilters({ ...filters, q, from, page: 1 })}
+            >
               {t.logs.apply}
             </button>
           </div>
 
-          {filteredEmails.length === 0 ? (
+          {emails.length === 0 ? (
             <div className="empty">
               <h3>{t.logs.emptyTitle}</h3>
               <p>{t.logs.emptyBody}</p>
@@ -154,7 +166,7 @@ export default function EmailLogsTab() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEmails.map((email) => (
+                  {emails.map((email) => (
                     <tr key={email.id}>
                       <td>
                         <button
@@ -185,27 +197,13 @@ export default function EmailLogsTab() {
             </div>
           )}
 
-          {pagination.totalPages > 1 && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button
-                type="button"
-                disabled={pagination.page <= 1}
-                onClick={() => handlePageChange(pagination.page - 1)}
-              >
-                {t.logs.previous}
-              </button>
-              <span className="muted">
-                {t.logs.pageOf(pagination.page, pagination.totalPages)}
-              </span>
-              <button
-                type="button"
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => handlePageChange(pagination.page + 1)}
-              >
-                {t.logs.next}
-              </button>
-            </div>
-          )}
+          <ListPager
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPage={handlePageChange}
+          />
         </div>
       </section>
 

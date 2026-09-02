@@ -1,5 +1,17 @@
 const API_BASE = '/api';
 
+function toQuery(
+  params: Record<string, string | number | undefined | null> = {},
+) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    search.set(key, String(value));
+  });
+  const query = search.toString();
+  return query ? `?${query}` : '';
+}
+
 class ApiClient {
   private token: string | null = null;
   private tenantId: string | null = null;
@@ -176,8 +188,8 @@ class ApiClient {
     return this.request(`/stats/tenant?days=${days}`);
   }
 
-  async listCustomers() {
-    return this.request("/admin/customers");
+  async listCustomers(params: { page?: number; limit?: number; q?: string } = {}) {
+    return this.request(`/admin/customers${toQuery(params)}`);
   }
 
   async createCustomer(payload: Record<string, unknown>) {
@@ -187,8 +199,10 @@ class ApiClient {
     });
   }
 
-  async listPlatformUsers() {
-    return this.request('/admin/users');
+  async listPlatformUsers(
+    params: { page?: number; limit?: number; q?: string } = {},
+  ) {
+    return this.request(`/admin/users${toQuery(params)}`);
   }
 
   async createPlatformUser(payload: {
@@ -231,8 +245,8 @@ class ApiClient {
     return this.request(`/admin/customers/${id}`, { method: 'DELETE' });
   }
 
-  async listPlatformAgents() {
-    return this.request('/admin/agents');
+  async listPlatformAgents(params: { page?: number; limit?: number } = {}) {
+    return this.request(`/admin/agents${toQuery(params)}`);
   }
 
   async createPlatformAgent(name: string) {
@@ -246,8 +260,8 @@ class ApiClient {
     return this.request(`/admin/agents/${id}`, { method: 'DELETE' });
   }
 
-  async listTenantAgents() {
-    return this.request('/agents');
+  async listTenantAgents(params: { page?: number; limit?: number } = {}) {
+    return this.request(`/agents${toQuery(params)}`);
   }
 
   async createTenantAgent(name: string) {
@@ -321,7 +335,7 @@ class ApiClient {
 
   // Domains
   async getDomains() {
-    return this.request("/domains");
+    return this.request('/domains');
   }
 
   async addDomain(domain: string) {
@@ -350,8 +364,8 @@ class ApiClient {
   }
 
   // API Keys
-  async getApiKeys() {
-    return this.request("/api-keys");
+  async getApiKeys(params: { page?: number; limit?: number } = {}) {
+    return this.request(`/api-keys${toQuery(params)}`);
   }
 
   async createApiKey(
@@ -378,15 +392,11 @@ class ApiClient {
       limit?: number;
       domain_id?: string;
       status?: string;
-    } = {}
+      q?: string;
+      from?: string;
+    } = {},
   ) {
-    const searchParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value) searchParams.append(key, value.toString());
-    });
-
-    const query = searchParams.toString();
-    return this.request(`/emails/logs${query ? `?${query}` : ""}`);
+    return this.request(`/emails/logs${toQuery(params)}`);
   }
 
   async getEmail(id: string) {

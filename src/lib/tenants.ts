@@ -209,6 +209,35 @@ export async function listTenants(): Promise<Tenant[]> {
   return result.rows.map(parseTenant);
 }
 
+export async function listTenantsPage(input: {
+  q?: string | null;
+  limit: number;
+  offset: number;
+}): Promise<{ tenants: Tenant[]; total: number }> {
+  const q = input.q?.trim() ? `%${input.q.trim()}%` : null;
+  const count = await query(
+    `SELECT COUNT(*)::int AS count
+     FROM tenants
+     WHERE $1::text IS NULL
+        OR name ILIKE $1
+        OR slug ILIKE $1`,
+    [q],
+  );
+  const result = await query(
+    `SELECT * FROM tenants
+     WHERE $1::text IS NULL
+        OR name ILIKE $1
+        OR slug ILIKE $1
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [q, input.limit, input.offset],
+  );
+  return {
+    tenants: result.rows.map(parseTenant),
+    total: Number(count.rows[0]?.count || 0),
+  };
+}
+
 export async function getMembershipsForUser(userId: string) {
   const result = await query(
     `SELECT tm.*, t.slug, t.name as tenant_name, t.status as tenant_status

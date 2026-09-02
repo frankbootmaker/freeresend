@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
-import { setupCustomer, listTenants, type SmtpUpstream } from '@/lib/tenants';
+import { setupCustomer, listTenantsPage, type SmtpUpstream } from '@/lib/tenants';
+import { likeQuery, paginationMeta, parsePagination } from '@/lib/pagination';
 
 const setupSchema = z.object({
   name: z.string().min(1),
@@ -37,8 +38,13 @@ export async function GET(request: NextRequest) {
     if (!session.user?.isPlatformAdmin) {
       return json({ error: 'Platform admin required' }, 403);
     }
-    const tenants = await listTenants();
-    return json({ success: true, data: { tenants } });
+    const { page, limit, offset } = parsePagination(request.nextUrl.searchParams);
+    const q = likeQuery(request.nextUrl.searchParams.get('q'));
+    const { tenants, total } = await listTenantsPage({ q, limit, offset });
+    return json({
+      success: true,
+      data: { tenants, pagination: paginationMeta(page, limit, total) },
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, error.status);

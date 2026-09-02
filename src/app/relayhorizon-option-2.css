@@ -1094,6 +1094,18 @@ code {
   margin-top: 12px;
 }
 
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pager .muted {
+  margin: 0;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

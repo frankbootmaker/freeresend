@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 type LogStatus =
   | 'pending'
@@ -284,27 +285,13 @@ export default function PlatformLogsTab() {
             </div>
           )}
 
-          {pagination.totalPages > 1 && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button
-                type="button"
-                disabled={pagination.page <= 1}
-                onClick={() => setPage(pagination.page - 1)}
-              >
-                {t.logs.previous}
-              </button>
-              <span className="muted">
-                {t.logs.pageOf(pagination.page, pagination.totalPages)}
-              </span>
-              <button
-                type="button"
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => setPage(pagination.page + 1)}
-              >
-                {t.logs.next}
-              </button>
-            </div>
-          )}
+          <ListPager
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPage={setPage}
+          />
         </div>
       </section>
 

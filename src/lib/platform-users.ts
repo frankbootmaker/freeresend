@@ -69,6 +69,34 @@ export async function listPlatformAdmins(): Promise<PlatformAdminRow[]> {
   return result.rows.map(mapRow);
 }
 
+export async function listPlatformAdminsPage(input: {
+  q?: string | null;
+  limit: number;
+  offset: number;
+}): Promise<{ users: PlatformAdminRow[]; total: number }> {
+  const q = input.q?.trim() ? `%${input.q.trim()}%` : null;
+  const count = await query(
+    `SELECT COUNT(*)::int AS count
+     FROM users
+     WHERE is_platform_admin = TRUE
+       AND ($1::text IS NULL OR email ILIKE $1 OR name ILIKE $1)`,
+    [q],
+  );
+  const result = await query(
+    `SELECT id, email, name, created_at
+     FROM users
+     WHERE is_platform_admin = TRUE
+       AND ($1::text IS NULL OR email ILIKE $1 OR name ILIKE $1)
+     ORDER BY created_at ASC
+     LIMIT $2 OFFSET $3`,
+    [q, input.limit, input.offset],
+  );
+  return {
+    users: result.rows.map(mapRow),
+    total: Number(count.rows[0]?.count || 0),
+  };
+}
+
 async function countPlatformAdmins(): Promise<number> {
   const result = await query(
     'SELECT COUNT(*)::int AS count FROM users WHERE is_platform_admin = TRUE',

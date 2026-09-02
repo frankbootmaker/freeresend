@@ -135,6 +135,14 @@ export async function verifyApiKey(apiKey: string): Promise<ApiKey | null> {
   }
 }
 
+function mapApiKeyRow(row: ApiKey & { domain_name?: string }) {
+  return {
+    ...row,
+    permissions: safeParsePermissions(row.permissions),
+    domains: row.domain_name ? { domain: row.domain_name } : null,
+  };
+}
+
 export async function getTenantApiKeys(tenantId: string): Promise<ApiKey[]> {
   const result = await query(
     `SELECT ak.*, d.domain as domain_name
@@ -144,11 +152,30 @@ export async function getTenantApiKeys(tenantId: string): Promise<ApiKey[]> {
      ORDER BY ak.created_at DESC`,
     [tenantId],
   );
-  return result.rows.map((row) => ({
-    ...row,
-    permissions: safeParsePermissions(row.permissions),
-    domains: row.domain_name ? { domain: row.domain_name } : null,
-  }));
+  return result.rows.map(mapApiKeyRow);
+}
+
+export async function getTenantApiKeysPage(
+  tenantId: string,
+  input: { limit: number; offset: number },
+): Promise<{ apiKeys: ReturnType<typeof mapApiKeyRow>[]; total: number }> {
+  const count = await query(
+    'SELECT COUNT(*)::int AS count FROM api_keys WHERE tenant_id = $1',
+    [tenantId],
+  );
+  const result = await query(
+    `SELECT ak.*, d.domain as domain_name
+     FROM api_keys ak
+     LEFT JOIN domains d ON ak.domain_id = d.id
+     WHERE ak.tenant_id = $1
+     ORDER BY ak.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [tenantId, input.limit, input.offset],
+  );
+  return {
+    apiKeys: result.rows.map(mapApiKeyRow),
+    total: Number(count.rows[0]?.count || 0),
+  };
 }
 
 export async function getUserApiKeys(

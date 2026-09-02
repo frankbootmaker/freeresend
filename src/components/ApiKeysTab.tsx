@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 interface Domain {
   id: string;
@@ -67,19 +69,30 @@ export default function ApiKeysTab() {
   });
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  });
 
   useEffect(() => {
     loadData();
-  }, []);
+    // page is read inside loadData; reload when it changes
+  }, [page]);
 
   const loadData = async () => {
     try {
       const [apiKeysResponse, domainsResponse] = await Promise.all([
-        api.getApiKeys(),
+        api.getApiKeys({ page, limit: DEFAULT_PAGE_SIZE }),
         api.getDomains(),
       ]);
       const allDomains = domainsResponse.data.domains as Domain[];
       setApiKeys(apiKeysResponse.data.apiKeys);
+      if (apiKeysResponse.data.pagination) {
+        setPagination(apiKeysResponse.data.pagination);
+      }
       setDomains(allDomains);
       const verified = allDomains.filter((d) => d.status === 'verified');
       setNewKey((current) => ({
@@ -129,7 +142,8 @@ export default function ApiKeysTab() {
         newKey.keyName.trim(),
         newKey.permissions,
       );
-      setApiKeys([response.data.apiKey, ...apiKeys]);
+      setPage(1);
+      await loadData();
       setCreatedKey(response.data.apiKey.key);
       setCopied(false);
       setNewKey({
@@ -157,7 +171,11 @@ export default function ApiKeysTab() {
 
     try {
       await api.deleteApiKey(keyId);
-      setApiKeys(apiKeys.filter((k) => k.id !== keyId));
+      if (apiKeys.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        await loadData();
+      }
     } catch (deleteError: unknown) {
       const errorObj = deleteError as { message?: string };
       setError(errorObj.message || t.keys.deleteFailed);
@@ -274,10 +292,12 @@ export default function ApiKeysTab() {
           </div>
         ) : (
           apiKeys.length > 0 && (
+            <>
             <table>
               <thead>
                 <tr>
                   <th>{t.keys.label}</th>
+                  <th>{t.keys.domain}</th>
                   <th>{t.keys.prefix}</th>
                   <th>{t.keys.scope}</th>
                   <th>{t.keys.lastUsed}</th>
@@ -288,6 +308,11 @@ export default function ApiKeysTab() {
                 {apiKeys.map((key) => (
                   <tr key={key.id}>
                     <td>{key.key_name}</td>
+                    <td>
+                      {key.domains?.domain
+                        || domains.find((domain) => domain.id === key.domain_id)?.domain
+                        || '—'}
+                    </td>
                     <td>
                       <code>{maskApiKey(key.key_prefix)}</code>
                     </td>
@@ -304,8 +329,16 @@ export default function ApiKeysTab() {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+            </tbody>
+          </table>
+          <ListPager
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPage={setPage}
+          />
+            </>
           )
         )}
       </div>

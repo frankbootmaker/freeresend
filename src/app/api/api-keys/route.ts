@@ -2,7 +2,8 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
-import { generateApiKey, getTenantApiKeys } from '@/lib/api-keys';
+import { generateApiKey, getTenantApiKeysPage } from '@/lib/api-keys';
+import { paginationMeta, parsePagination } from '@/lib/pagination';
 import { getDomainById } from '@/lib/domains';
 
 const createApiKeySchema = z.object({
@@ -21,8 +22,15 @@ export async function GET(request: NextRequest) {
     if (!session.user) {
       return json({ error: 'Dashboard session required' }, 401);
     }
-    const apiKeys = await getTenantApiKeys(session.tenant.id);
-    return json({ success: true, data: { apiKeys } });
+    const { page, limit, offset } = parsePagination(request.nextUrl.searchParams);
+    const { apiKeys, total } = await getTenantApiKeysPage(session.tenant.id, {
+      limit,
+      offset,
+    });
+    return json({
+      success: true,
+      data: { apiKeys, pagination: paginationMeta(page, limit, total) },
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, error.status);

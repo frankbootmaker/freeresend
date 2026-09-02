@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 type AdminRow = {
   id: string;
@@ -25,11 +27,19 @@ export default function PlatformUsersTab() {
   const [result, setResult] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  });
 
   const refresh = useCallback(async () => {
-    const res = await api.listPlatformUsers();
+    const res = await api.listPlatformUsers({ page, limit: DEFAULT_PAGE_SIZE });
     setAdmins(res.data.users || []);
-  }, []);
+    if (res.data.pagination) setPagination(res.data.pagination);
+  }, [page]);
 
   useEffect(() => {
     refresh().catch((err: unknown) => {
@@ -168,6 +178,7 @@ export default function PlatformUsersTab() {
           {admins.length === 0 ? (
             <p className="muted">{t.users.empty}</p>
           ) : (
+            <>
             <table>
               <thead>
                 <tr>
@@ -259,6 +270,14 @@ export default function PlatformUsersTab() {
                 })}
               </tbody>
             </table>
+            <ListPager
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              limit={pagination.limit}
+              onPage={setPage}
+            />
+            </>
           )}
         </div>
       </section>

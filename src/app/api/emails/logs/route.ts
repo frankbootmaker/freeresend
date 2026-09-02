@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { query } from '@/lib/database';
+import { likeQuery, paginationMeta, parsePagination } from '@/lib/pagination';
 
 function safeParseEmailArray(emailData: unknown): string[] {
   if (!emailData) return [];
@@ -26,11 +27,11 @@ export async function GET(request: NextRequest) {
   try {
     const session = await resolveTenantSession(request);
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
+    const { page, limit, offset } = parsePagination(searchParams);
     const domainId = searchParams.get('domain_id');
     const status = searchParams.get('status');
-    const offset = (page - 1) * limit;
+    const q = likeQuery(searchParams.get('q'));
+    const from = searchParams.get('from')?.trim();
 
     const whereConditions = ['el.tenant_id = $1'];
     const queryParams: unknown[] = [session.tenant.id];
@@ -48,6 +49,21 @@ export async function GET(request: NextRequest) {
     if (status) {
       whereConditions.push(`el.status = $${queryParams.length + 1}`);
       queryParams.push(status);
+    }
+
+    if (q) {
+      whereConditions.push(
+        `(el.id::text ILIKE $${queryParams.length + 1}
+          OR el.subject ILIKE $${queryParams.length + 1}
+          OR el.from_email ILIKE $${queryParams.length + 1}
+          OR el.to_emails::text ILIKE $${queryParams.length + 1})`,
+      );
+      queryParams.push(q);
+    }
+
+    if (from) {
+      whereConditions.push(`el.created_at >= $${queryParams.length + 1}::date`);
+      queryParams.push(from);
     }
 
     const whereClause = whereConditions.join(' AND ');
@@ -86,12 +102,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         emails: emailLogs,
-        pagination: {
-          page,
-          limit,
-          total: totalCount,
-          totalPages: Math.ceil(totalCount / limit),
-        },
+        pagination: paginationMeta(page, limit, totalCount),
       },
     });
   } catch (error) {

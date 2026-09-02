@@ -21,6 +21,12 @@ export function isTheme(value: string | null): value is Theme {
 
 type Dict = {
   loading: string;
+  pager: {
+    previous: string;
+    next: string;
+    pageOf: (page: number, total: number) => string;
+    showing: (from: number, to: number, total: number) => string;
+  };
   brand: string;
   brandBy: string;
   brandHome: string;
@@ -249,6 +255,7 @@ type Dict = {
     egress: string;
     provision: string;
     registry: string;
+    search: string;
     name: string;
     slug: string;
     status: string;
@@ -718,6 +725,12 @@ type Dict = {
 
 const en: Dict = {
   loading: 'Loading RelayHorizon…',
+  pager: {
+    previous: 'Previous',
+    next: 'Next',
+    pageOf: (page, total) => `Page ${page} of ${total}`,
+    showing: (from, to, total) => `${from}–${to} of ${total}`,
+  },
   brand: 'RelayHorizon',
   brandBy: 'by Nethorizon',
   brandHome: 'RelayHorizon home',
@@ -956,6 +969,7 @@ const en: Dict = {
     egress: 'Egress',
     provision: 'Provision tenant',
     registry: 'Tenant registry',
+    search: 'Search name or slug',
     name: 'Name',
     slug: 'Slug',
     status: 'Status',
@@ -1457,6 +1471,12 @@ const en: Dict = {
 
 const de: Dict = {
   loading: 'RelayHorizon wird geladen…',
+  pager: {
+    previous: 'Zurück',
+    next: 'Weiter',
+    pageOf: (page, total) => `Seite ${page} von ${total}`,
+    showing: (from, to, total) => `${from}–${to} von ${total}`,
+  },
   brand: 'RelayHorizon',
   brandBy: 'von Nethorizon',
   brandHome: 'RelayHorizon Startseite',
@@ -1698,6 +1718,7 @@ const de: Dict = {
     egress: 'Ausgang',
     provision: 'Mandanten provisionieren',
     registry: 'Mandantenverzeichnis',
+    search: 'Name oder Slug suchen',
     name: 'Name',
     slug: 'Slug',
     status: 'Status',
@@ -2201,6 +2222,12 @@ const de: Dict = {
 
 const hu: Dict = {
   loading: 'RelayHorizon betöltése…',
+  pager: {
+    previous: 'Előző',
+    next: 'Következő',
+    pageOf: (page, total) => `${page}. / ${total}. oldal`,
+    showing: (from, to, total) => `${from}–${to} / ${total}`,
+  },
   brand: 'RelayHorizon',
   brandBy: 'a Nethorizontól',
   brandHome: 'RelayHorizon kezdőlap',
@@ -2441,6 +2468,7 @@ const hu: Dict = {
     egress: 'Kimenet',
     provision: 'Bérlő létrehozása',
     registry: 'Bérlőnyilvántartás',
+    search: 'Név vagy slug keresése',
     name: 'Név',
     slug: 'Slug',
     status: 'Állapot',

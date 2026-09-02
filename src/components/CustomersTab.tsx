@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 type TenantRow = {
   id: string;
@@ -33,14 +35,33 @@ export default function CustomersTab() {
   const [panelResult, setPanelResult] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [q, setQ] = useState('');
+  const [appliedQ, setAppliedQ] = useState('');
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  });
 
-  const refresh = () => {
-    api.listCustomers().then((res) => setTenants(res.data.tenants || []));
-  };
+  const refresh = useCallback(() => {
+    return api
+      .listCustomers({ page, limit: DEFAULT_PAGE_SIZE, q: appliedQ })
+      .then((res) => {
+        setTenants(res.data.tenants || []);
+        if (res.data.pagination) setPagination(res.data.pagination);
+      });
+  }, [page, appliedQ]);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
+
+  const applySearch = () => {
+    setPage(1);
+    setAppliedQ(q);
+  };
 
   const ingressLabel = (value?: string) => {
     if (value === 'both') return t.sending.both;
@@ -79,6 +100,7 @@ export default function CustomersTab() {
       setOwnerEmail('');
       setOwnerPassword('');
       setDomain('');
+      setPage(1);
       refresh();
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.customers.failed);
@@ -235,6 +257,19 @@ export default function CustomersTab() {
           <h2>{t.customers.registry}</h2>
         </header>
         <div className="cardbody">
+          <div className="filters">
+            <input
+              placeholder={t.customers.search}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') applySearch();
+              }}
+            />
+            <button type="button" onClick={applySearch}>
+              {t.logs.apply}
+            </button>
+          </div>
           <table>
             <thead>
               <tr>
@@ -270,6 +305,13 @@ export default function CustomersTab() {
               ))}
             </tbody>
           </table>
+          <ListPager
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            limit={pagination.limit}
+            onPage={setPage}
+          />
         </div>
       </section>
       {managed && (

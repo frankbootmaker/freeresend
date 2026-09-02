@@ -5,9 +5,10 @@ import { AuthError } from '@/lib/tenant-context';
 import { requireDashboardUser } from '@/lib/admin-guard';
 import {
   createMcpToken,
-  listMcpTokens,
+  listMcpTokensPage,
   McpTokenError,
 } from '@/lib/mcp-tokens';
+import { paginationMeta, parsePagination } from '@/lib/pagination';
 
 const createSchema = z.object({
   name: z.string().min(1).max(80),
@@ -20,11 +21,17 @@ export async function OPTIONS() {
 export async function GET(request: NextRequest) {
   try {
     const session = await requireDashboardUser(request);
-    const agents = await listMcpTokens({
+    const { page, limit, offset } = parsePagination(request.nextUrl.searchParams);
+    const { agents, total } = await listMcpTokensPage({
       kind: 'tenant',
       tenantId: session.tenant.id,
+      limit,
+      offset,
     });
-    return json({ success: true, data: { agents } });
+    return json({
+      success: true,
+      data: { agents, pagination: paginationMeta(page, limit, total) },
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, error.status);

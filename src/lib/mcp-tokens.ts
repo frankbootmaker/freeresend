@@ -155,6 +155,56 @@ export async function listMcpTokens(input: {
   return result.rows.map(mapRecord);
 }
 
+export async function listMcpTokensPage(input: {
+  kind: AgentKind;
+  tenantId?: string;
+  limit: number;
+  offset: number;
+}): Promise<{ agents: McpTokenRecord[]; total: number }> {
+  if (input.kind === 'platform') {
+    const count = await query(
+      'SELECT COUNT(*)::int AS count FROM mcp_tokens WHERE tenant_id IS NULL',
+    );
+    const result = await query(
+      `SELECT id, tenant_id, name, key_prefix, scopes, created_by,
+              last_used_at, created_at
+       FROM mcp_tokens
+       WHERE tenant_id IS NULL
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [input.limit, input.offset],
+    );
+    return {
+      agents: result.rows.map(mapRecord),
+      total: Number(count.rows[0]?.count || 0),
+    };
+  }
+  if (!input.tenantId) {
+    throw new McpTokenError(
+      'MCP_TENANT_REQUIRED',
+      'Tenant is required for tenant agents',
+      400,
+    );
+  }
+  const count = await query(
+    'SELECT COUNT(*)::int AS count FROM mcp_tokens WHERE tenant_id = $1',
+    [input.tenantId],
+  );
+  const result = await query(
+    `SELECT id, tenant_id, name, key_prefix, scopes, created_by,
+            last_used_at, created_at
+     FROM mcp_tokens
+     WHERE tenant_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [input.tenantId, input.limit, input.offset],
+  );
+  return {
+    agents: result.rows.map(mapRecord),
+    total: Number(count.rows[0]?.count || 0),
+  };
+}
+
 export async function revokeMcpToken(input: {
   id: string;
   kind: AgentKind;

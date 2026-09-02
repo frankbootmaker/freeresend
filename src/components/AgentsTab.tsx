@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { usePrefs } from '@/contexts/PrefsContext';
+import ListPager from './ListPager';
 
 type AgentRow = {
   id: string;
@@ -52,14 +54,23 @@ export default function AgentsTab({
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: DEFAULT_PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  });
   const endpoint = `${typeof window !== 'undefined' ? window.location.origin : ''}/mcp`;
 
   const refresh = useCallback(async () => {
+    const params = { page, limit: DEFAULT_PAGE_SIZE };
     const res = kind === 'platform'
-      ? await api.listPlatformAgents()
-      : await api.listTenantAgents();
+      ? await api.listPlatformAgents(params)
+      : await api.listTenantAgents(params);
     setAgents(res.data.agents || []);
-  }, [kind]);
+    if (res.data.pagination) setPagination(res.data.pagination);
+  }, [kind, page]);
 
   useEffect(() => {
     refresh().catch((err: unknown) => {
@@ -171,6 +182,7 @@ export default function AgentsTab({
           {agents.length === 0 ? (
             <p className="muted">{t.agents.empty}</p>
           ) : (
+            <>
             <table>
               <thead>
                 <tr>
@@ -202,6 +214,14 @@ export default function AgentsTab({
                 ))}
               </tbody>
             </table>
+            <ListPager
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              limit={pagination.limit}
+              onPage={setPage}
+            />
+            </>
           )}
         </div>
       </section>
