@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.9.1';
+export const APP_VERSION = '1.9.2';
 
 export type ReleaseChangeKind = 'added' | 'changed' | 'fixed';
 
@@ -20,9 +20,44 @@ export const UNRELEASED_VERSION = 'unreleased';
 export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
-    date: '2026-09-01',
-    summary: 'Work on development since 1.9.1.',
+    date: '2026-09-02',
+    summary: 'Work on development since 1.9.2.',
     changes: [],
+  },
+  {
+    version: '1.9.2',
+    date: '2026-09-02',
+    summary: 'List paging, tenant Danger zone, and Sending URL copy.',
+    changes: [
+      {
+        kind: 'added',
+        text: 'Portal Customers Manage panel to rename or delete a tenant (the platform tenant stays).',
+      },
+      {
+        kind: 'added',
+        text: 'Tenant Organization Danger zone so owners can erase their organization (two-step typed-name confirmation).',
+      },
+      {
+        kind: 'added',
+        text: 'Shared pager on logs, customers, API keys, agents, and platform users, with 5 / 10 / 25 / 50 rows per page.',
+      },
+      {
+        kind: 'added',
+        text: 'Domain column on the API keys table.',
+      },
+      {
+        kind: 'changed',
+        text: 'Sending tab shows the Resend base URL as https://<host>/api and only the fields that match the chosen ingress and egress.',
+      },
+      {
+        kind: 'changed',
+        text: 'Domain delete sits in the domain toolbar; Hungarian create copy uses létrehozás.',
+      },
+      {
+        kind: 'fixed',
+        text: 'API key delete is tenant-scoped, so any tenant member can remove a provisioned key (missing keys return 404).',
+      },
+    ],
   },
   {
     version: '1.9.1',

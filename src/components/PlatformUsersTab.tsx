@@ -28,6 +28,7 @@ export default function PlatformUsersTab() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -36,10 +37,10 @@ export default function PlatformUsersTab() {
   });
 
   const refresh = useCallback(async () => {
-    const res = await api.listPlatformUsers({ page, limit: DEFAULT_PAGE_SIZE });
+    const res = await api.listPlatformUsers({ page, limit });
     setAdmins(res.data.users || []);
     if (res.data.pagination) setPagination(res.data.pagination);
-  }, [page]);
+  }, [page, limit]);
 
   useEffect(() => {
     refresh().catch((err: unknown) => {
@@ -274,8 +275,12 @@ export default function PlatformUsersTab() {
               page={pagination.page}
               totalPages={pagination.totalPages}
               total={pagination.total}
-              limit={pagination.limit}
+              limit={limit}
               onPage={setPage}
+              onLimit={(next) => {
+                setPage(1);
+                setLimit(next);
+              }}
             />
             </>
           )}

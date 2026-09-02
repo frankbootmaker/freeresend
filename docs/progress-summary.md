@@ -1,4 +1,4 @@
-# RelayHorizon — what is built (1 September 2026)
+# RelayHorizon — what is built (2 September 2026)
 
 Snapshot of the product as it stands in this repository. **RelayHorizon** is a self-hosted, multi-tenant **outbound** email platform: a fork of [FreeResend](https://github.com/eibrahim/freeresend), branded RelayHorizon by Nethorizon. Incoming mailboxes and inbound MX are out of scope.
 
@@ -14,8 +14,8 @@ Operators provision **tenants** (customers). Each tenant sends mail through a Re
 
 | Surface | Who | What it does |
 | --- | --- | --- |
-| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Users** adds or revokes other platform administrators. **Agents** issues platform MCP tokens with administrator access. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. |
-| **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys**, **Agents**, **Logs**, **Guide**. Tenant agents are scoped to that organization. Platform admins can switch back to the portal. |
+| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once) and **Manage** can rename or delete that tenant. **Users** adds, revokes, or deletes other platform administrators (not the last one). **Agents** issues platform MCP tokens with administrator access. **Logs** search across tenants. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. Long lists page at 25 rows; choose 5 / 10 / 25 / 50. |
+| **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys** (with domain column), **Agents**, **Logs**, **Organization** (owners can erase the tenant), **Guide**. Tenant agents are scoped to that organization. Platform admins can switch back to the portal. |
 
 UI language: English, German, Hungarian. Theme toggle is in the shell.
 
@@ -68,7 +68,7 @@ Existing databases need every `database-migrate-*.sql` once (`platform-settings`
 - Incoming mail / hosting mailboxes.
 - Bounce/complaint webhook mail to the alert address (avoided so far to prevent noise and loops).
 
-Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is **v1.9.1**.
+Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is **v1.9.2**.
 
 ## Local run
 

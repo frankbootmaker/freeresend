@@ -82,6 +82,10 @@ export default function EmailLogsTab() {
     setFilters({ ...filters, page: newPage });
   };
 
+  const handleLimitChange = (newLimit: number) => {
+    setFilters({ ...filters, page: 1, limit: newLimit });
+  };
+
   const statusLabel = (status: EmailLog['status']) => {
     const labels: Record<EmailLog['status'], string> = {
       pending: t.domains.pending,
@@ -201,8 +205,9 @@ export default function EmailLogsTab() {
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
-            limit={pagination.limit}
+            limit={filters.limit}
             onPage={handlePageChange}
+            onLimit={handleLimitChange}
           />
         </div>
       </section>

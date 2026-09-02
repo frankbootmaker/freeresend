@@ -55,6 +55,7 @@ export default function AgentsTab({
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -64,13 +65,13 @@ export default function AgentsTab({
   const endpoint = `${typeof window !== 'undefined' ? window.location.origin : ''}/mcp`;
 
   const refresh = useCallback(async () => {
-    const params = { page, limit: DEFAULT_PAGE_SIZE };
+    const params = { page, limit };
     const res = kind === 'platform'
       ? await api.listPlatformAgents(params)
       : await api.listTenantAgents(params);
     setAgents(res.data.agents || []);
     if (res.data.pagination) setPagination(res.data.pagination);
-  }, [kind, page]);
+  }, [kind, page, limit]);
 
   useEffect(() => {
     refresh().catch((err: unknown) => {
@@ -218,8 +219,12 @@ export default function AgentsTab({
               page={pagination.page}
               totalPages={pagination.totalPages}
               total={pagination.total}
-              limit={pagination.limit}
+              limit={limit}
               onPage={setPage}
+              onLimit={(next) => {
+                setPage(1);
+                setLimit(next);
+              }}
             />
             </>
           )}

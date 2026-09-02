@@ -12,6 +12,8 @@ Each tenant chooses one of:
 - `smtp` — SMTP submission (`npm run smtp`, default port **2525**)
 - `both`
 
+The tenant **Sending** tab only shows HTTPS or SMTP fields for the ingress you pick. TLS for the upstream relay is on SMTP egress, not on the HTTPS card.
+
 ```http
 POST /api/emails
 Authorization: Bearer frs_<id>_<secret>
@@ -28,6 +30,10 @@ Content-Type: application/json
 SMTP submission uses username `relayhorizon` and the API key as the password. Closed channels return an error (HTTPS `403`, SMTP `535`/`550`).
 
 `from` must match a **verified** domain on the same tenant as the API key.
+
+API keys are listed with label, **domain**, prefix, scope, and last used. Any member of the tenant can delete a key (including the provisioned default). Copy a new secret once.
+
+Delivery **Logs** (tenant and portal) page at 25 rows by default. Choose 5, 10, 25, or 50. Search applies on Apply, not every keystroke.
 
 ## Domain DNS (required before sending)
 

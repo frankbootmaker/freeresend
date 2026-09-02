@@ -1106,6 +1106,18 @@ code {
   margin: 0;
 }
 
+.pager-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.pager-size select {
+  width: auto;
+  min-width: 4.5rem;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

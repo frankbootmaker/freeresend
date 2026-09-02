@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '@/lib/api';
+import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { usePrefs } from '@/contexts/PrefsContext';
 import ListPager from './ListPager';
 
@@ -57,9 +58,10 @@ export default function PlatformLogsTab() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: DEFAULT_PAGE_SIZE,
     total: 0,
     totalPages: 0,
   });
@@ -76,7 +78,7 @@ export default function PlatformLogsTab() {
           from,
           to,
           page,
-          limit: 50,
+          limit,
         }),
         api.getLogRetention(),
       ]);
@@ -96,7 +98,7 @@ export default function PlatformLogsTab() {
     } finally {
       setLoading(false);
     }
-  }, [q, tenantId, status, from, to, page, t.portalLogs.failed]);
+  }, [q, tenantId, status, from, to, page, limit, t.portalLogs.failed]);
 
   useEffect(() => {
     void load();
@@ -289,8 +291,12 @@ export default function PlatformLogsTab() {
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
-            limit={pagination.limit}
+            limit={limit}
             onPage={setPage}
+            onLimit={(next) => {
+              setPage(1);
+              setLimit(next);
+            }}
           />
         </div>
       </section>

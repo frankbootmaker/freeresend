@@ -42,6 +42,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Create an organization, an owner, and an optional sending domain.',
           'Copy the API key and MCP token immediately. They are shown once.',
           'Manage opens a panel to rename the organization or delete the tenant. The slug stays as the identifier. The platform tenant cannot be deleted.',
+          'Long lists are paged. Choose 5, 10, 25, or 50 rows per page.',
         ],
       },
       {
@@ -50,6 +51,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'People who can open this portal. Create a new administrator or promote an existing account by email.',
           'You cannot revoke or delete yourself or the last administrator. Revoke only clears portal access. Delete removes the account.',
+          'The user list uses the same page sizes as Customers.',
         ],
       },
       {
@@ -64,8 +66,8 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Logs',
         paragraphs: [
-          'Search delivery across tenants. Set retention here, then Rotate now.',
-          'The same rotation runs on POST /api/cron/ops with header x-cron-secret.',
+          'Search delivery across tenants by recipient or message id, then Apply. Choose 5, 10, 25, or 50 rows per page.',
+          'Set retention here, then Rotate now. The same rotation runs on POST /api/cron/ops with header x-cron-secret.',
         ],
       },
       {
@@ -104,7 +106,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'In production, do not set SKIP_DNS_VERIFICATION.',
           'Add a domain, publish MX, SPF, DKIM, and DMARC exactly as listed, then Check records.',
-          'Send a test with curl, the Resend SDK (RESEND_BASE_URL), or SMTP (username relayhorizon, password is an API key).',
+          'Send a test with curl, the Resend SDK (RESEND_BASE_URL=https://<host>/api, not /api/emails), or SMTP (username relayhorizon, password is an API key).',
           'For SES egress, subscribe SNS to POST /api/webhooks/ses and confirm the subscription in AWS.',
         ],
       },
@@ -137,6 +139,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Legen Sie eine Organisation, einen Owner und optional eine Versanddomain an.',
           'API-Schlüssel und MCP-Token sofort kopieren. Sie werden nur einmal angezeigt.',
           'Verwalten öffnet ein Panel zum Umbenennen oder Löschen. Der Slug bleibt der Bezeichner. Der Plattformmandant kann nicht gelöscht werden.',
+          'Lange Listen sind seitenweise. 5, 10, 25 oder 50 Zeilen pro Seite wählen.',
         ],
       },
       {
@@ -145,6 +148,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Personen mit Zugang zu diesem Portal. Neuen Administrator anlegen oder ein bestehendes Konto per E-Mail befördern.',
           'Sie können sich selbst oder den letzten Administrator nicht entziehen oder löschen. Entzug nimmt nur den Portalzugang. Löschen entfernt das Konto.',
+          'Die Benutzerliste nutzt dieselben Seitengrößen wie Kunden.',
         ],
       },
       {
@@ -159,8 +163,8 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Protokolle',
         paragraphs: [
-          'Zustellung über alle Mandanten suchen. Aufbewahrung hier setzen, dann Jetzt rotieren.',
-          'Dieselbe Rotation läuft über POST /api/cron/ops mit Header x-cron-secret.',
+          'Zustellung über alle Mandanten nach Empfänger oder Nachrichten-ID suchen, dann Anwenden. 5, 10, 25 oder 50 Zeilen pro Seite.',
+          'Aufbewahrung hier setzen, dann Jetzt rotieren. Dieselbe Rotation läuft über POST /api/cron/ops mit Header x-cron-secret.',
         ],
       },
       {
@@ -199,7 +203,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'In Produktion SKIP_DNS_VERIFICATION nicht setzen.',
           'Domain anlegen, MX, SPF, DKIM und DMARC genau wie angezeigt veröffentlichen, dann Records prüfen.',
-          'Test mit curl, Resend-SDK (RESEND_BASE_URL) oder SMTP (Benutzername relayhorizon, Passwort ist ein API-Schlüssel).',
+          'Test mit curl, Resend-SDK (RESEND_BASE_URL=https://<host>/api, nicht /api/emails) oder SMTP (Benutzername relayhorizon, Passwort ist ein API-Schlüssel).',
           'Bei SES-Egress SNS auf POST /api/webhooks/ses abonnieren und in AWS bestätigen.',
         ],
       },
@@ -232,6 +236,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Hozzon létre szervezetet, tulajdonost, és opcionálisan küldő domaint.',
           'Az API-kulcsot és az MCP-tokent azonnal másolja. Csak egyszer jelennek meg.',
           'A kezelés panelen átnevezheti a szervezetet vagy törölheti a bérlőt. A slug azonosító marad. A platform bérlő nem törölhető.',
+          'A hosszú listák lapozhatók. Oldalanként 5, 10, 25 vagy 50 sor.',
         ],
       },
       {
@@ -240,6 +245,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Akik megnyithatják ezt a portált. Új admint hozhat létre, vagy meglévő fiókot emelhet e-mail alapján.',
           'Saját magát vagy az utolsó admint nem vonhatja vissza és nem törölheti. A visszavonás csak a portálhozzáférést törli. A törlés a fiókot távolítja el.',
+          'A felhasználólista ugyanazokat az oldalméreteket használja, mint az Ügyfelek.',
         ],
       },
       {
@@ -254,8 +260,8 @@ const ADMIN: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Naplók',
         paragraphs: [
-          'Kézbesítés keresése az összes bérlőn. Itt állítsa a megőrzést, majd Forgatás most.',
-          'Ugyanez fut a POST /api/cron/ops hívással, x-cron-secret fejléccel.',
+          'Kézbesítés keresése az összes bérlőn címzett vagy üzenetazonosító szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
+          'Itt állítsa a megőrzést, majd Forgatás most. Ugyanez fut a POST /api/cron/ops hívással, x-cron-secret fejléccel.',
         ],
       },
       {
@@ -294,7 +300,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Élesben ne állítsa be a SKIP_DNS_VERIFICATION értékét.',
           'Adjon hozzá domaint, tegye közzé a listázott MX, SPF, DKIM és DMARC rekordokat, majd ellenőrizze őket.',
-          'Teszteljen curl-lel, Resend SDK-val (RESEND_BASE_URL) vagy SMTP-vel (felhasználó: relayhorizon, jelszó: API-kulcs).',
+          'Teszteljen curl-lel, Resend SDK-val (RESEND_BASE_URL=https://<host>/api, ne /api/emails) vagy SMTP-vel (felhasználó: relayhorizon, jelszó: API-kulcs).',
           'SES kimenetnél iratkoztassa fel az SNS-t a POST /api/webhooks/ses címre, és erősítse meg az AWS-ben.',
         ],
       },
@@ -320,6 +326,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Sending',
         paragraphs: [
           'HTTPS is Resend-compatible. Set RESEND_BASE_URL to https://<host>/api (not /api/emails). Raw clients POST /api/emails with a Bearer API key.',
+          'The Sending tab only shows HTTPS or SMTP fields for the ingress you pick. TLS for the upstream relay is on SMTP egress.',
           'SMTP username is relayhorizon. The password is an API key. Closed channels return HTTPS 403 or SMTP 535/550.',
           'SES uses the platform AWS keys. SMTP egress uses your upstream host, or the platform relay if you leave host empty.',
         ],
@@ -331,6 +338,7 @@ const TENANT: Record<Locale, Guide> = {
           'Add the sending domain, then publish MX, SPF, DKIM, and DMARC exactly as listed.',
           'Bounce MX is on outbound.{domain} so existing inbound MX is left alone.',
           'Sending stays blocked until Check records passes.',
+          'Remove a domain from its toolbar when you no longer send from it.',
         ],
       },
       {
@@ -338,6 +346,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'API keys',
         paragraphs: [
           'Create a key (frs_…). Copy it once.',
+          'The table lists label, domain, prefix, scope, and last used. Any member of this organization can delete a key.',
           'Use it as the Authorization Bearer token or as the SMTP password.',
         ],
       },
@@ -361,7 +370,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Logs',
         paragraphs: [
-          'Delivery events for this tenant.',
+          'Delivery events for this tenant. Filter by recipient or status, then Apply. Choose 5, 10, 25, or 50 rows per page.',
           'Bounces and complaints update after SES SNS is connected to /api/webhooks/ses.',
         ],
       },
@@ -393,6 +402,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Versand',
         paragraphs: [
           'HTTPS ist Resend-kompatibel. RESEND_BASE_URL auf https://<host>/api setzen (nicht /api/emails). Direkte Clients senden POST /api/emails mit Bearer-API-Schlüssel.',
+          'Die Versandseite zeigt nur HTTPS- oder SMTP-Felder zum gewählten Ingress. TLS für das Upstream-Relais steht beim SMTP-Egress.',
           'SMTP-Benutzername ist relayhorizon. Das Passwort ist ein API-Schlüssel. Geschlossene Kanäle liefern HTTPS 403 oder SMTP 535/550.',
           'SES nutzt die Plattform-AWS-Schlüssel. SMTP-Egress nutzt Ihren Upstream oder das Plattform-Relais, wenn der Host leer bleibt.',
         ],
@@ -404,6 +414,7 @@ const TENANT: Record<Locale, Guide> = {
           'Versanddomain anlegen und MX, SPF, DKIM sowie DMARC genau wie angezeigt veröffentlichen.',
           'Bounce-MX liegt auf outbound.{domain}, damit bestehendes Inbound-MX unberührt bleibt.',
           'Der Versand bleibt gesperrt, bis Records prüfen erfolgreich ist.',
+          'Eine Domain entfernen Sie über die Werkzeugleiste, wenn sie nicht mehr sendet.',
         ],
       },
       {
@@ -411,6 +422,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'API-Schlüssel',
         paragraphs: [
           'Schlüssel (frs_…) anlegen und einmal kopieren.',
+          'Die Tabelle zeigt Bezeichnung, Domain, Präfix, Umfang und letzte Nutzung. Jedes Mitglied dieser Organisation kann einen Schlüssel löschen.',
           'Als Authorization-Bearer oder als SMTP-Passwort verwenden.',
         ],
       },
@@ -434,7 +446,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Protokolle',
         paragraphs: [
-          'Zustellereignisse dieses Mandanten.',
+          'Zustellereignisse dieses Mandanten. Nach Empfänger oder Status filtern, dann Anwenden. 5, 10, 25 oder 50 Zeilen pro Seite.',
           'Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt.',
         ],
       },
@@ -466,6 +478,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Küldés',
         paragraphs: [
           'A HTTPS Resend-kompatibilis. A RESEND_BASE_URL legyen https://<host>/api (ne /api/emails). Közvetlen kliens: POST /api/emails Bearer API-kulccsal.',
+          'A Küldés lap csak a választott bejövő útnak megfelelő HTTPS- vagy SMTP-mezőket mutatja. Az upstream relé TLS-e a SMTP kimeneten van.',
           'Az SMTP felhasználónév: relayhorizon. A jelszó egy API-kulcs. Lezárt csatorna HTTPS 403 vagy SMTP 535/550.',
           'A SES a platform AWS-kulcsait használja. SMTP kimenetnél a saját upstream, vagy üres hostnál a platform relé.',
         ],
@@ -477,6 +490,7 @@ const TENANT: Record<Locale, Guide> = {
           'Adja hozzá a küldő domaint, majd tegye közzé a listázott MX, SPF, DKIM és DMARC rekordokat.',
           'A bounce MX az outbound.{domain} címen van, hogy a meglévő bejövő MX megmaradjon.',
           'A küldés addig tiltott, amíg a rekordellenőrzés nem sikerül.',
+          'A domaint az eszköztárról törölheti, ha már nem küld róla.',
         ],
       },
       {
@@ -484,6 +498,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'API-kulcsok',
         paragraphs: [
           'Hozzon létre kulcsot (frs_…), és másolja egyszer.',
+          'A táblázat a címkét, a domaint, az előtagot, a hatókört és az utolsó használatot mutatja. A szervezet bármely tagja törölhet kulcsot.',
           'Authorization Bearer tokentként vagy SMTP-jelszóként használja.',
         ],
       },
@@ -507,7 +522,7 @@ const TENANT: Record<Locale, Guide> = {
         id: 'logs',
         title: 'Naplók',
         paragraphs: [
-          'Ennek a bérlőnek a kézbesítési eseményei.',
+          'Ennek a bérlőnek a kézbesítési eseményei. Szűrjön címzett vagy állapot szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
           'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat.',
         ],
       },

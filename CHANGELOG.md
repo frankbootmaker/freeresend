@@ -6,7 +6,27 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-Nothing staged after 1.9.1.
+Nothing staged after 1.9.2.
+
+## 1.9.2 — 2026-09-02
+
+List paging, tenant Danger zone, and Sending URL copy.
+
+### Added
+
+- Portal Customers **Manage** panel to rename or delete a tenant (the platform tenant stays)
+- Tenant **Organization** Danger zone so owners can erase their organization (two-step typed-name confirmation)
+- Shared pager on logs, customers, API keys, agents, and platform users, with 5 / 10 / 25 / 50 rows per page
+- Domain column on the API keys table
+
+### Changed
+
+- Sending tab shows the Resend base URL as `https://<host>/api` and only the fields that match the chosen ingress and egress
+- Domain delete sits in the domain toolbar; Hungarian create copy uses létrehozás
+
+### Fixed
+
+- API key delete is tenant-scoped, so any tenant member can remove a provisioned key (missing keys return 404)
 
 ## 1.9.1 — 2026-09-01
 

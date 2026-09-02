@@ -70,6 +70,7 @@ export default function ApiKeysTab() {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -79,13 +80,13 @@ export default function ApiKeysTab() {
 
   useEffect(() => {
     loadData();
-    // page is read inside loadData; reload when it changes
-  }, [page]);
+    // page/limit are read inside loadData; reload when they change
+  }, [page, limit]);
 
   const loadData = async () => {
     try {
       const [apiKeysResponse, domainsResponse] = await Promise.all([
-        api.getApiKeys({ page, limit: DEFAULT_PAGE_SIZE }),
+        api.getApiKeys({ page, limit }),
         api.getDomains(),
       ]);
       const allDomains = domainsResponse.data.domains as Domain[];
@@ -335,8 +336,12 @@ export default function ApiKeysTab() {
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
-            limit={pagination.limit}
+            limit={limit}
             onPage={setPage}
+            onLimit={(next) => {
+              setPage(1);
+              setLimit(next);
+            }}
           />
             </>
           )

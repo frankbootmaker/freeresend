@@ -22,8 +22,9 @@ Header `X-Tenant-Id` lets a platform admin act on another tenant.
 
 - `GET|POST /api/domains`
 - `POST /api/domains/:id/verify` — live MX/SPF/DKIM/DMARC check; sending needs a verified domain
-- `GET|POST /api/api-keys`
-- `GET /api/emails/logs`
+- `GET|POST /api/api-keys` — list accepts `page` and `limit` (console: 5 / 10 / 25 / 50)
+- `DELETE /api/api-keys/:id` — tenant-scoped; any member of the tenant can delete
+- `GET /api/emails/logs` — `page`, `limit`, `q`, `from`, `status`
 - `POST /api/emails` — API key only (Resend-compatible)
 
 ## Admin

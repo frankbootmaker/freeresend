@@ -38,6 +38,7 @@ export default function CustomersTab() {
   const [q, setQ] = useState('');
   const [appliedQ, setAppliedQ] = useState('');
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -47,12 +48,12 @@ export default function CustomersTab() {
 
   const refresh = useCallback(() => {
     return api
-      .listCustomers({ page, limit: DEFAULT_PAGE_SIZE, q: appliedQ })
+      .listCustomers({ page, limit, q: appliedQ })
       .then((res) => {
         setTenants(res.data.tenants || []);
         if (res.data.pagination) setPagination(res.data.pagination);
       });
-  }, [page, appliedQ]);
+  }, [page, limit, appliedQ]);
 
   useEffect(() => {
     refresh();
@@ -309,8 +310,12 @@ export default function CustomersTab() {
             page={pagination.page}
             totalPages={pagination.totalPages}
             total={pagination.total}
-            limit={pagination.limit}
+            limit={limit}
             onPage={setPage}
+            onLimit={(next) => {
+              setPage(1);
+              setLimit(next);
+            }}
           />
         </div>
       </section>

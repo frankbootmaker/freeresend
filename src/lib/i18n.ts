@@ -26,6 +26,7 @@ type Dict = {
     next: string;
     pageOf: (page: number, total: number) => string;
     showing: (from: number, to: number, total: number) => string;
+    perPage: string;
   };
   brand: string;
   brandBy: string;
@@ -730,6 +731,7 @@ const en: Dict = {
     next: 'Next',
     pageOf: (page, total) => `Page ${page} of ${total}`,
     showing: (from, to, total) => `${from}–${to} of ${total}`,
+    perPage: 'Per page',
   },
   brand: 'RelayHorizon',
   brandBy: 'by Nethorizon',
@@ -1476,6 +1478,7 @@ const de: Dict = {
     next: 'Weiter',
     pageOf: (page, total) => `Seite ${page} von ${total}`,
     showing: (from, to, total) => `${from}–${to} von ${total}`,
+    perPage: 'Pro Seite',
   },
   brand: 'RelayHorizon',
   brandBy: 'von Nethorizon',
@@ -2227,6 +2230,7 @@ const hu: Dict = {
     next: 'Következő',
     pageOf: (page, total) => `${page}. / ${total}. oldal`,
     showing: (from, to, total) => `${from}–${to} / ${total}`,
+    perPage: 'Oldalanként',
   },
   brand: 'RelayHorizon',
   brandBy: 'a Nethorizontól',
