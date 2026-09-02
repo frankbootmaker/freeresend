@@ -119,6 +119,7 @@ type Dict = {
     resetInvalid: string;
     resetMissing: string;
     backToSignIn: string;
+    tenantRemoved: string;
   };
   register: {
     kickerStory: string;
@@ -169,6 +170,7 @@ type Dict = {
     backToTenant: (name: string) => string;
     backToConsole: string;
     guide: string;
+    organization: string;
   };
   changelog: {
     title: string;
@@ -275,10 +277,35 @@ type Dict = {
     delete: string;
     deleting: string;
     deleteLead: string;
+    dangerZone: string;
     platformProtected: string;
     confirmDelete: string;
     deleted: string;
     deleteFailed: string;
+  };
+  organization: {
+    aboutTitle: string;
+    lead: string;
+    name: string;
+    nameHint: string;
+    slug: string;
+    slugHint: string;
+    dangerTitle: string;
+    dangerLead: string;
+    warnDomains: string;
+    warnKeys: string;
+    warnLogs: string;
+    warnAccounts: string;
+    continue: string;
+    back: string;
+    confirmLead: (name: string) => string;
+    confirmName: string;
+    acknowledge: string;
+    delete: string;
+    deleting: string;
+    failed: string;
+    ownerOnly: string;
+    platformProtected: string;
   };
   users: {
     addTitle: string;
@@ -793,6 +820,8 @@ const en: Dict = {
     resetInvalid: 'This reset link is invalid or has expired.',
     resetMissing: 'This reset link is incomplete.',
     backToSignIn: 'Back to sign in',
+    tenantRemoved:
+      'This organization and its sending data have been deleted.',
   },
   register: {
     kickerStory: 'RelayHorizon console',
@@ -844,6 +873,7 @@ const en: Dict = {
     backToTenant: (name) => `← ${name} tenant`,
     backToConsole: '← Tenant console',
     guide: 'Guide',
+    organization: 'Organization',
   },
   changelog: {
     title: 'Release notes',
@@ -952,10 +982,38 @@ const en: Dict = {
     delete: 'Delete',
     deleting: 'Deleting…',
     deleteLead: 'Removes this tenant and its domains, keys, and logs.',
+    dangerZone: 'Danger zone',
     platformProtected: 'The platform tenant cannot be deleted.',
     confirmDelete: 'Delete this tenant and its domains, keys, and logs?',
     deleted: 'Tenant deleted.',
     deleteFailed: 'Could not delete tenant',
+  },
+  organization: {
+    aboutTitle: 'This organization',
+    lead: 'Identity for this sending tenant. The slug is the stable identifier.',
+    name: 'Organization',
+    nameHint: 'Only a platform administrator can change this name.',
+    slug: 'Slug',
+    slugHint: 'Identifier. This cannot be changed.',
+    dangerTitle: 'Danger zone',
+    dangerLead:
+      'This permanently erases the organization. There is no recovery.',
+    warnDomains: 'Sending domains and DNS setup for this tenant are removed.',
+    warnKeys: 'API keys and MCP tokens stop working immediately.',
+    warnLogs: 'Delivery logs and stored mail metadata for this tenant are deleted.',
+    warnAccounts:
+      'Members who only belong here lose their account. People who still belong elsewhere, or platform administrators, are kept.',
+    continue: 'I understand, continue',
+    back: 'Back',
+    confirmLead: (name) =>
+      `Type ${name} and confirm. This cannot be undone.`,
+    confirmName: 'Organization name',
+    acknowledge: 'I understand this cannot be undone.',
+    delete: 'Delete organization',
+    deleting: 'Deleting…',
+    failed: 'Could not delete this organization',
+    ownerOnly: 'Only the organization owner can delete this tenant.',
+    platformProtected: 'The platform tenant cannot be deleted.',
   },
   users: {
     addTitle: 'Add platform user',
@@ -1500,6 +1558,8 @@ const de: Dict = {
     resetInvalid: 'Dieser Link ist ungültig oder abgelaufen.',
     resetMissing: 'Dieser Link ist unvollständig.',
     backToSignIn: 'Zurück zur Anmeldung',
+    tenantRemoved:
+      'Diese Organisation und ihre Versanddaten wurden gelöscht.',
   },
   register: {
     kickerStory: 'RelayHorizon-Konsole',
@@ -1551,6 +1611,7 @@ const de: Dict = {
     backToTenant: (name) => `← ${name} Mandant`,
     backToConsole: '← Mandantenkonsole',
     guide: 'Handbuch',
+    organization: 'Organisation',
   },
   changelog: {
     title: 'Versionshinweise',
@@ -1661,10 +1722,39 @@ const de: Dict = {
     delete: 'Löschen',
     deleting: 'Löschen…',
     deleteLead: 'Entfernt diesen Mandanten mit Domains, Schlüsseln und Protokollen.',
+    dangerZone: 'Gefahrenzone',
     platformProtected: 'Der Plattformmandant kann nicht gelöscht werden.',
     confirmDelete: 'Diesen Mandanten mit Domains, Schlüsseln und Protokollen löschen?',
     deleted: 'Mandant gelöscht.',
     deleteFailed: 'Mandant konnte nicht gelöscht werden',
+  },
+  organization: {
+    aboutTitle: 'Diese Organisation',
+    lead: 'Identität dieses Versandmandanten. Der Slug ist der feste Bezeichner.',
+    name: 'Organisation',
+    nameHint: 'Nur ein Plattformadministrator kann diesen Namen ändern.',
+    slug: 'Slug',
+    slugHint: 'Bezeichner. Dieser kann nicht geändert werden.',
+    dangerTitle: 'Gefahrenzone',
+    dangerLead:
+      'Damit wird die Organisation endgültig gelöscht. Eine Wiederherstellung ist nicht möglich.',
+    warnDomains: 'Versanddomains und DNS-Einrichtung dieses Mandanten entfallen.',
+    warnKeys: 'API-Schlüssel und MCP-Token funktionieren sofort nicht mehr.',
+    warnLogs:
+      'Zustellprotokolle und gespeicherte Mail-Metadaten dieses Mandanten werden gelöscht.',
+    warnAccounts:
+      'Mitglieder, die nur hier gehören, verlieren ihr Konto. Wer noch woanders Mitglied ist oder Plattformadministrator ist, bleibt erhalten.',
+    continue: 'Verstanden, weiter',
+    back: 'Zurück',
+    confirmLead: (name) =>
+      `Geben Sie ${name} ein und bestätigen Sie. Das kann nicht rückgängig gemacht werden.`,
+    confirmName: 'Organisationsname',
+    acknowledge: 'Ich verstehe, dass das nicht rückgängig zu machen ist.',
+    delete: 'Organisation löschen',
+    deleting: 'Löschen…',
+    failed: 'Organisation konnte nicht gelöscht werden',
+    ownerOnly: 'Nur der Inhaber kann diesen Mandanten löschen.',
+    platformProtected: 'Der Plattformmandant kann nicht gelöscht werden.',
   },
   users: {
     addTitle: 'Plattformbenutzer hinzufügen',
@@ -2209,6 +2299,8 @@ const hu: Dict = {
     resetInvalid: 'Ez a link érvénytelen vagy lejárt.',
     resetMissing: 'Ez a link hiányos.',
     backToSignIn: 'Vissza a belépéshez',
+    tenantRemoved:
+      'Ez a szervezet és a küldési adatai törölve lettek.',
   },
   register: {
     kickerStory: 'RelayHorizon konzol',
@@ -2260,6 +2352,7 @@ const hu: Dict = {
     backToTenant: (name) => `← ${name} bérlő`,
     backToConsole: '← Bérlőkonzol',
     guide: 'Útmutató',
+    organization: 'Szervezet',
   },
   changelog: {
     title: 'Kiadási jegyzetek',
@@ -2370,10 +2463,38 @@ const hu: Dict = {
     delete: 'Törlés',
     deleting: 'Törlés…',
     deleteLead: 'Eltávolítja a bérlőt a domainjeivel, kulcsaival és naplóival.',
+    dangerZone: 'Veszélyzóna',
     platformProtected: 'A platform bérlő nem törölhető.',
     confirmDelete: 'Törli ezt a bérlőt a domainjeivel, kulcsaival és naplóival?',
     deleted: 'A bérlő törölve.',
     deleteFailed: 'A bérlő törlése sikertelen',
+  },
+  organization: {
+    aboutTitle: 'Ez a szervezet',
+    lead: 'A küldő bérlő azonosítója. A slug a stabil azonosító.',
+    name: 'Szervezet',
+    nameHint: 'Csak a platformadminisztrátor módosíthatja ezt a nevet.',
+    slug: 'Slug',
+    slugHint: 'Azonosító. Ez nem módosítható.',
+    dangerTitle: 'Veszélyzóna',
+    dangerLead:
+      'Ez véglegesen törli a szervezetet. Visszaállítás nincs.',
+    warnDomains: 'A bérlő küldő domainjei és DNS-beállításai törlődnek.',
+    warnKeys: 'Az API-kulcsok és az MCP-tokenek azonnal érvénytelenek.',
+    warnLogs: 'A bérlő kézbesítési naplói és tárolt levéladatai törlődnek.',
+    warnAccounts:
+      'Akik csak ide tartoznak, elveszítik a fiókjukat. Aki máshol is tag, vagy platformadminisztrátor, megmarad.',
+    continue: 'Értem, folytatás',
+    back: 'Vissza',
+    confirmLead: (name) =>
+      `Írja be: ${name}, majd erősítse meg. A művelet nem vonható vissza.`,
+    confirmName: 'Szervezet neve',
+    acknowledge: 'Értem, hogy ez nem vonható vissza.',
+    delete: 'Szervezet törlése',
+    deleting: 'Törlés…',
+    failed: 'A szervezet törlése sikertelen',
+    ownerOnly: 'Csak a szervezet tulajdonosa törölheti ezt a bérlőt.',
+    platformProtected: 'A platform bérlő nem törölhető.',
   },
   users: {
     addTitle: 'Platformfelhasználó hozzáadása',

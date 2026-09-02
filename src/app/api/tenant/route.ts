@@ -2,10 +2,20 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
-import { updateTenantRouting } from '@/lib/tenants';
+import {
+  assertCanSelfDeleteTenant,
+  assertTenantNameConfirmed,
+  deleteTenant,
+  TenantError,
+  updateTenantRouting,
+} from '@/lib/tenants';
 import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 import { resolveSmtpPublicPorts } from '@/lib/smtp-listen';
+
+const deleteSchema = z.object({
+  confirmName: z.string().min(1),
+});
 
 const schema = z.object({
   inboundTransport: z.enum(['https', 'smtp', 'both']).optional(),
@@ -113,5 +123,36 @@ export async function PATCH(request: NextRequest) {
       return json({ error: 'Invalid request data', details: err.errors }, 400);
     }
     return json({ error: err.message || 'Internal server error' }, 400);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await resolveTenantSession(request);
+    if (!session.user || session.mcp || session.apiKey) {
+      return json({ error: 'Dashboard session required' }, 401);
+    }
+    const body = deleteSchema.parse(await request.json());
+    assertCanSelfDeleteTenant({
+      slug: session.tenant.slug,
+      actorRole: session.user.membershipRole,
+      isPlatformAdmin: session.user.isPlatformAdmin,
+    });
+    assertTenantNameConfirmed(session.tenant.name, body.confirmName);
+    await deleteTenant(session.tenant.id);
+    return json({ success: true, data: { deleted: true } });
+  } catch (error: unknown) {
+    if (error instanceof AuthError) {
+      return json({ error: error.message }, error.status);
+    }
+    if (error instanceof TenantError) {
+      return json({ error: error.message }, error.status);
+    }
+    const err = error as { errors?: unknown; message?: string };
+    if (err.errors) {
+      return json({ error: 'Invalid request data', details: err.errors }, 400);
+    }
+    console.error(error);
+    return json({ error: err.message || 'Internal server error' }, 500);
   }
 }

@@ -10,6 +10,7 @@
   --accent: oklch(88% 0.23 125);
   --accent-ink: oklch(17% 0.04 140);
   --danger: oklch(69% 0.17 25);
+  --danger-ink: oklch(99% 0.01 25);
   --display: var(--font-body-file), 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   --body: var(--font-body-file), 'Avenir Next', Avenir, 'Segoe UI', sans-serif;
   --mono: var(--font-mono-file), 'SFMono-Regular', 'SF Mono', Consolas, monospace;
@@ -29,6 +30,7 @@
   --accent: oklch(77% 0.19 126);
   --accent-ink: oklch(15% 0.038 150);
   --danger: oklch(52% 0.18 25);
+  --danger-ink: oklch(99% 0.01 25);
 }
 
 html,

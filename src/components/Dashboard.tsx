@@ -10,9 +10,17 @@ import AgentsTab from './AgentsTab';
 import EmailLogsTab from './EmailLogsTab';
 import SendingTab from './SendingTab';
 import GuideTab from './GuideTab';
+import OrganizationTab from './OrganizationTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
-type Tab = 'sending' | 'domains' | 'apikeys' | 'agents' | 'logs' | 'guide';
+type Tab =
+  | 'sending'
+  | 'domains'
+  | 'apikeys'
+  | 'agents'
+  | 'logs'
+  | 'organization'
+  | 'guide';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,6 +34,7 @@ export default function Dashboard() {
     apikeys: t.nav.apiKeys,
     agents: t.nav.agents,
     logs: t.nav.logs,
+    organization: t.nav.organization,
     guide: t.nav.guide,
   };
 
@@ -35,6 +44,7 @@ export default function Dashboard() {
     { id: 'apikeys', label: tabLabels.apikeys },
     { id: 'agents', label: tabLabels.agents },
     { id: 'logs', label: tabLabels.logs },
+    { id: 'organization', label: tabLabels.organization },
     { id: 'guide', label: tabLabels.guide },
   ];
 
@@ -68,6 +78,7 @@ export default function Dashboard() {
       {activeTab === 'apikeys' && <ApiKeysTab />}
       {activeTab === 'agents' && <AgentsTab kind="tenant" />}
       {activeTab === 'logs' && <EmailLogsTab />}
+      {activeTab === 'organization' && <OrganizationTab />}
       {activeTab === 'guide' && <GuideTab kind="tenant" />}
     </AppShell>
   );

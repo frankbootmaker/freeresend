@@ -148,6 +148,13 @@ class ApiClient {
     return this.request("/tenant");
   }
 
+  async deleteCurrentTenant(confirmName: string) {
+    return this.request('/tenant', {
+      method: 'DELETE',
+      body: JSON.stringify({ confirmName }),
+    });
+  }
+
   async updateTenantSending(payload: {
     inboundTransport?: "https" | "smtp" | "both";
     outboundTransport?: "ses" | "smtp";

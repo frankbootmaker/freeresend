@@ -27,6 +27,7 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [removed, setRemoved] = useState(false);
   const [oidcEnabled, setOidcEnabled] = useState(false);
   const [oidcButtonLabel, setOidcButtonLabel] = useState('');
   const { login } = useAuth();
@@ -45,6 +46,11 @@ export default function LoginForm({
         setOidcEnabled(false);
         setOidcButtonLabel('');
       });
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRemoved(params.get('removed') === '1');
   }, []);
 
   useEffect(() => {
@@ -86,6 +92,7 @@ export default function LoginForm({
         <form className="authform" onSubmit={handleSubmit}>
           <h1>{t.login.title}</h1>
           <p>{t.login.lead}</p>
+          {removed && <div className="key">{t.login.tenantRemoved}</div>}
           <div className="field">
             <label htmlFor="email">{t.login.email}</label>
             <input

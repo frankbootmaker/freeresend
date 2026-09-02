@@ -139,16 +139,67 @@ export function assertCanDeleteTenant(slug: string): void {
   }
 }
 
+export function assertTenantNameConfirmed(
+  actual: string,
+  confirmName: string,
+): void {
+  if (actual.trim() !== confirmName.trim()) {
+    throw new TenantError(
+      'TENANT_NAME_MISMATCH',
+      'Type the organization name exactly to confirm',
+      400,
+    );
+  }
+}
+
+export function assertCanSelfDeleteTenant(input: {
+  slug: string;
+  actorRole?: string;
+  isPlatformAdmin?: boolean;
+}): void {
+  assertCanDeleteTenant(input.slug);
+  if (input.isPlatformAdmin || input.actorRole === 'owner') {
+    return;
+  }
+  throw new TenantError(
+    'TENANT_DELETE_FORBIDDEN',
+    'Only the organization owner can delete this tenant',
+    403,
+  );
+}
+
 export async function deleteTenant(tenantId: string): Promise<void> {
   const tenant = await getTenantById(tenantId);
   if (!tenant) {
     throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
   }
   assertCanDeleteTenant(tenant.slug);
-  const result = await query('DELETE FROM tenants WHERE id = $1', [tenantId]);
-  if (result.rowCount === 0) {
-    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
-  }
+  await transaction(async (client) => {
+    const members = await client.query(
+      'SELECT user_id FROM tenant_memberships WHERE tenant_id = $1',
+      [tenantId],
+    );
+    const userIds = members.rows.map((row) => row.user_id);
+    const result = await client.query(
+      'DELETE FROM tenants WHERE id = $1',
+      [tenantId],
+    );
+    if (result.rowCount === 0) {
+      throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+    }
+    if (userIds.length === 0) {
+      return;
+    }
+    await client.query(
+      `DELETE FROM users
+       WHERE id = ANY($1::uuid[])
+         AND is_platform_admin = FALSE
+         AND NOT EXISTS (
+           SELECT 1 FROM tenant_memberships tm WHERE tm.user_id = users.id
+         )`,
+      [userIds],
+    );
+  });
 }
 
 export async function listTenants(): Promise<Tenant[]> {

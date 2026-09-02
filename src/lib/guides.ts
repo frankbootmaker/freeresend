@@ -365,6 +365,15 @@ const TENANT: Record<Locale, Guide> = {
           'Bounces and complaints update after SES SNS is connected to /api/webhooks/ses.',
         ],
       },
+      {
+        id: 'organization',
+        title: 'Organization',
+        paragraphs: [
+          'The organization name can be changed only by a platform administrator.',
+          'Owners can delete this organization under Organization. That is a two-step confirmation: read the warnings, then type the organization name.',
+          'Delete removes domains, keys, logs, and accounts that exist only here. The platform tenant cannot be deleted.',
+        ],
+      },
     ],
   },
   de: {
@@ -429,6 +438,15 @@ const TENANT: Record<Locale, Guide> = {
           'Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt.',
         ],
       },
+      {
+        id: 'organization',
+        title: 'Organisation',
+        paragraphs: [
+          'Den Organisationsnamen kann nur ein Plattformadministrator ändern.',
+          'Inhaber können diese Organisation unter Organisation löschen. Zwei Schritte: Warnungen lesen, dann den Organisationsnamen eingeben.',
+          'Löschen entfernt Domains, Schlüssel, Protokolle und Konten, die nur hier existieren. Der Plattformmandant kann nicht gelöscht werden.',
+        ],
+      },
     ],
   },
   hu: {
@@ -491,6 +509,15 @@ const TENANT: Record<Locale, Guide> = {
         paragraphs: [
           'Ennek a bérlőnek a kézbesítési eseményei.',
           'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat.',
+        ],
+      },
+      {
+        id: 'organization',
+        title: 'Szervezet',
+        paragraphs: [
+          'A szervezet nevét csak a platformadminisztrátor módosíthatja.',
+          'A tulajdonos a Szervezet lapon törölheti a szervezetet. Két lépés: figyelmeztetések, majd a szervezet nevének begépelése.',
+          'A törlés eltávolítja a domaineket, kulcsokat, naplókat, és azokat a fiókokat, amelyek csak ide tartoznak. A platform bérlő nem törölhető.',
         ],
       },
     ],

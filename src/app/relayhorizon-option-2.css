@@ -145,6 +145,25 @@ button:disabled:hover,
   color: var(--accent-ink);
 }
 
+.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--danger-ink);
+  font-weight: 700;
+}
+
+.danger:hover {
+  background: oklch(from var(--danger) calc(l - 0.08) c h);
+  border-color: oklch(from var(--danger) calc(l - 0.08) c h);
+  color: var(--danger-ink);
+}
+
+.danger:disabled:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--danger-ink);
+}
+
 .landing {
   min-height: 100vh;
   display: grid;
@@ -861,6 +880,19 @@ textarea {
   margin: 0;
 }
 
+.card.danger-zone {
+  border-color: var(--danger);
+}
+
+.card.danger-zone .cardhead {
+  background: oklch(from var(--danger) l c h / 0.12);
+  border-bottom-color: var(--danger);
+}
+
+.card.danger-zone .cardhead h2 {
+  color: var(--danger);
+}
+
 .cardbody {
   padding: 12px;
 }
@@ -1092,8 +1124,42 @@ code {
 }
 
 .manage-danger h3 {
-  font: 15px var(--display);
+  font: 600 12px var(--body);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   margin: 0 0 8px;
+  color: var(--danger);
+}
+
+.warnlist {
+  margin: 0 0 16px;
+  padding-left: 1.2em;
+}
+
+.warnlist li {
+  margin: 6px 0;
+}
+
+.checkline {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px 0 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.checkline input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  margin: 0;
+  padding: 0;
+  flex: none;
 }
 
 @media (max-width: 760px) {

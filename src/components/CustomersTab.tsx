@@ -325,7 +325,7 @@ export default function CustomersTab() {
             )}
             {panelResult && <div className="key">{panelResult}</div>}
             <div className="manage-danger">
-              <h3>{t.customers.delete}</h3>
+              <h3>{t.customers.dangerZone}</h3>
               {managed.slug === 'platform' ? (
                 <p className="muted">{t.customers.platformProtected}</p>
               ) : (
@@ -333,6 +333,7 @@ export default function CustomersTab() {
                   <p className="muted">{t.customers.deleteLead}</p>
                   <button
                     type="button"
+                    className="danger"
                     disabled={deleting}
                     onClick={removeTenant}
                   >

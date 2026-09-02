@@ -50,3 +50,11 @@ Each tenant has a switch:
 Set both switches in the dashboard **Sending** tab or `PATCH /api/tenant`.
 
 Local: `docker compose --profile dev up` and point SMTP host at `mailhog` port `1026`.
+
+## Organization deletion (GDPR)
+
+The organization owner can erase this tenant from the console **Organization** tab. It is a two-step confirmation: read the warnings, then type the organization name and acknowledge that the action cannot be undone.
+
+That deletes domains, API keys, MCP tokens, delivery logs, and accounts that exist only in this tenant. People who still belong to another tenant, or who are platform administrators, are kept. The platform tenant cannot be deleted.
+
+`DELETE /api/tenant` with `{ "confirmName": "<organization name>" }` requires a dashboard session (not an API key or MCP token).
