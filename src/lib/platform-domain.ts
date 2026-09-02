@@ -14,7 +14,12 @@ import {
   suggestedSystemDomain,
   type SuggestedSystemDomain,
 } from '@/lib/system-domain-name';
-import { createTenant, getTenantBySlug, type Tenant } from '@/lib/tenants';
+import {
+  createTenant,
+  getTenantBySlug,
+  PLATFORM_TENANT_SLUG,
+  type Tenant,
+} from '@/lib/tenants';
 
 export {
   DEFAULT_PLATFORM_LOCAL_PART,
@@ -27,7 +32,7 @@ export {
 } from '@/lib/system-domain-name';
 export type { SuggestedSystemDomain } from '@/lib/system-domain-name';
 
-export const PLATFORM_TENANT_SLUG = 'platform';
+export { PLATFORM_TENANT_SLUG } from '@/lib/tenants';
 
 export type PublicSystemDomain = {
   id: string;

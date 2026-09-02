@@ -262,6 +262,23 @@ type Dict = {
     state: string;
     bothIngress: string;
     passwordPlaceholder: string;
+    manage: string;
+    manageTitle: (name: string) => string;
+    close: string;
+    slugHint: string;
+    edit: string;
+    save: string;
+    saving: string;
+    cancel: string;
+    updated: string;
+    updateFailed: string;
+    delete: string;
+    deleting: string;
+    deleteLead: string;
+    platformProtected: string;
+    confirmDelete: string;
+    deleted: string;
+    deleteFailed: string;
   };
   users: {
     addTitle: string;
@@ -287,6 +304,10 @@ type Dict = {
     revoke: string;
     revoking: string;
     revoked: string;
+    delete: string;
+    deleting: string;
+    confirmDelete: string;
+    deleted: string;
     failed: string;
   };
   agents: {
@@ -918,6 +939,23 @@ const en: Dict = {
     state: 'State',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Initial credential',
+    manage: 'Manage',
+    manageTitle: (name) => `Manage ${name}`,
+    close: 'Close',
+    slugHint: 'Identifier. This cannot be changed.',
+    edit: 'Edit',
+    save: 'Save',
+    saving: 'Saving…',
+    cancel: 'Cancel',
+    updated: 'Organization name updated.',
+    updateFailed: 'Could not update tenant',
+    delete: 'Delete',
+    deleting: 'Deleting…',
+    deleteLead: 'Removes this tenant and its domains, keys, and logs.',
+    platformProtected: 'The platform tenant cannot be deleted.',
+    confirmDelete: 'Delete this tenant and its domains, keys, and logs?',
+    deleted: 'Tenant deleted.',
+    deleteFailed: 'Could not delete tenant',
   },
   users: {
     addTitle: 'Add platform user',
@@ -944,6 +982,10 @@ const en: Dict = {
     revoke: 'Revoke',
     revoking: 'Revoking…',
     revoked: 'Platform access revoked.',
+    delete: 'Delete',
+    deleting: 'Deleting…',
+    confirmDelete: 'Delete this platform user account?',
+    deleted: 'Platform user deleted.',
     failed: 'User update failed',
   },
   agents: {
@@ -1606,6 +1648,23 @@ const de: Dict = {
     state: 'Status',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Anfangs-Zugangsdaten',
+    manage: 'Verwalten',
+    manageTitle: (name) => `${name} verwalten`,
+    close: 'Schließen',
+    slugHint: 'Bezeichner. Dieser kann nicht geändert werden.',
+    edit: 'Bearbeiten',
+    save: 'Speichern',
+    saving: 'Speichern…',
+    cancel: 'Abbrechen',
+    updated: 'Organisationsname aktualisiert.',
+    updateFailed: 'Mandant konnte nicht aktualisiert werden',
+    delete: 'Löschen',
+    deleting: 'Löschen…',
+    deleteLead: 'Entfernt diesen Mandanten mit Domains, Schlüsseln und Protokollen.',
+    platformProtected: 'Der Plattformmandant kann nicht gelöscht werden.',
+    confirmDelete: 'Diesen Mandanten mit Domains, Schlüsseln und Protokollen löschen?',
+    deleted: 'Mandant gelöscht.',
+    deleteFailed: 'Mandant konnte nicht gelöscht werden',
   },
   users: {
     addTitle: 'Plattformbenutzer hinzufügen',
@@ -1632,6 +1691,10 @@ const de: Dict = {
     revoke: 'Entziehen',
     revoking: 'Wird entzogen…',
     revoked: 'Plattformzugang entzogen.',
+    delete: 'Löschen',
+    deleting: 'Löschen…',
+    confirmDelete: 'Dieses Plattformbenutzerkonto löschen?',
+    deleted: 'Plattformbenutzer gelöscht.',
     failed: 'Benutzeränderung fehlgeschlagen',
   },
   agents: {
@@ -2294,6 +2357,23 @@ const hu: Dict = {
     state: 'Állapot',
     bothIngress: 'HTTPS + SMTP',
     passwordPlaceholder: 'Kezdő jelszó',
+    manage: 'Kezelés',
+    manageTitle: (name) => `${name} kezelése`,
+    close: 'Bezárás',
+    slugHint: 'Azonosító. Ez nem módosítható.',
+    edit: 'Szerkesztés',
+    save: 'Mentés',
+    saving: 'Mentés…',
+    cancel: 'Mégse',
+    updated: 'A szervezet neve frissült.',
+    updateFailed: 'A bérlő frissítése sikertelen',
+    delete: 'Törlés',
+    deleting: 'Törlés…',
+    deleteLead: 'Eltávolítja a bérlőt a domainjeivel, kulcsaival és naplóival.',
+    platformProtected: 'A platform bérlő nem törölhető.',
+    confirmDelete: 'Törli ezt a bérlőt a domainjeivel, kulcsaival és naplóival?',
+    deleted: 'A bérlő törölve.',
+    deleteFailed: 'A bérlő törlése sikertelen',
   },
   users: {
     addTitle: 'Platformfelhasználó hozzáadása',
@@ -2320,6 +2400,10 @@ const hu: Dict = {
     revoke: 'Visszavonás',
     revoking: 'Visszavonás…',
     revoked: 'A platformhozzáférés visszavonva.',
+    delete: 'Törlés',
+    deleting: 'Törlés…',
+    confirmDelete: 'Törli ezt a platformfelhasználói fiókot?',
+    deleted: 'A platformfelhasználó törölve.',
     failed: 'A felhasználó frissítése sikertelen',
   },
   agents: {

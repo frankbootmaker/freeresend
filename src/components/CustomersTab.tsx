@@ -27,6 +27,12 @@ export default function CustomersTab() {
   const [result, setResult] = useState('');
   const [error, setError] = useState('');
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [managed, setManaged] = useState<TenantRow | null>(null);
+  const [editName, setEditName] = useState('');
+  const [panelError, setPanelError] = useState('');
+  const [panelResult, setPanelResult] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const refresh = () => {
     api.listCustomers().then((res) => setTenants(res.data.tenants || []));
@@ -76,6 +82,64 @@ export default function CustomersTab() {
       refresh();
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.customers.failed);
+    }
+  };
+
+  const openManage = (row: TenantRow) => {
+    setError('');
+    setResult('');
+    setPanelError('');
+    setPanelResult('');
+    setManaged(row);
+    setEditName(row.name);
+  };
+
+  const closeManage = () => {
+    setManaged(null);
+    setEditName('');
+    setPanelError('');
+    setPanelResult('');
+  };
+
+  const saveName = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!managed) return;
+    setPanelError('');
+    setPanelResult('');
+    setSaving(true);
+    try {
+      const res = await api.updateCustomer(managed.id, { name: editName });
+      const nextName = res.data?.tenant?.name || editName.trim();
+      setManaged({ ...managed, name: nextName });
+      setEditName(nextName);
+      setPanelResult(t.customers.updated);
+      refresh();
+    } catch (err: unknown) {
+      setPanelError(
+        (err as { message?: string }).message || t.customers.updateFailed,
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeTenant = async () => {
+    if (!managed || managed.slug === 'platform') return;
+    if (!confirm(t.customers.confirmDelete)) return;
+    setPanelError('');
+    setPanelResult('');
+    setDeleting(true);
+    try {
+      await api.deleteCustomer(managed.id);
+      setResult(t.customers.deleted);
+      closeManage();
+      refresh();
+    } catch (err: unknown) {
+      setPanelError(
+        (err as { message?: string }).message || t.customers.deleteFailed,
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -187,14 +251,20 @@ export default function CustomersTab() {
                   <td>{routeLabel(row)}</td>
                   <td className="ok">{row.status.toUpperCase()}</td>
                   <td>
-                    <button
-                      type="button"
-                      className="tenant-open"
-                      disabled={openingId === row.id}
-                      onClick={() => openTenant(row.id)}
-                    >
-                      {openingId === row.id ? t.customers.opening : t.customers.open}
-                    </button>
+                    <div className="inline-actions">
+                      <button
+                        type="button"
+                        disabled={openingId === row.id}
+                        onClick={() => openTenant(row.id)}
+                      >
+                        {openingId === row.id
+                          ? t.customers.opening
+                          : t.customers.open}
+                      </button>
+                      <button type="button" onClick={() => openManage(row)}>
+                        {t.customers.manage}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -202,6 +272,78 @@ export default function CustomersTab() {
           </table>
         </div>
       </section>
+      {managed && (
+        <div className="modal-backdrop" onClick={closeManage}>
+          <div
+            className="modal-panel tenant-manage"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tenant-manage-title"
+          >
+            <div className="releasenotes-head">
+              <h2 id="tenant-manage-title">
+                {t.customers.manageTitle(managed.name)}
+              </h2>
+              <button type="button" onClick={closeManage}>
+                {t.customers.close}
+              </button>
+            </div>
+            <form onSubmit={saveName}>
+              <div className="formgrid">
+                <div className="field">
+                  <label>{t.customers.org}</label>
+                  <input
+                    required
+                    maxLength={120}
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
+                </div>
+                <div className="field">
+                  <label>{t.customers.slug}</label>
+                  <div>{managed.slug}</div>
+                  <p className="muted">{t.customers.slugHint}</p>
+                </div>
+                <div className="field">
+                  <label>{t.customers.route}</label>
+                  <div>{routeLabel(managed)}</div>
+                </div>
+                <div className="field">
+                  <label>{t.customers.state}</label>
+                  <div className="ok">{managed.status.toUpperCase()}</div>
+                </div>
+              </div>
+              <div className="inline-actions">
+                <button className="primary" type="submit" disabled={saving}>
+                  {saving ? t.customers.saving : t.customers.save}
+                </button>
+              </div>
+            </form>
+            {panelError && (
+              <div className="fr-error" role="alert">{panelError}</div>
+            )}
+            {panelResult && <div className="key">{panelResult}</div>}
+            <div className="manage-danger">
+              <h3>{t.customers.delete}</h3>
+              {managed.slug === 'platform' ? (
+                <p className="muted">{t.customers.platformProtected}</p>
+              ) : (
+                <>
+                  <p className="muted">{t.customers.deleteLead}</p>
+                  <button
+                    type="button"
+                    disabled={deleting}
+                    onClick={removeTenant}
+                  >
+                    {deleting ? t.customers.deleting : t.customers.delete}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -41,6 +41,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Create an organization, an owner, and an optional sending domain.',
           'Copy the API key and MCP token immediately. They are shown once.',
+          'Manage opens a panel to rename the organization or delete the tenant. The slug stays as the identifier. The platform tenant cannot be deleted.',
         ],
       },
       {
@@ -48,7 +49,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Users',
         paragraphs: [
           'People who can open this portal. Create a new administrator or promote an existing account by email.',
-          'You cannot revoke yourself or the last administrator. Revoke only clears portal access.',
+          'You cannot revoke or delete yourself or the last administrator. Revoke only clears portal access. Delete removes the account.',
         ],
       },
       {
@@ -135,6 +136,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Legen Sie eine Organisation, einen Owner und optional eine Versanddomain an.',
           'API-Schlüssel und MCP-Token sofort kopieren. Sie werden nur einmal angezeigt.',
+          'Verwalten öffnet ein Panel zum Umbenennen oder Löschen. Der Slug bleibt der Bezeichner. Der Plattformmandant kann nicht gelöscht werden.',
         ],
       },
       {
@@ -142,7 +144,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Benutzer',
         paragraphs: [
           'Personen mit Zugang zu diesem Portal. Neuen Administrator anlegen oder ein bestehendes Konto per E-Mail befördern.',
-          'Sie können sich selbst oder den letzten Administrator nicht entziehen. Entzug nimmt nur den Portalzugang.',
+          'Sie können sich selbst oder den letzten Administrator nicht entziehen oder löschen. Entzug nimmt nur den Portalzugang. Löschen entfernt das Konto.',
         ],
       },
       {
@@ -229,6 +231,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Hozzon létre szervezetet, tulajdonost, és opcionálisan küldő domaint.',
           'Az API-kulcsot és az MCP-tokent azonnal másolja. Csak egyszer jelennek meg.',
+          'A kezelés panelen átnevezheti a szervezetet vagy törölheti a bérlőt. A slug azonosító marad. A platform bérlő nem törölhető.',
         ],
       },
       {
@@ -236,7 +239,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Felhasználók',
         paragraphs: [
           'Akik megnyithatják ezt a portált. Új admint hozhat létre, vagy meglévő fiókot emelhet e-mail alapján.',
-          'Saját magát vagy az utolsó admint nem vonhatja vissza. A visszavonás csak a portálhozzáférést törli.',
+          'Saját magát vagy az utolsó admint nem vonhatja vissza és nem törölheti. A visszavonás csak a portálhozzáférést törli. A törlés a fiókot távolítja el.',
         ],
       },
       {

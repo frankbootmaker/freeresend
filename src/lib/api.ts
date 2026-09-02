@@ -209,6 +209,21 @@ class ApiClient {
     return this.request(`/admin/users/${id}`, { method: 'DELETE' });
   }
 
+  async deletePlatformUser(id: string) {
+    return this.request(`/admin/users/${id}?purge=1`, { method: 'DELETE' });
+  }
+
+  async updateCustomer(id: string, payload: { name: string }) {
+    return this.request(`/admin/customers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async deleteCustomer(id: string) {
+    return this.request(`/admin/customers/${id}`, { method: 'DELETE' });
+  }
+
   async listPlatformAgents() {
     return this.request('/admin/agents');
   }

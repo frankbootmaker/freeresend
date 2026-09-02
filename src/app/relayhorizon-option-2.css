@@ -1081,6 +1081,21 @@ code {
   padding: 20px;
 }
 
+.modal-panel.tenant-manage {
+  width: min(560px, 100%);
+}
+
+.manage-danger {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.manage-danger h3 {
+  font: 15px var(--display);
+  margin: 0 0 8px;
+}
+
 @media (max-width: 760px) {
   .hero {
     grid-template-columns: 1fr;

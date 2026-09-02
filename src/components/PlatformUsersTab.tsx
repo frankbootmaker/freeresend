@@ -83,6 +83,22 @@ export default function PlatformUsersTab() {
     }
   };
 
+  const remove = async (id: string) => {
+    if (!confirm(t.users.confirmDelete)) return;
+    setError('');
+    setResult('');
+    setBusyId(id);
+    try {
+      await api.deletePlatformUser(id);
+      setResult(t.users.deleted);
+      await refresh();
+    } catch (err: unknown) {
+      setError((err as { message?: string }).message || t.users.failed);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const savePassword = async (e: FormEvent, id: string) => {
     e.preventDefault();
     setError('');
@@ -206,7 +222,6 @@ export default function PlatformUsersTab() {
                           <div className="inline-actions">
                             <button
                               type="button"
-                              className="tenant-open"
                               onClick={() => {
                                 setResetId(row.id);
                                 setResetPassword('');
@@ -215,16 +230,26 @@ export default function PlatformUsersTab() {
                               {t.users.setPassword}
                             </button>
                             {!isYou && (
-                              <button
-                                type="button"
-                                className="tenant-open"
-                                disabled={busyId === row.id}
-                                onClick={() => revoke(row.id)}
-                              >
-                                {busyId === row.id
-                                  ? t.users.revoking
-                                  : t.users.revoke}
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={busyId === row.id}
+                                  onClick={() => revoke(row.id)}
+                                >
+                                  {busyId === row.id
+                                    ? t.users.revoking
+                                    : t.users.revoke}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={busyId === row.id}
+                                  onClick={() => remove(row.id)}
+                                >
+                                  {busyId === row.id
+                                    ? t.users.deleting
+                                    : t.users.delete}
+                                </button>
+                              </>
                             )}
                           </div>
                         )}

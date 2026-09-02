@@ -39,7 +39,7 @@ export default function Dashboard() {
   ];
 
   const tenantName = tenant?.name || t.nav.tenantFallback;
-  const crumb = tenant?.slug || tenantName;
+  const crumb = tenantName;
 
   return (
     <AppShell

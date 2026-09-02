@@ -2,6 +2,8 @@ import { query, transaction } from './database';
 import { hashPassword, randomToken } from './auth-crypto';
 import { normalizeInboundTransport, type InboundTransport } from './ingress';
 
+export const PLATFORM_TENANT_SLUG = 'platform';
+
 export type TenantStatus = 'pending_verification' | 'active' | 'suspended';
 export type OutboundTransport = 'ses' | 'smtp';
 export type MembershipRole = 'owner' | 'admin' | 'member';
@@ -76,6 +78,77 @@ export async function getTenantBySlug(slug: string): Promise<Tenant | null> {
     [slug],
   );
   return result.rows[0] ? parseTenant(result.rows[0]) : null;
+}
+
+export class TenantError extends Error {
+  code: string;
+  status: number;
+
+  constructor(code: string, message: string, status = 400) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
+}
+
+export function normalizeTenantName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new TenantError(
+      'TENANT_NAME_REQUIRED',
+      'Organization name is required',
+      400,
+    );
+  }
+  if (trimmed.length > 120) {
+    throw new TenantError(
+      'TENANT_NAME_TOO_LONG',
+      'Organization name must be 120 characters or fewer',
+      400,
+    );
+  }
+  return trimmed;
+}
+
+export async function updateTenantName(
+  tenantId: string,
+  name: string,
+): Promise<Tenant> {
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  const nextName = normalizeTenantName(name);
+  const result = await query(
+    'UPDATE tenants SET name = $2 WHERE id = $1 RETURNING *',
+    [tenantId, nextName],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  return parseTenant(result.rows[0]);
+}
+
+export function assertCanDeleteTenant(slug: string): void {
+  if (slug === PLATFORM_TENANT_SLUG) {
+    throw new TenantError(
+      'PLATFORM_TENANT_PROTECTED',
+      'The platform tenant cannot be deleted',
+      400,
+    );
+  }
+}
+
+export async function deleteTenant(tenantId: string): Promise<void> {
+  const tenant = await getTenantById(tenantId);
+  if (!tenant) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  assertCanDeleteTenant(tenant.slug);
+  const result = await query('DELETE FROM tenants WHERE id = $1', [tenantId]);
+  if (result.rowCount === 0) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
 }
 
 export async function listTenants(): Promise<Tenant[]> {

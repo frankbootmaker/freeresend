@@ -224,3 +224,23 @@ export async function revokePlatformAdmin(input: {
     [input.targetId],
   );
 }
+
+export async function deletePlatformAdmin(input: {
+  actorId: string;
+  targetId: string;
+}): Promise<void> {
+  const row = await findAdminById(input.targetId);
+  if (!row || !row.is_platform_admin) {
+    throw new PlatformUserError(
+      'PLATFORM_USER_NOT_FOUND',
+      'Platform administrator not found',
+      404,
+    );
+  }
+  assertCanRevokeAdmin({
+    actorId: input.actorId,
+    targetId: input.targetId,
+    adminCount: await countPlatformAdmins(),
+  });
+  await query('DELETE FROM users WHERE id = $1', [input.targetId]);
+}
