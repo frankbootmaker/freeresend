@@ -1,121 +1,76 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { verifyJWT } from "@/lib/auth";
-import { deleteApiKey, updateApiKeyPermissions } from "@/lib/api-keys";
+import { NextRequest } from 'next/server';
+import { z } from 'zod';
+import { json, optionsResponse } from '@/lib/http';
+import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
+import { deleteApiKey, updateApiKeyPermissions } from '@/lib/api-keys';
 
 const updateApiKeySchema = z.object({
   permissions: z
     .array(z.string())
-    .min(1, "At least one permission is required"),
+    .min(1, 'At least one permission is required'),
 });
 
-function cors(response: NextResponse) {
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  return response;
+export async function OPTIONS() {
+  return optionsResponse();
+}
+
+function handleError(error: unknown) {
+  if (error instanceof AuthError) {
+    return json({ error: error.message }, error.status);
+  }
+  const keyed = error as { name?: string; status?: number; message?: string };
+  if (keyed?.name === 'ApiKeyError' && typeof keyed.status === 'number') {
+    return json({ error: keyed.message }, keyed.status);
+  }
+  const err = error as { errors?: unknown; message?: string };
+  if (err.errors) {
+    return json({ error: 'Invalid request data', details: err.errors }, 400);
+  }
+  console.error('API Error:', error);
+  return json({ error: 'Internal server error' }, 500);
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  // Handle CORS preflight
-  if (request.method === "OPTIONS") {
-    return cors(new NextResponse(null, { status: 200 }));
-  }
-
   try {
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return cors(NextResponse.json(
-        { error: "Missing or invalid authorization header" },
-        { status: 401 }
-      ));
+    const session = await resolveTenantSession(request);
+    if (!session.user) {
+      return json({ error: 'Dashboard session required' }, 401);
     }
 
-    const token = authHeader.substring(7);
-    const user = verifyJWT(token);
-    if (!user) {
-      return cors(NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      ));
-    }
-
-    // Parse and validate request
     const { id } = await params;
-    const body = await request.json();
-    const validatedData = updateApiKeySchema.parse(body);
-    const { permissions } = validatedData;
+    const { permissions } = updateApiKeySchema.parse(await request.json());
+    await updateApiKeyPermissions(id, session.tenant.id, permissions);
 
-    await updateApiKeyPermissions(id, user.id, permissions);
-
-    return cors(NextResponse.json({
+    return json({
       success: true,
-      message: "API key permissions updated successfully",
-    }));
-  } catch (error: unknown) {
-    const errorObj = error as { errors?: unknown; message?: string };
-    if (errorObj.errors || errorObj.message?.includes('validation') || errorObj.message?.includes('parse')) {
-      return cors(NextResponse.json(
-        {
-          error: "Invalid request data",
-          details: errorObj.errors || errorObj.message,
-        },
-        { status: 400 }
-      ));
-    }
-
-    console.error("API Error:", error);
-    return cors(NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    ));
+      message: 'API key permissions updated successfully',
+    });
+  } catch (error) {
+    return handleError(error);
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  // Handle CORS preflight
-  if (request.method === "OPTIONS") {
-    return cors(new NextResponse(null, { status: 200 }));
-  }
-
   try {
-    // Check authorization
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return cors(NextResponse.json(
-        { error: "Missing or invalid authorization header" },
-        { status: 401 }
-      ));
-    }
-
-    const token = authHeader.substring(7);
-    const user = verifyJWT(token);
-    if (!user) {
-      return cors(NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      ));
+    const session = await resolveTenantSession(request);
+    if (!session.user) {
+      return json({ error: 'Dashboard session required' }, 401);
     }
 
     const { id } = await params;
-    await deleteApiKey(id, user.id, user.tenantId);
+    await deleteApiKey(id, session.tenant.id);
 
-    return cors(NextResponse.json({
+    return json({
       success: true,
-      message: "API key deleted successfully",
-    }));
+      message: 'API key deleted successfully',
+    });
   } catch (error) {
-    console.error("API Error:", error);
-    return cors(NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    ));
+    return handleError(error);
   }
 }

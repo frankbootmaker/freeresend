@@ -198,45 +198,43 @@ export async function getDomainApiKeys(domainId: string): Promise<ApiKey[]> {
   }
 }
 
+export class ApiKeyError extends Error {
+  status: number;
+
+  constructor(message: string, status = 404) {
+    super(message);
+    this.name = 'ApiKeyError';
+    this.status = status;
+  }
+}
+
 export async function deleteApiKey(
   keyId: string,
-  userId: string,
-  tenantId?: string,
+  tenantId: string,
 ): Promise<void> {
-  try {
-    const result = await query(
-      `DELETE FROM api_keys
-       WHERE id = $1 AND user_id = $2
-         AND ($3::uuid IS NULL OR tenant_id = $3)`,
-      [keyId, userId, tenantId || null]
-    );
+  const result = await query(
+    `DELETE FROM api_keys
+     WHERE id = $1 AND tenant_id = $2`,
+    [keyId, tenantId],
+  );
 
-    if (result.rowCount === 0) {
-      throw new Error("API key not found or access denied");
-    }
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to delete API key: ${errorMessage}`);
+  if (result.rowCount === 0) {
+    throw new ApiKeyError('API key not found', 404);
   }
 }
 
 export async function updateApiKeyPermissions(
   keyId: string,
-  userId: string,
-  permissions: string[]
+  tenantId: string,
+  permissions: string[],
 ): Promise<void> {
-  try {
-    const result = await query(
-      "UPDATE api_keys SET permissions = $1 WHERE id = $2 AND user_id = $3",
-      [JSON.stringify(permissions), keyId, userId]
-    );
+  const result = await query(
+    'UPDATE api_keys SET permissions = $1 WHERE id = $2 AND tenant_id = $3',
+    [JSON.stringify(permissions), keyId, tenantId],
+  );
 
-    if (result.rowCount === 0) {
-      throw new Error("API key not found or access denied");
-    }
-  } catch (error: unknown) {
-    const errorObj = error as { message?: string };
-    throw new Error(`Failed to update API key permissions: ${errorObj.message}`);
+  if (result.rowCount === 0) {
+    throw new ApiKeyError('API key not found', 404);
   }
 }
 
