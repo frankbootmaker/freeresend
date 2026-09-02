@@ -517,6 +517,7 @@ type Dict = {
     failed: string;
     cannotSend: string;
     delete: string;
+    deleting: string;
     confirmDelete: string;
     added: string;
     hide: string;
@@ -1197,6 +1198,7 @@ const en: Dict = {
     failed: 'Failed',
     cannotSend: 'Sending is blocked until every required record is valid.',
     delete: 'Delete',
+    deleting: 'Deleting…',
     confirmDelete: 'Delete this domain?',
     added: 'Added',
     hide: 'Hide records',
@@ -1885,6 +1887,7 @@ const de: Dict = {
     failed: 'Fehlgeschlagen',
     cannotSend: 'Versand ist gesperrt, bis jeder erforderliche Record gültig ist.',
     delete: 'Löschen',
+    deleting: 'Löschen…',
     confirmDelete: 'Diese Domain löschen?',
     added: 'Hinzugefügt',
     hide: 'Records ausblenden',
@@ -2273,7 +2276,7 @@ const hu: Dict = {
     domain: 'Domain',
     ingress: 'Bejövő',
     egress: 'Kimenet',
-    provision: 'Bérlő provisionálása',
+    provision: 'Bérlő létrehozása',
     registry: 'Bérlőnyilvántartás',
     name: 'Név',
     slug: 'Slug',
@@ -2285,7 +2288,7 @@ const hu: Dict = {
     open: 'Bérlő megnyitása',
     opening: 'Megnyitás…',
     domainOptional: 'Domain (opcionális)',
-    provisionAction: 'Provisionálás',
+    provisionAction: 'Létrehozás',
     organization: 'Szervezet',
     route: 'Útvonal',
     state: 'Állapot',
@@ -2572,6 +2575,7 @@ const hu: Dict = {
     failed: 'Sikertelen',
     cannotSend: 'A küldés mindaddig tiltott, amíg minden kötelező rekord érvényes.',
     delete: 'Törlés',
+    deleting: 'Törlés…',
     confirmDelete: 'Törli ezt a domaint?',
     added: 'Hozzáadva',
     hide: 'Rekordok elrejtése',

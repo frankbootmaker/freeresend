@@ -938,7 +938,7 @@ code {
 
 .filters {
   display: grid;
-  grid-template-columns: 1fr 170px 150px auto;
+  grid-template-columns: 1fr 170px auto auto auto;
   gap: 7px;
   margin-bottom: 10px;
 }

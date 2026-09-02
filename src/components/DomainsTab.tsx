@@ -29,6 +29,7 @@ export default function DomainsTab() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [recordSet, setRecordSet] = useState<'ses' | 'smtp'>('ses');
   const [checkingId, setCheckingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -87,6 +88,9 @@ export default function DomainsTab() {
 
   const handleDeleteDomain = async (domainId: string) => {
     if (!confirm(t.domains.confirmDelete)) return;
+    setDeletingId(domainId);
+    setError('');
+    setMessage('');
     try {
       await api.deleteDomain(domainId);
       const next = domains.filter((domain) => domain.id !== domainId);
@@ -94,6 +98,8 @@ export default function DomainsTab() {
       if (activeId === domainId) setActiveId(next[0]?.id || null);
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.domains.deleteFailed);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -145,6 +151,13 @@ export default function DomainsTab() {
             onClick={() => active && handleVerifyDomain(active.id)}
           >
             {checkingId === active?.id ? t.domains.checking : t.domains.check}
+          </button>
+          <button
+            type="button"
+            disabled={!active || deletingId === active?.id}
+            onClick={() => active && handleDeleteDomain(active.id)}
+          >
+            {deletingId === active?.id ? t.domains.deleting : t.domains.delete}
           </button>
           <button className="primary" type="submit" disabled={addingDomain || !newDomain.trim()}>
             {addingDomain ? t.domains.adding : t.domains.add}
@@ -204,13 +217,6 @@ export default function DomainsTab() {
                 ))}
               </tbody>
             </table>
-            <button
-              type="button"
-              className="tenant-open"
-              onClick={() => handleDeleteDomain(active.id)}
-            >
-              {t.domains.delete}
-            </button>
           </div>
         )}
       </div>

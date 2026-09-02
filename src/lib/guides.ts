@@ -282,7 +282,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Egy belépő oldal mindenkinek. A platformadminisztrátorok ezt a portált, a bérlőtagok a szervezetüket nyitják meg.',
           'Az elfelejtett jelszó egyórás linket küld a rendszerdomain programozott feladójával.',
           'A jelszó-visszaállítás, a várólista és a konfigurációs teszt a címzett utoljára használt webhelynyelvét követi (EN, DE vagy HU).',
-          'Szervezetet a nyitóoldalon hozhat létre, vagy ügyfeleket itt a portálon provisionálhat.',
+          'Szervezetet a nyitóoldalon hozhat létre, vagy ügyfeleket itt a portálon hozhat létre.',
         ],
       },
       {
