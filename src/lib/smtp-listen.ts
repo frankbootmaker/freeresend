@@ -1,3 +1,6 @@
+import { isPublicTlsHostname } from '@/lib/smtp-tls';
+import { hostnameFromPublicUrl } from '@/lib/system-domain-name';
+
 export const SMTP_INGRESS_PORTS = [2525, 587, 465] as const;
 export type SmtpIngressPort = (typeof SMTP_INGRESS_PORTS)[number];
 export type EnvLike = Record<string, string | undefined>;
@@ -28,6 +31,20 @@ export function resolveSmtpListenPorts(
     return primary === 587 ? [587] : [primary, 587];
   }
   return [...DEFAULT_LISTEN_PORTS];
+}
+
+export function resolveSmtpPublicHost(
+  env: EnvLike = process.env,
+  extras: { tlsDomain?: string; requestOrigin?: string } = {},
+): string {
+  const candidates = [
+    hostnameFromPublicUrl(env.SMTP_PUBLIC_HOST),
+    hostnameFromPublicUrl(extras.tlsDomain || env.SMTP_TLS_DOMAIN),
+    hostnameFromPublicUrl(env.NEXTAUTH_URL),
+    hostnameFromPublicUrl(extras.requestOrigin),
+  ].filter(Boolean);
+  const publicHost = candidates.find((host) => isPublicTlsHostname(host));
+  return publicHost || candidates[0] || 'localhost';
 }
 
 export function resolveSmtpPublicPorts(

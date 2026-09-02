@@ -11,7 +11,8 @@ import {
 } from '@/lib/tenants';
 import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
-import { resolveSmtpPublicPorts } from '@/lib/smtp-listen';
+import { requestOrigin } from '@/lib/oidc';
+import { resolveSmtpPublicHost, resolveSmtpPublicPorts } from '@/lib/smtp-listen';
 
 const deleteSchema = z.object({
   confirmName: z.string().min(1),
@@ -65,7 +66,10 @@ export async function GET(request: NextRequest) {
             : null,
         },
         smtpIngress: {
-          host: process.env.SMTP_PUBLIC_HOST || 'localhost',
+          host: resolveSmtpPublicHost(process.env, {
+            tlsDomain: platform.smtpIngressTlsDomain,
+            requestOrigin: requestOrigin(request.headers),
+          }),
           ...resolveSmtpPublicPorts(process.env, platform.smtpListenPorts),
           tlsMode: platform.smtpIngressTlsMode,
           tlsConfigured: Boolean(
