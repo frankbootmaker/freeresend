@@ -17,12 +17,15 @@ export type AbuseSeverity = 'info' | 'warn' | 'high';
 
 export type AbuseWarningCode =
   | 'suspended'
+  | 'frozen'
   | 'cap_hour'
   | 'cap_day'
   | 'cap_month'
   | 'bounce_rate'
   | 'complaint_rate'
   | 'suppressions';
+
+export type BreakerTripReason = 'bounce_rate' | 'complaint_rate';
 
 export type AbuseWarning = {
   code: AbuseWarningCode;
@@ -33,6 +36,8 @@ export type TenantAbuseSnapshot = {
   sendingTier: SendingTier;
   billingMode: BillingMode;
   status: string;
+  sendingFrozenAt: string | null;
+  sendingFrozenReason: string | null;
   caps: SendWindowCaps;
   used: SendWindowCounts;
   last24h: {
@@ -68,8 +73,31 @@ function capWarning(
   return null;
 }
 
+export function evaluateSendingBreaker(last24h: {
+  total: number;
+  bounced: number;
+  complained: number;
+}): BreakerTripReason | null {
+  const bounceRate = rateFromCounts(last24h.bounced, last24h.total);
+  if (last24h.total >= BOUNCE_MIN_VOLUME && bounceRate >= BOUNCE_HIGH_RATE) {
+    return 'bounce_rate';
+  }
+  const complaintRate = rateFromCounts(last24h.complained, last24h.total);
+  if (
+    last24h.complained >= COMPLAINT_HIGH_COUNT
+    || (
+      last24h.total >= COMPLAINT_HIGH_RATE_VOLUME
+      && complaintRate >= COMPLAINT_HIGH_RATE
+    )
+  ) {
+    return 'complaint_rate';
+  }
+  return null;
+}
+
 export function deriveAbuseWarnings(input: {
   status: string;
+  frozen?: boolean;
   used: SendWindowCounts;
   caps: SendWindowCaps;
   last24h: { total: number; bounced: number; complained: number };
@@ -78,6 +106,9 @@ export function deriveAbuseWarnings(input: {
   const warnings: AbuseWarning[] = [];
   if (input.status === 'suspended') {
     warnings.push({ code: 'suspended', severity: 'high' });
+  }
+  if (input.frozen) {
+    warnings.push({ code: 'frozen', severity: 'high' });
   }
 
   const hour = capWarning('cap_hour', input.used.hour, input.caps.hourly);
@@ -124,6 +155,8 @@ export async function loadTenantAbuseSnapshot(tenant: {
   status: string;
   sending_tier?: string | null;
   billing_mode?: string | null;
+  sending_frozen_at?: string | null;
+  sending_frozen_reason?: string | null;
   hourly_email_quota?: number | null;
   daily_email_quota?: number | null;
   monthly_email_quota?: number | null;
@@ -150,12 +183,15 @@ export async function loadTenantAbuseSnapshot(tenant: {
     sendingTier: parseSendingTier(tenant.sending_tier),
     billingMode: parseBillingMode(tenant.billing_mode),
     status: tenant.status,
+    sendingFrozenAt: tenant.sending_frozen_at || null,
+    sendingFrozenReason: tenant.sending_frozen_reason || null,
     caps,
     used,
     last24h,
     suppressionCount,
     warnings: deriveAbuseWarnings({
       status: tenant.status,
+      frozen: Boolean(tenant.sending_frozen_at),
       used,
       caps,
       last24h,

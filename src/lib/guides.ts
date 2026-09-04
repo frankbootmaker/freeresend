@@ -392,7 +392,7 @@ const TENANT: Record<Locale, Guide> = {
         paragraphs: [
           'Abuse shows the sending pool, used hour / day / month caps, last-24-hour bounce and complaint rates, and how many recipients are suppressed.',
           'Open warnings appear when a cap is near or hit, bounce or complaint rates rise, or the organization is suspended. You cannot raise the pool or turn the checks off.',
-          'Reaching a cap returns HTTP 429. Sends to suppressed addresses return 422. The operator may freeze or suspend the organization. An automatic SES rate breaker is not live yet.',
+          'Reaching a cap returns HTTP 429. Sends to suppressed addresses return 422. A 24-hour bounce rate of 10% over at least 50 messages, or 3 complaints (or 0.1% over at least 100 messages), freezes sending (HTTP 423). An administrator must unfreeze it.',
         ],
       },
       {
@@ -480,7 +480,7 @@ const TENANT: Record<Locale, Guide> = {
         paragraphs: [
           'Missbrauch zeigt den Versandpool, verbrauchte Stunden-/Tages-/Monatsgrenzen, Bounce- und Beschwerderaten der letzten 24 Stunden und die Zahl unterdrückter Empfänger.',
           'Offene Warnungen erscheinen nahe oder an der Grenze, bei steigender Bounce- oder Beschwerderate oder wenn die Organisation gesperrt ist. Sie können den Pool nicht anheben und die Prüfungen nicht abschalten.',
-          'Eine erreichte Grenze liefert HTTP 429. Sendungen an unterdrückte Adressen liefern 422. Der Betreiber kann sperren oder einfrieren. Ein automatischer SES-Grenzwächter ist noch nicht live.',
+          'Eine erreichte Grenze liefert HTTP 429. Sendungen an unterdrückte Adressen liefern 422. Eine 24-Stunden-Bounce-Rate von 10 % bei mindestens 50 Nachrichten oder 3 Beschwerden (oder 0,1 % bei mindestens 100) sperrt den Versand (HTTP 423). Ein Administrator muss entsperren.',
         ],
       },
       {
@@ -568,7 +568,7 @@ const TENANT: Record<Locale, Guide> = {
         paragraphs: [
           'A Visszaélés lap mutatja a küldési poolt, a felhasznált óra/nap/hó korlátokat, az elmúlt 24 óra visszapattanási és panaszarányát, és a tiltott címzettek számát.',
           'Figyelmeztetés jelenik meg, ha a plafon közel van vagy elérve, ha nő a visszapattanás vagy a panasz, vagy ha a szervezet fel van függesztve. A poolt nem emelheti, az ellenőrzéseket nem kapcsolhatja ki.',
-          'A plafon elérése HTTP 429. Tiltott címekre 422. Az üzemeltető felfüggesztheti vagy befagyaszthatja a szervezetet. Automatikus SES-arányőr még nincs élesben.',
+          'A plafon elérése HTTP 429. Tiltott címekre 422. A 24 órás 10%-os visszapattanás legalább 50 üzenetnél, vagy 3 panasz (illetve 0,1% legalább 100 üzenetnél) befagyasztja a küldést (HTTP 423). Adminisztrátornak kell feloldania.',
         ],
       },
       {

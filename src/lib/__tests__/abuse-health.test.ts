@@ -5,6 +5,7 @@
 import {
   CAP_WARN_RATIO,
   deriveAbuseWarnings,
+  evaluateSendingBreaker,
   rateFromCounts,
 } from '../abuse-health';
 
@@ -96,5 +97,28 @@ describe('abuse-health', () => {
       { code: 'suspended', severity: 'high' },
       { code: 'suppressions', severity: 'info' },
     ]);
+  });
+
+  it('flags a frozen tenant and trips the breaker only at high rates', () => {
+    expect(
+      deriveAbuseWarnings({
+        status: 'active',
+        frozen: true,
+        used: { hour: 0, day: 0, month: 0 },
+        caps,
+        last24h: { total: 50, bounced: 3, complained: 0 },
+        suppressionCount: 0,
+      }).map((row) => row.code),
+    ).toEqual(['frozen', 'bounce_rate']);
+
+    expect(
+      evaluateSendingBreaker({ total: 50, bounced: 3, complained: 0 }),
+    ).toBeNull();
+    expect(
+      evaluateSendingBreaker({ total: 50, bounced: 5, complained: 0 }),
+    ).toBe('bounce_rate');
+    expect(
+      evaluateSendingBreaker({ total: 20, bounced: 0, complained: 3 }),
+    ).toBe('complaint_rate');
   });
 });

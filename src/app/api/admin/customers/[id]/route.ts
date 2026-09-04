@@ -7,6 +7,7 @@ import {
   TenantError,
   resolveTenantSesByoRequest,
   updateTenantCommercialPolicy,
+  unfreezeTenantSending,
   updateTenantName,
   updateTenantSesByoAllowed,
 } from '@/lib/tenants';
@@ -21,6 +22,7 @@ const updateSchema = z.object({
   hourlyEmailQuota: z.number().int().positive().optional(),
   dailyEmailQuota: z.number().int().positive().optional(),
   monthlyEmailQuota: z.number().int().positive().optional(),
+  sendingFrozen: z.literal(false).optional(),
 }).refine(
   (body) =>
     Boolean(body.name)
@@ -30,7 +32,8 @@ const updateSchema = z.object({
     || body.billingMode !== undefined
     || body.hourlyEmailQuota !== undefined
     || body.dailyEmailQuota !== undefined
-    || body.monthlyEmailQuota !== undefined,
+    || body.monthlyEmailQuota !== undefined
+    || body.sendingFrozen === false,
   { message: 'No customer changes provided' },
 );
 
@@ -71,6 +74,9 @@ export async function PATCH(
         dailyEmailQuota: body.dailyEmailQuota,
         monthlyEmailQuota: body.monthlyEmailQuota,
       });
+    }
+    if (body.sendingFrozen === false) {
+      tenant = await unfreezeTenantSending(id);
     }
     if (!tenant) {
       return json({ error: 'No customer changes provided' }, 400);

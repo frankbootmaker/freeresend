@@ -12,6 +12,8 @@ describe('systemMailCopy', () => {
     expect(copy.waitlistWelcome.subject).toMatch(/waitlist/i);
     expect(copy.waitlistNotify.formatVolume(50000)).toBe('50,000 emails/month');
     expect(copy.byoRequestNotify.subject('Acme')).toMatch(/BYO SES request/);
+    expect(copy.sendingFrozen.operatorSubject('Acme')).toMatch(/frozen/i);
+    expect(copy.sendingFrozen.bounceReason).toMatch(/10%/);
   });
 
   it('returns German and Hungarian variants', () => {

@@ -55,6 +55,8 @@ export interface Tenant {
   daily_email_quota: number;
   sending_tier: SendingTier;
   billing_mode: BillingMode;
+  sending_frozen_at?: string | null;
+  sending_frozen_reason?: string | null;
   inbound_transport: InboundTransport;
   outbound_transport: OutboundTransport;
   ses_config?: TenantSesConfig | null;
@@ -81,6 +83,13 @@ function slugify(value: string): string {
   return slug || `tenant-${randomToken(6).toLowerCase()}`;
 }
 
+function parseOptionalTimestamp(value: unknown): string | null {
+  if (!value) return null;
+  if (value instanceof Date) return value.toISOString();
+  const text = String(value).trim();
+  return text || null;
+}
+
 function parseTenant(row: Record<string, unknown>): Tenant {
   let smtp = row.smtp_upstream as SmtpUpstream | null;
   if (typeof smtp === 'string') {
@@ -101,6 +110,10 @@ function parseTenant(row: Record<string, unknown>): Tenant {
     daily_email_quota: Number(row.daily_email_quota ?? DEFAULT_DAILY_EMAIL_QUOTA),
     sending_tier: parseSendingTier(row.sending_tier),
     billing_mode: parseBillingMode(row.billing_mode),
+    sending_frozen_at: parseOptionalTimestamp(row.sending_frozen_at),
+    sending_frozen_reason: row.sending_frozen_reason
+      ? String(row.sending_frozen_reason)
+      : null,
     inbound_transport: normalizeInboundTransport(row.inbound_transport),
     ses_config: parseTenantSesConfig(row.ses_config),
     smtp_upstream: smtp,
@@ -238,6 +251,57 @@ export async function updateTenantCommercialPolicy(
     throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
   }
   return parseTenant(result.rows[0]);
+}
+
+export async function freezeTenantSending(
+  tenantId: string,
+  reason: string,
+): Promise<Tenant> {
+  const result = await query(
+    `UPDATE tenants
+     SET sending_frozen_at = COALESCE(sending_frozen_at, NOW()),
+         sending_frozen_reason = COALESCE(sending_frozen_reason, $2)
+     WHERE id = $1
+     RETURNING *`,
+    [tenantId, reason],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  return parseTenant(result.rows[0]);
+}
+
+export async function unfreezeTenantSending(tenantId: string): Promise<Tenant> {
+  const result = await query(
+    `UPDATE tenants
+     SET sending_frozen_at = NULL,
+         sending_frozen_reason = NULL
+     WHERE id = $1
+     RETURNING *`,
+    [tenantId],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  return parseTenant(result.rows[0]);
+}
+
+export async function listTenantContactEmails(
+  tenantId: string,
+): Promise<Array<{ email: string; locale?: string | null }>> {
+  const result = await query(
+    `SELECT u.email, u.locale
+     FROM tenant_memberships tm
+     JOIN users u ON u.id = tm.user_id
+     WHERE tm.tenant_id = $1
+       AND tm.role IN ('owner', 'admin')
+     ORDER BY tm.role ASC, u.email ASC`,
+    [tenantId],
+  );
+  return result.rows.map((row) => ({
+    email: String(row.email),
+    locale: row.locale ? String(row.locale) : null,
+  }));
 }
 
 export function assertCanDeleteTenant(slug: string): void {

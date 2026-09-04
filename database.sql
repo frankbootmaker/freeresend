@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS tenants (
   daily_email_quota INTEGER NOT NULL DEFAULT 20000,
   sending_tier VARCHAR(20) NOT NULL DEFAULT 'probation',
   billing_mode VARCHAR(20) NOT NULL DEFAULT 'exempt',
+  sending_frozen_at TIMESTAMP WITH TIME ZONE,
+  sending_frozen_reason VARCHAR(40),
   inbound_transport VARCHAR(20) NOT NULL DEFAULT 'https',
   outbound_transport VARCHAR(20) NOT NULL DEFAULT 'ses',
   ses_config JSONB,

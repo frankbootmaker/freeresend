@@ -1,0 +1,5 @@
+ALTER TABLE tenants
+  ADD COLUMN IF NOT EXISTS sending_frozen_at TIMESTAMP WITH TIME ZONE;
+
+ALTER TABLE tenants
+  ADD COLUMN IF NOT EXISTS sending_frozen_reason VARCHAR(40);

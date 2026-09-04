@@ -1,6 +1,7 @@
 import { sendPlatformSystemEmail } from './mail-transport';
 import { GITHUB_REPO_URL } from './brand';
 import { resolveMailLocale } from './mail-locale';
+import { listTenantContactEmails, type Tenant } from './tenants';
 import {
   getResolvedPlatformSettings,
   platformSender,
@@ -229,5 +230,96 @@ export async function sendByoSesRequestNotification(input: {
     });
   } catch (error) {
     console.error('Failed to send BYO SES request notification:', error);
+  }
+}
+
+export async function sendSendingFrozenAlerts(input: {
+  tenant: Tenant;
+  reason: string;
+  last24h: { total: number; bounced: number; complained: number };
+}): Promise<void> {
+  const settings = await getResolvedPlatformSettings();
+  const fromEmail = platformSender(settings);
+  const origin = (process.env.NEXTAUTH_URL || '').replace(/\/$/, '');
+  const windowLabel = `${input.last24h.total} / ${input.last24h.bounced} bounced / ${input.last24h.complained} complaints`;
+
+  const sendOne = async (
+    email: string,
+    localeHint: unknown,
+    kind: 'operator' | 'tenant',
+  ) => {
+    const locale = await resolveMailLocale({ email, requested: localeHint });
+    const copy = systemMailCopy(locale).sendingFrozen;
+    const reasonLabel = input.reason === 'complaint_rate'
+      ? copy.complaintReason
+      : copy.bounceReason;
+    const title = kind === 'operator' ? copy.operatorTitle : copy.tenantTitle;
+    const lead = kind === 'operator' ? copy.operatorLead : copy.tenantLead;
+    const rows = [
+      { label: copy.organization, value: input.tenant.name, emphasize: true },
+      { label: copy.slug, value: input.tenant.slug },
+      { label: copy.reason, value: reasonLabel },
+      { label: copy.window, value: windowLabel },
+    ];
+    const { html, text } = renderSystemEmail({
+      title,
+      lead,
+      bodyHtml:
+        emailInfoTable(rows)
+        + `<p style="margin:0;color:#5c7266;font:400 14px/1.5 'Avenir Next',Avenir,'Segoe UI',sans-serif;">`
+        + `${kind === 'operator' ? copy.review : copy.tenantBody}</p>`,
+      bodyText: [
+        `${copy.organization}: ${input.tenant.name}`,
+        `${copy.slug}: ${input.tenant.slug}`,
+        `${copy.reason}: ${reasonLabel}`,
+        `${copy.window}: ${windowLabel}`,
+        '',
+        kind === 'operator' ? copy.review : copy.tenantBody,
+      ].join('\n'),
+      cta: origin
+        ? {
+            label: kind === 'operator' ? copy.operatorCta : copy.tenantCta,
+            href: origin,
+          }
+        : undefined,
+      footerNote: copy.footer,
+    });
+    await sendPlatformSystemEmail({
+      from: `RelayHorizon Notifications <${fromEmail}>`,
+      to: [email],
+      subject: kind === 'operator'
+        ? copy.operatorSubject(input.tenant.name)
+        : copy.tenantSubject,
+      html,
+      text,
+      tags: {
+        type: 'sending_frozen',
+        tenant_slug: input.tenant.slug,
+        reason: input.reason,
+        audience: kind,
+      },
+    });
+  };
+
+  const seen = new Set<string>();
+  if (settings.alertEmail) {
+    seen.add(settings.alertEmail.toLowerCase());
+    try {
+      await sendOne(settings.alertEmail, undefined, 'operator');
+    } catch (error) {
+      console.error('Failed to send sending-freeze operator mail:', error);
+    }
+  }
+
+  const contacts = await listTenantContactEmails(input.tenant.id);
+  for (const contact of contacts) {
+    const key = contact.email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    try {
+      await sendOne(contact.email, contact.locale, 'tenant');
+    } catch (error) {
+      console.error('Failed to send sending-freeze tenant mail:', error);
+    }
   }
 }

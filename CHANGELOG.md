@@ -6,10 +6,11 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, and a tenant Abuse tab.
+BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, a tenant Abuse tab, and an SES reputation breaker.
 
 ### Added
 
+- SES webhook freezes sending when 24-hour bounce or complaint rates cross the published tripwire; portal Customers → Manage can unfreeze; HTTPS/SMTP sends then return 423
 - Tenant console **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next; Sending shows a dismissible warning when one is open
 - Portal Customers → Manage assigns a sending pool (probation / shared / BYO / dedicated) and billing mode (exempt / invoiced); changing the pool resets hour / day / month caps
 - Hour / day / month sending caps (defaults 5,000 / 20,000 / 100,000) enforced on HTTPS and SMTP send; SES hard bounces and complaints are suppressed

@@ -31,7 +31,7 @@ Each organization has sending caps. New organizations start in the **probation**
 
 Suspended organizations cannot send.
 
-The console **Abuse** tab shows your pool, used caps, recent bounce and complaint rates, and suppressed recipients. You cannot raise the pool or disable these checks from that tab. An automatic SES rate breaker is not live; the operator may still freeze or suspend the organization.
+The console **Abuse** tab shows your pool, used caps, recent bounce and complaint rates, and suppressed recipients. You cannot raise the pool or disable these checks from that tab. If the 24-hour bounce rate reaches **10%** over at least **50** messages, or complaints reach **3** (or **0.1%** over at least **100** messages), we freeze sending. The console stays available. An administrator must unfreeze it. This is not a card-billing freeze. The operator may still suspend or close the organization.
 
 ## Bring-your-own SES
 
@@ -126,7 +126,7 @@ Jede Organisation hat Versandgrenzen. Neue Organisationen starten im Pool **Prob
 
 Gesperrte Organisationen können nicht senden.
 
-Die Konsole **Missbrauch** zeigt Pool, verbrauchte Grenzen, aktuelle Bounce- und Beschwerderaten sowie unterdrückte Empfänger. Sie können den Pool dort nicht anheben und die Prüfungen nicht abschalten. Ein automatischer SES-Grenzwächter ist nicht live; der Betreiber kann die Organisation trotzdem sperren oder einfrieren.
+Die Konsole **Missbrauch** zeigt Pool, verbrauchte Grenzen, aktuelle Bounce- und Beschwerderaten sowie unterdrückte Empfänger. Sie können den Pool dort nicht anheben und die Prüfungen nicht abschalten. Erreicht die 24-Stunden-Bounce-Rate **10 %** bei mindestens **50** Nachrichten, oder Beschwerden **3** (oder **0,1 %** bei mindestens **100** Nachrichten), sperren wir den Versand. Die Konsole bleibt erreichbar. Ein Administrator muss entsperren. Das ist keine Karten-Sperre. Der Betreiber kann die Organisation trotzdem sperren oder schließen.
 
 ## Eigenes SES (BYO)
 
@@ -221,7 +221,7 @@ Minden szervezetnek küldési korlátjai vannak. Az új szervezetek **próbaidő
 
 Felfüggesztett szervezet nem küldhet.
 
-A konzol **Visszaélés** lapja mutatja a poolt, a felhasznált korlátokat, a közelmúltbeli visszapattanási és panaszarányt, valamint a tiltott címzetteket. A poolt onnan nem emelheti, és ezeket az ellenőrzéseket nem kapcsolhatja ki. Automatikus SES-arányőr nincs élesben; az üzemeltető ettől még felfüggesztheti vagy befagyaszthatja a szervezetet.
+A konzol **Visszaélés** lapja mutatja a poolt, a felhasznált korlátokat, a közelmúltbeli visszapattanási és panaszarányt, valamint a tiltott címzetteket. A poolt onnan nem emelheti, és ezeket az ellenőrzéseket nem kapcsolhatja ki. Ha a 24 órás visszapattanási arány eléri a **10%**-ot legalább **50** üzenetnél, vagy a panaszok a **3**-at (illetve **0,1%**-ot legalább **100** üzenetnél), a küldést befagyasztjuk. A konzol elérhető marad. Adminisztrátornak kell feloldania. Ez nem kártyás befagyasztás. Az üzemeltető ettől még felfüggesztheti vagy bezárhatja a szervezetet.
 
 ## Saját SES (BYO)
 

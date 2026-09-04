@@ -31,7 +31,8 @@ UI language remains EN / DE / HU.
   caps (defaults **5,000** / **20,000** / **100,000**). The SES webhook marks
   bounce/complaint on logs and suppresses permanent bounces and complaints.
   Soft bounces are not suppressed. Tenant **Abuse** shows those numbers and
-  warnings. There is not yet a pool breaker.
+  warnings. The SES webhook freezes sending at the published 24-hour tripwire;
+  an administrator must unfreeze.
 - Portal **Customers → Manage** can rename, delete, assign sending pool
   (probation / shared / BYO / dedicated), override caps, and set billing mode
   (`exempt` | `invoiced`). `invoiced` does not charge a card yet. Tenant nav
@@ -223,8 +224,10 @@ complaint suppression.
 **A2 shipped:** `sending_tier` + `billing_mode` on tenants; Customers → Manage
 assigns pool, overrides caps, and sets exempt / invoiced.  
 **A3 shipped:** tenant Abuse tab + in-console warnings (caps, bounce/complaint,
-suppressions). Automatic SES rate breaker is not live.  
-Still in A: webhook breaker.
+suppressions).  
+**A4 shipped:** SES webhook reputation breaker freezes sending at the published
+24-hour bounce/complaint tripwire; portal Manage unfreezes.  
+A policy slices are live. Do not start C until T&C still match.
 
 **B — Plans that match pools**  
 `billing_plans` + `billing_mode` (including exempt). Split `/pricing` into real

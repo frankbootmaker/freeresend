@@ -80,7 +80,10 @@ export default function AbuseTab() {
               </div>
               <div className="field">
                 <label>{t.abuse.status}</label>
-                <div>{statusLabel(snapshot.status)}</div>
+                <div>
+                  {statusLabel(snapshot.status)}
+                  {snapshot.sendingFrozenAt ? ` · ${t.abuse.statusFrozen}` : ''}
+                </div>
               </div>
             </div>
           )}

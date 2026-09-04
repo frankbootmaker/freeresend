@@ -48,6 +48,9 @@ export async function dispatchTenantEmail(input: DispatchEmailInput) {
   if (tenant.status !== 'active') {
     throw new SendDispatchError('Tenant is not active', 403);
   }
+  if (tenant.sending_frozen_at) {
+    throw new SendDispatchError('Sending is frozen', 423);
+  }
 
   const used = await getSendWindowCounts(tenant.id);
   const quotaError = quotaRejection(used, capsFromTenant(tenant));

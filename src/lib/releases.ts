@@ -22,8 +22,12 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
     summary:
-      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, and a tenant Abuse tab.',
+      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, a tenant Abuse tab, and an SES reputation breaker.',
     changes: [
+      {
+        kind: 'added',
+        text: 'SES webhook freezes sending when 24-hour bounce or complaint rates cross the published tripwire; portal Customers Manage can unfreeze; HTTPS and SMTP sends then return 423.',
+      },
       {
         kind: 'added',
         text: 'Tenant console Abuse tab shows pool, used caps, 24-hour bounce and complaint rates, suppressions, and what happens next; Sending shows a dismissible warning when one is open.',

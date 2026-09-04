@@ -265,6 +265,7 @@ class ApiClient {
     hourlyEmailQuota?: number;
     dailyEmailQuota?: number;
     monthlyEmailQuota?: number;
+    sendingFrozen?: false;
   }) {
     return this.request(`/admin/customers/${id}`, {
       method: 'PATCH',

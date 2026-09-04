@@ -363,6 +363,11 @@ type Dict = {
     dailyCap: string;
     monthlyCap: string;
     policyHint: string;
+    frozen: string;
+    frozenHint: string;
+    unfreeze: string;
+    unfreezing: string;
+    unfrozen: string;
   };
   organization: {
     aboutTitle: string;
@@ -396,6 +401,7 @@ type Dict = {
     statusActive: string;
     statusPending: string;
     statusSuspended: string;
+    statusFrozen: string;
     last24hTitle: string;
     last24hLine: (
       total: number,
@@ -1199,6 +1205,12 @@ const en: Dict = {
     monthlyCap: 'Monthly cap',
     policyHint:
       'Changing the pool resets caps to that pool unless you edit them. Exempt tenants are still capped and logged. Invoiced does not charge a card yet.',
+    frozen: 'Sending frozen',
+    frozenHint:
+      'Bounce or complaint rates crossed the 24-hour tripwire. Sending is blocked until you unfreeze. This is not a card-billing freeze.',
+    unfreeze: 'Unfreeze sending',
+    unfreezing: 'Unfreezing…',
+    unfrozen: 'Sending unfrozen.',
   },
   organization: {
     aboutTitle: 'This organization',
@@ -1236,6 +1248,7 @@ const en: Dict = {
     statusActive: 'Active',
     statusPending: 'Pending verification',
     statusSuspended: 'Suspended',
+    statusFrozen: 'Sending frozen',
     last24hTitle: 'Last 24 hours',
     last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
       `${total} messages · ${bounced} bounced (${bounceRate}) · ${complained} complaints (${complaintRate})`,
@@ -1256,7 +1269,8 @@ const en: Dict = {
       return 'Info';
     },
     warningTitle: (code) => {
-      if (code === 'suspended') return 'Sending is frozen';
+      if (code === 'suspended') return 'Organization suspended';
+      if (code === 'frozen') return 'Sending is frozen';
       if (code === 'cap_hour') return 'Hourly cap';
       if (code === 'cap_day') return 'Daily cap';
       if (code === 'cap_month') return 'Monthly cap';
@@ -1268,6 +1282,9 @@ const en: Dict = {
     warningBody: (code) => {
       if (code === 'suspended') {
         return 'This organization cannot send until an administrator reactivates it.';
+      }
+      if (code === 'frozen') {
+        return 'The SES reputation breaker stopped sending. An administrator must unfreeze it.';
       }
       if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
         return 'Further sends in this window return 429 when the cap is reached.';
@@ -1291,7 +1308,7 @@ const en: Dict = {
     nextOperator:
       'The operator may freeze, suspend, or close the organization for abuse, a security risk, or a legal duty.',
     nextBreaker:
-      'An automatic SES rate breaker is not live yet. Elevated bounce or complaint rates are shown here for you and the operator.',
+      'A 24-hour bounce rate of 10% over at least 50 messages, or 3 complaints (or 0.1% over at least 100 messages), freezes sending. An administrator must unfreeze it. This is not a card-billing freeze.',
     bannerLead: 'Open Abuse for sending health and what happens next.',
     dismiss: 'Dismiss',
   },
@@ -2107,6 +2124,12 @@ const de: Dict = {
     monthlyCap: 'Monatsgrenze',
     policyHint:
       'Ein neuer Pool setzt die Grenzen zurück, sofern Sie sie nicht ändern. Befreite Mandanten bleiben begrenzt und protokolliert. „In Rechnung“ belastet noch keine Karte.',
+    frozen: 'Versand gesperrt',
+    frozenHint:
+      'Bounce- oder Beschwerderaten haben die 24-Stunden-Schwelle überschritten. Der Versand bleibt gesperrt, bis Sie entsperren. Das ist keine Karten-Sperre.',
+    unfreeze: 'Versand entsperren',
+    unfreezing: 'Entsperren…',
+    unfrozen: 'Versand entsperrt.',
   },
   organization: {
     aboutTitle: 'Diese Organisation',
@@ -2145,6 +2168,7 @@ const de: Dict = {
     statusActive: 'Aktiv',
     statusPending: 'Prüfung ausstehend',
     statusSuspended: 'Gesperrt',
+    statusFrozen: 'Versand gesperrt',
     last24hTitle: 'Letzte 24 Stunden',
     last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
       `${total} Nachrichten · ${bounced} unzustellbar (${bounceRate}) · ${complained} Beschwerden (${complaintRate})`,
@@ -2165,7 +2189,8 @@ const de: Dict = {
       return 'Hinweis';
     },
     warningTitle: (code) => {
-      if (code === 'suspended') return 'Versand ist gesperrt';
+      if (code === 'suspended') return 'Organisation gesperrt';
+      if (code === 'frozen') return 'Versand ist gesperrt';
       if (code === 'cap_hour') return 'Stundengrenze';
       if (code === 'cap_day') return 'Tagesgrenze';
       if (code === 'cap_month') return 'Monatsgrenze';
@@ -2177,6 +2202,9 @@ const de: Dict = {
     warningBody: (code) => {
       if (code === 'suspended') {
         return 'Diese Organisation kann nicht senden, bis ein Administrator sie wieder aktiviert.';
+      }
+      if (code === 'frozen') {
+        return 'Der SES-Grenzwächter hat den Versand gestoppt. Ein Administrator muss entsperren.';
       }
       if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
         return 'Weitere Sendungen in diesem Fenster liefern 429, wenn die Grenze erreicht ist.';
@@ -2200,7 +2228,7 @@ const de: Dict = {
     nextOperator:
       'Der Betreiber kann die Organisation bei Missbrauch, Sicherheitsrisiko oder rechtlicher Pflicht sperren, einfrieren oder schließen.',
     nextBreaker:
-      'Ein automatischer SES-Grenzwächter ist noch nicht live. Erhöhte Bounce- oder Beschwerderaten stehen hier für Sie und den Betreiber.',
+      'Eine 24-Stunden-Bounce-Rate von 10 % bei mindestens 50 Nachrichten oder 3 Beschwerden (oder 0,1 % bei mindestens 100 Nachrichten) sperrt den Versand. Ein Administrator muss entsperren. Das ist keine Karten-Sperre.',
     bannerLead: 'Öffnen Sie Missbrauch für Versandstatus und die nächsten Schritte.',
     dismiss: 'Ausblenden',
   },
@@ -3016,6 +3044,12 @@ const hu: Dict = {
     monthlyCap: 'Havi plafon',
     policyHint:
       'A pool váltása visszaállítja a plafonokat, hacsak nem írja felül. A mentes bérlők is korlátosak és naplózottak. A számlázott mód még nem von le kártyáról.',
+    frozen: 'Küldés befagyasztva',
+    frozenHint:
+      'A visszapattanási vagy panaszarány átlépte a 24 órás küszöböt. A küldés addig tiltott, amíg fel nem oldja. Ez nem kártyás befagyasztás.',
+    unfreeze: 'Küldés feloldása',
+    unfreezing: 'Feloldás…',
+    unfrozen: 'A küldés feloldva.',
   },
   organization: {
     aboutTitle: 'Ez a szervezet',
@@ -3053,6 +3087,7 @@ const hu: Dict = {
     statusActive: 'Aktív',
     statusPending: 'Ellenőrzés folyamatban',
     statusSuspended: 'Felfüggesztve',
+    statusFrozen: 'Küldés befagyasztva',
     last24hTitle: 'Elmúlt 24 óra',
     last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
       `${total} üzenet · ${bounced} visszapattanás (${bounceRate}) · ${complained} panasz (${complaintRate})`,
@@ -3073,7 +3108,8 @@ const hu: Dict = {
       return 'Info';
     },
     warningTitle: (code) => {
-      if (code === 'suspended') return 'A küldés le van állítva';
+      if (code === 'suspended') return 'Szervezet felfüggesztve';
+      if (code === 'frozen') return 'A küldés be van fagyasztva';
       if (code === 'cap_hour') return 'Órás plafon';
       if (code === 'cap_day') return 'Napi plafon';
       if (code === 'cap_month') return 'Havi plafon';
@@ -3085,6 +3121,9 @@ const hu: Dict = {
     warningBody: (code) => {
       if (code === 'suspended') {
         return 'Ez a szervezet addig nem küldhet, amíg egy adminisztrátor újra nem aktiválja.';
+      }
+      if (code === 'frozen') {
+        return 'A SES-arányőr leállította a küldést. Egy adminisztrátornak kell feloldania.';
       }
       if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
         return 'Ebben az ablakban a további küldés 429, ha a plafon el van érve.';
@@ -3108,7 +3147,7 @@ const hu: Dict = {
     nextOperator:
       'Az üzemeltető visszaélés, biztonsági kockázat vagy jogi kötelezettség miatt befagyaszthatja, felfüggesztheti vagy bezárhatja a szervezetet.',
     nextBreaker:
-      'Automatikus SES-arányőr még nincs élesben. A magas visszapattanási vagy panaszarány itt látszik Önnek és az üzemeltetőnek.',
+      'A 24 órás 10%-os visszapattanás legalább 50 üzenetnél, vagy 3 panasz (illetve 0,1% legalább 100 üzenetnél) befagyasztja a küldést. Adminisztrátornak kell feloldania. Ez nem kártyás befagyasztás.',
     bannerLead: 'Nyissa meg a Visszaélés lapot a küldési állapothoz és a következő lépésekhez.',
     dismiss: 'Elrejtés',
   },

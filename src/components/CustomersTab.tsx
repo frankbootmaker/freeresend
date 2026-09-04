@@ -38,6 +38,8 @@ type TenantRow = {
   hourly_email_quota?: number;
   daily_email_quota?: number;
   monthly_email_quota?: number;
+  sending_frozen_at?: string | null;
+  sending_frozen_reason?: string | null;
   metadata?: Record<string, unknown>;
 };
 
@@ -72,6 +74,7 @@ export default function CustomersTab() {
     TenantRegistryFilter | ''
   >('');
   const [deciding, setDeciding] = useState<'approve' | 'deny' | null>(null);
+  const [unfreezing, setUnfreezing] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
@@ -301,6 +304,31 @@ export default function CustomersTab() {
     }
   };
 
+  const unfreezeSending = async () => {
+    if (!managed) return;
+    setPanelError('');
+    setPanelResult('');
+    setUnfreezing(true);
+    try {
+      const res = await api.updateCustomer(managed.id, { sendingFrozen: false });
+      const next = res.data?.tenant;
+      setManaged({
+        ...managed,
+        ...next,
+        sending_frozen_at: next?.sending_frozen_at || null,
+        sending_frozen_reason: next?.sending_frozen_reason || null,
+      });
+      setPanelResult(t.customers.unfrozen);
+      refresh();
+    } catch (err: unknown) {
+      setPanelError(
+        (err as { message?: string }).message || t.customers.updateFailed,
+      );
+    } finally {
+      setUnfreezing(false);
+    }
+  };
+
   const removeTenant = async () => {
     if (!managed || managed.slug === 'platform') return;
     if (!confirm(t.customers.confirmDelete)) return;
@@ -474,7 +502,10 @@ export default function CustomersTab() {
                   </td>
                   <td>{tierLabel(row.sending_tier)}</td>
                   <td>{routeLabel(row)}</td>
-                  <td className="ok">{row.status.toUpperCase()}</td>
+                  <td className="ok">
+                    {row.status.toUpperCase()}
+                    {row.sending_frozen_at ? ` · ${t.customers.frozen}` : ''}
+                  </td>
                   <td>
                     <div className="inline-actions">
                       <button
@@ -555,6 +586,20 @@ export default function CustomersTab() {
                   <label>{t.customers.state}</label>
                   <div className="ok">{managed.status.toUpperCase()}</div>
                 </div>
+                {managed.sending_frozen_at && (
+                  <div className="field field-span">
+                    <label>{t.customers.frozen}</label>
+                    <p className="cardlead">{t.customers.frozenHint}</p>
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={unfreezing}
+                      onClick={unfreezeSending}
+                    >
+                      {unfreezing ? t.customers.unfreezing : t.customers.unfreeze}
+                    </button>
+                  </div>
+                )}
                 <div className="field">
                   <label htmlFor="manage-tier">{t.customers.sendingTier}</label>
                   <select

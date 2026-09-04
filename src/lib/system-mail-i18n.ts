@@ -63,6 +63,25 @@ export type SystemMailCopy = {
     cta: string;
     footer: string;
   };
+  sendingFrozen: {
+    operatorSubject: (name: string) => string;
+    operatorTitle: string;
+    operatorLead: string;
+    tenantSubject: string;
+    tenantTitle: string;
+    tenantLead: string;
+    organization: string;
+    slug: string;
+    reason: string;
+    bounceReason: string;
+    complaintReason: string;
+    window: string;
+    review: string;
+    tenantBody: string;
+    operatorCta: string;
+    tenantCta: string;
+    footer: string;
+  };
 };
 
 function volumeLabel(locale: string, unspecified: string) {
@@ -144,6 +163,27 @@ const en: SystemMailCopy = {
     cta: 'Open customers',
     footer: 'Sent because a tenant requested bring-your-own SES.',
   },
+  sendingFrozen: {
+    operatorSubject: (name) => `Sending frozen: ${name}`,
+    operatorTitle: 'Sending frozen',
+    operatorLead: 'The SES reputation breaker stopped sending for this organization.',
+    tenantSubject: `${BRAND_NAME} sending is frozen`,
+    tenantTitle: 'Sending is frozen',
+    tenantLead: 'Further API and SMTP sends are rejected until an administrator unfreezes this organization.',
+    organization: 'Organization',
+    slug: 'Slug',
+    reason: 'Tripwire',
+    bounceReason: '24-hour bounce rate reached 10% over at least 50 messages',
+    complaintReason:
+      '24-hour complaints reached 3, or 0.1% over at least 100 messages',
+    window: 'Last 24 hours',
+    review: 'Open Customers → Manage to unfreeze after they clean lists.',
+    tenantBody:
+      'Open Abuse in the console for the current rates. You cannot unfreeze sending yourself.',
+    operatorCta: 'Open customers',
+    tenantCta: 'Open console',
+    footer: 'Sent because the SES webhook tripwire froze sending.',
+  },
 };
 
 const de: SystemMailCopy = {
@@ -222,6 +262,28 @@ const de: SystemMailCopy = {
     cta: 'Kunden öffnen',
     footer: 'Gesendet, weil ein Mandant eigenes SES angefragt hat.',
   },
+  sendingFrozen: {
+    operatorSubject: (name) => `Versand gesperrt: ${name}`,
+    operatorTitle: 'Versand gesperrt',
+    operatorLead: 'Der SES-Grenzwächter hat den Versand dieser Organisation gestoppt.',
+    tenantSubject: `${BRAND_NAME}-Versand ist gesperrt`,
+    tenantTitle: 'Versand ist gesperrt',
+    tenantLead:
+      'Weitere API- und SMTP-Sendungen werden abgelehnt, bis ein Administrator entsperrt.',
+    organization: 'Organisation',
+    slug: 'Slug',
+    reason: 'Auslöser',
+    bounceReason: '24-Stunden-Bounce-Rate hat 10 % bei mindestens 50 Nachrichten erreicht',
+    complaintReason:
+      '24-Stunden-Beschwerden haben 3 erreicht, oder 0,1 % bei mindestens 100 Nachrichten',
+    window: 'Letzte 24 Stunden',
+    review: 'Unter Kunden → Verwalten entsperren, nachdem Listen bereinigt sind.',
+    tenantBody:
+      'Öffnen Sie Missbrauch in der Konsole für die aktuellen Raten. Sie können den Versand nicht selbst entsperren.',
+    operatorCta: 'Kunden öffnen',
+    tenantCta: 'Konsole öffnen',
+    footer: 'Gesendet, weil der SES-Webhook den Versand gesperrt hat.',
+  },
 };
 
 const hu: SystemMailCopy = {
@@ -299,6 +361,28 @@ const hu: SystemMailCopy = {
       'Adja meg a havi relé-adminisztrációs díjat, majd engedélyezze a saját SES-t Ügyfelek → Kezelés alatt. Ne váltson, amíg a fiók SES-homokozóban van.',
     cta: 'Ügyfelek megnyitása',
     footer: 'Azért ment, mert egy bérlő saját SES-t kért.',
+  },
+  sendingFrozen: {
+    operatorSubject: (name) => `Küldés befagyasztva: ${name}`,
+    operatorTitle: 'Küldés befagyasztva',
+    operatorLead: 'A SES-arányőr leállította ennek a szervezetnek a küldését.',
+    tenantSubject: `A ${BRAND_NAME} küldés be van fagyasztva`,
+    tenantTitle: 'A küldés be van fagyasztva',
+    tenantLead:
+      'A további API- és SMTP-küldés elutasított, amíg egy adminisztrátor fel nem oldja.',
+    organization: 'Szervezet',
+    slug: 'Slug',
+    reason: 'Kioldó',
+    bounceReason: 'A 24 órás visszapattanási arány elérte a 10%-ot legalább 50 üzenetnél',
+    complaintReason:
+      'A 24 órás panaszok elérték a 3-at, vagy a 0,1%-ot legalább 100 üzenetnél',
+    window: 'Elmúlt 24 óra',
+    review: 'Az Ügyfelek → Kezelés alatt oldja fel, miután a listák tiszták.',
+    tenantBody:
+      'A konzol Visszaélés lapján látszanak az arányok. A küldést maga nem oldhatja fel.',
+    operatorCta: 'Ügyfelek megnyitása',
+    tenantCta: 'Konzol megnyitása',
+    footer: 'Azért ment, mert a SES webhook kioldotta a küldési zárat.',
   },
 };
 

@@ -45,7 +45,8 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.nav.abuse).toBe('Abuse');
     expect(dictionaries.de.nav.abuse).toMatch(/missbrauch/i);
     expect(dictionaries.hu.nav.abuse).toMatch(/visszaélés/i);
-    expect(dictionaries.en.abuse.nextBreaker).toMatch(/not live/i);
+    expect(dictionaries.en.abuse.nextBreaker).toMatch(/10%/);
+    expect(dictionaries.en.customers.unfreeze).toMatch(/unfreeze/i);
     expect(dictionaries.de.customers.tierProbation).toMatch(/probe/i);
     expect(dictionaries.hu.customers.billingExempt).toMatch(/mentes/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);

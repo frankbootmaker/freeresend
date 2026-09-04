@@ -111,6 +111,21 @@ describe('dispatchTenantEmail', () => {
     expect(mockedSend).not.toHaveBeenCalled();
   });
 
+  it('rejects when sending is frozen', async () => {
+    await expect(
+      dispatchTenantEmail({
+        tenant: tenant({ sending_frozen_at: '2026-09-04T10:00:00.000Z' }),
+        apiKey,
+        payload,
+        channel: 'https',
+      }),
+    ).rejects.toMatchObject({
+      message: 'Sending is frozen',
+      status: 423,
+    });
+    expect(mockedSend).not.toHaveBeenCalled();
+  });
+
   it('rejects suppressed recipients before sending', async () => {
     mockedSuppressed.mockResolvedValue(['user@relay.test']);
     await expect(

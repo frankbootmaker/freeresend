@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/database";
+import { applySesReputationEvent } from "@/lib/sending-breaker";
 import { recordSesSuppressions } from "@/lib/suppression";
 
 interface SESMessage {
@@ -137,6 +138,10 @@ async function processSESEvent(message: SESMessage) {
       emailLogId: emailLog.id,
       event: message,
     });
+
+    if (message.eventType === "bounce" || message.eventType === "complaint") {
+      await applySesReputationEvent(emailLog.tenant_id);
+    }
 
     console.log(
       `Processed ${message.eventType} event for email ${emailLog.id}`

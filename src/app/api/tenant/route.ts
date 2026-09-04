@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
           daily_email_quota: session.tenant.daily_email_quota,
           sending_tier: session.tenant.sending_tier,
           billing_mode: session.tenant.billing_mode,
+          sending_frozen_at: session.tenant.sending_frozen_at || null,
+          sending_frozen_reason: session.tenant.sending_frozen_reason || null,
           inbound_transport: session.tenant.inbound_transport,
           outbound_transport: session.tenant.outbound_transport,
           smtp_upstream: smtp
