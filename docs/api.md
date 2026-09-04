@@ -31,6 +31,8 @@ Header `X-Tenant-Id` lets a platform admin act on another tenant.
 ## Admin
 
 - `GET|POST /api/admin/customers`
+- `PATCH /api/admin/customers/:id` — rename; assign `sendingTier` / `billingMode` / caps; Approve / Deny BYO; `{ sendingFrozen: false }` to unfreeze
+- `DELETE /api/admin/customers/:id`
 - `GET|POST /api/admin/users` — list or add platform administrators
 - `PATCH|DELETE /api/admin/users/:id` — set password/name or revoke portal access
 - `GET|POST /api/admin/agents` — platform MCP agents

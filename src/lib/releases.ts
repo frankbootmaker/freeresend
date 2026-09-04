@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.9.2';
+export const APP_VERSION = '1.9.3';
 
 export type ReleaseChangeKind = 'added' | 'changed' | 'fixed';
 
@@ -20,6 +20,12 @@ export const UNRELEASED_VERSION = 'unreleased';
 export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
+    date: '2026-09-04',
+    summary: '',
+    changes: [],
+  },
+  {
+    version: '1.9.3',
     date: '2026-09-04',
     summary:
       'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, a tenant Abuse tab, and an SES reputation breaker.',
@@ -62,11 +68,19 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'changed',
+        text: 'Terms describe the probation pool and the live 24-hour bounce and complaint freeze tripwire; they still do not invent card billing.',
+      },
+      {
+        kind: 'changed',
         text: 'Platform SES secrets stay hidden; bring-your-own SES is sold (request + admin allow), not a self-serve toggle.',
       },
       {
         kind: 'changed',
         text: 'Empty tenant SMTP host uses the platform relay in SMTP DNS; RelayHorizon signs DKIM because the uplink only forwards.',
+      },
+      {
+        kind: 'changed',
+        text: 'Administrator and sending Guide tabs (EN/DE/HU) cover BYO approve, dual DNS, caps, Abuse, and the freeze tripwire.',
       },
     ],
   },

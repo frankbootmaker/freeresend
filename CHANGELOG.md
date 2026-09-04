@@ -6,6 +6,8 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
+## 1.9.3 — 2026-09-04
+
 BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, a tenant Abuse tab, and an SES reputation breaker.
 
 ### Added
@@ -22,8 +24,10 @@ BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compa
 
 ### Changed
 
+- Terms (EN/DE/HU) describe the probation pool and the live 24-hour bounce/complaint freeze tripwire; they still do not invent card billing
 - Platform SES secrets stay hidden; bring-your-own SES is sold (request + admin allow), not a self-serve toggle
 - Empty tenant SMTP host uses the platform relay in SMTP DNS; RelayHorizon signs DKIM because the uplink only forwards
+- Administrator and sending **Guide** tabs (EN/DE/HU) cover BYO approve, dual DNS, caps, Abuse, and the freeze tripwire
 
 ## 1.9.2 — 2026-09-02
 

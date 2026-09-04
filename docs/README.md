@@ -6,8 +6,8 @@ SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration se
 
 ## Read in this order
 
-1. [Progress summary](progress-summary.md) — what is built as of 2 September 2026
-2. [Commercial operations plan](commercialize-plan.md) — hosted billing, abuse pools, CMS (planning)
+1. [Progress summary](progress-summary.md) — what is built as of 4 September 2026 (**v1.9.3**)
+2. [Commercial operations plan](commercialize-plan.md) — policy A is live; billing, plans, and CMS remain planning
 3. [Architecture](architecture.md)
 4. [Tenancy](tenancy.md)
 5. [Sending](sending.md)
@@ -17,6 +17,6 @@ SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration se
 9. [Operations](operations.md) — platform logs, dump/restore, S3 offsite
 10. [Admin guide](admin-guide.md) — also in the portal **Guide** tab; tenant **Guide** is in the sending console
 11. [Security](security.md)
-12. [Changelog](../CHANGELOG.md) — console version history (click **v1.9.2** in the top bar)
+12. [Changelog](../CHANGELOG.md) — console version history (click **v1.9.3** in the top bar)
 
 Dokploy Compose deploy: [dokploy.md](dokploy.md). Public SMTP 587/465 is optional (`smtp` profile) — HTTPS API sending does not need it.

@@ -1,20 +1,33 @@
-# RelayHorizon — what is built (2 September 2026)
+# RelayHorizon — what is built (4 September 2026)
 
-Snapshot of the product as it stands in this repository. **RelayHorizon** is a self-hosted, multi-tenant **outbound** email platform: a fork of [FreeResend](https://github.com/eibrahim/freeresend), branded RelayHorizon by Nethorizon. Incoming mailboxes and inbound MX are out of scope.
+Snapshot of the product as it stands on `development`. **RelayHorizon** is a
+self-hosted, multi-tenant **outbound** email platform: a fork of
+[FreeResend](https://github.com/eibrahim/freeresend), branded RelayHorizon by
+Nethorizon. Incoming mailboxes and inbound MX are out of scope.
 
-Defaults: SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES configuration-set fallback `relayhorizon-prod`. API keys still use the `frs_` prefix.
+Defaults: SMTP username `relayhorizon`, DKIM selector `relayhorizon`, SES
+configuration-set fallback `relayhorizon-prod`. API keys still use the `frs_`
+prefix.
 
-This note is a status summary. Operational detail lives in the rest of [docs](README.md).
+This note is a status summary. Operational detail lives in the rest of
+[docs](README.md). The console version label is **v1.9.3**.
 
 ## Product in one paragraph
 
-Operators provision **tenants** (customers). Each tenant sends mail through a Resend-compatible HTTPS API and/or an SMTP submission listener. Mail leaves via **Amazon SES** or an **SMTP relay**. Sending stays blocked until the domain’s MX, SPF, DKIM, and DMARC records match what RelayHorizon lists. Platform admins work in a **Portal**; tenant users work in a **sending console**.
+Operators provision **tenants** (customers). Each tenant sends mail through a
+Resend-compatible HTTPS API and/or an SMTP submission listener. Mail leaves via
+**Amazon SES** or an **SMTP relay**. Sending stays blocked until the domain’s
+MX, SPF, DKIM, and DMARC records match what RelayHorizon lists. New tenants
+start in the **probation** sending pool with hour / day / month caps. Hard SES
+bounces and complaints suppress recipients; a published 24-hour tripwire can
+**freeze** sending until an administrator unfreezes. Platform admins work in a
+**Portal**; tenant users work in a **sending console**.
 
 ## Two consoles
 
 | Surface | Who | What it does |
 | --- | --- | --- |
-| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once) and **Manage** can rename or delete that tenant. **Users** adds, revokes, or deletes other platform administrators (not the last one). **Agents** issues platform MCP tokens with administrator access. **Logs** search across tenants. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. Long lists page at 25 rows; choose 5 / 10 / 25 / 50. |
+| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Manage** can rename or delete that tenant, assign the sending pool and billing mode, override caps, Approve / Deny BYO SES, and unfreeze sending. **Users** adds, revokes, or deletes other platform administrators (not the last one). **Agents** issues platform MCP tokens with administrator access. **Logs** search across tenants. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. Long lists page at 25 rows; choose 5 / 10 / 25 / 50. |
 | **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys** (with domain column), **Agents**, **Logs**, **Abuse** (pool, caps, 24h bounce/complaint, suppressions, freeze), **Organization** (owners can erase the tenant), **Guide**. Tenant agents are scoped to that organization. Platform admins can switch back to the portal. |
 
 UI language: English, German, Hungarian. Theme toggle is in the shell.
@@ -25,7 +38,7 @@ UI language: English, German, Hungarian. Theme toggle is in the shell.
 App / Resend SDK  -->  POST /api/emails (API key)     \  ingress: https | smtp | both
 App / MTA         -->  SMTP :2525 (API key as password) /
                          |
-                   quota, tenant status, verified DNS
+                   quota, freeze, suppression, tenant status, verified DNS
                          |
           egress: ses  -->  Amazon SES (platform credentials + configuration set)
           egress: smtp -->  tenant smtp_upstream if host is set
@@ -33,46 +46,121 @@ App / MTA         -->  SMTP :2525 (API key as password) /
 ```
 
 - **Ingress** is per tenant. Closed channels return HTTPS `403` or SMTP `535`/`550`.
-- **Egress SES** uses platform AWS keys (env fallback, overridable in Portal Configuration). The SES configuration set is applied on send.
-- **Egress SMTP** uses the tenant’s own upstream when a host is set. If the tenant chooses SMTP and leaves host empty, RelayHorizon uses the **platform SMTP relay** (Nodemailer client — not the port 2525 listener).
-- Bounce MX is published on `outbound.{domain}` so the customer’s existing inbound MX is left alone.
+- **Egress SES** uses platform AWS keys (env fallback, overridable in Portal
+  Configuration). The SES configuration set is applied on send. Platform SES
+  secrets stay hidden. Bring-your-own SES is sold: the tenant requests it;
+  portal Manage Approve / Deny (or the allow checkbox). Approving also moves
+  the tenant to the **byo** pool.
+- **Egress SMTP** uses the tenant’s own upstream when a host is set. If the
+  tenant chooses SMTP and leaves host empty, RelayHorizon uses the **platform
+  SMTP relay** (Nodemailer client — not the port 2525 listener).
+- Bounce MX is published on `outbound.{domain}` so the customer’s existing
+  inbound MX is left alone.
+- Domains keep **both** SES and SMTP record sets. The unused set is dimmed.
+  When the platform SMTP relay is enabled, the SES set also authorizes that
+  host and RelayHorizon DKIM so failover can send without a DNS change.
+
+## Caps, suppression, and freeze
+
+- New tenants land in **probation** (`sending_tier`) with caps **5,000** /
+  **20,000** / **100,000** (hour / day / month). Portal Manage can assign
+  **shared**, **byo**, or **dedicated** and override those caps.
+  `billing_mode` is `exempt` or `invoiced` (classification only — no card
+  charge).
+- Sends that are not `failed` count against the caps. Over cap returns **429**.
+- Permanent SES bounces and complaints write `suppressed_recipients`. Further
+  sends to those addresses return **422**. Soft bounces are not suppressed.
+- If the last 24 hours reach **10% bounce** over at least **50** messages, or
+  **3 complaints** (or **0.1%** over at least **100** messages), sending
+  freezes. HTTPS/SMTP then return **423**. The console stays up. Only portal
+  Manage can unfreeze. Operator and tenant-owner mail go out on the first
+  freeze. This is not a card-billing freeze.
+- Tenant **Abuse** shows the same numbers and “what happens next.” Tenants
+  cannot raise the pool or turn the checks off.
+
+## Legal
+
+Public **Terms**, **Privacy**, and **Imprint** at `/legal` (EN/DE/HU, version
+`2026-09-04`). Landing footer links. Self-signup must accept the current
+version (`accepted_terms_version`). Admin provision and OIDC JIT skip the
+checkbox. Imprint: operator Nethorizon; company address/VAT marked **to be
+completed**.
 
 ## Platform Configuration
 
-Stored in `platform_settings` (row `id = 'default'`). Env vars remain fallbacks until a value is saved.
+Stored in `platform_settings` (row `id = 'default'`). Env vars remain fallbacks
+until a value is saved.
 
-- **Amazon SES** — region, configuration set, access key, secret. Used for tenant SES send and domain verification. Secrets are never returned; blank fields on save keep the stored secret.
-- **SMTP relay** — enable, host, port, TLS, username, password. Shared outbound client for tenants without their own upstream.
-- **System domain** — platform sending domain (usually the current web host), DNS records, and programmatic From locked to that domain. Fallback chain: saved `platform_from`, then `PLATFORM_FROM`, then the alert From address, then `FROM_EMAIL`.
-- **Monitoring / alerts** — destination and from address for operational notices (waitlist and similar). Fallback chain: saved value, then `ALERT_EMAIL` / `ADMIN_EMAIL` and `ALERT_FROM` / `FROM_EMAIL`. Waitlist, password-reset, and configuration-test mail use the recipient’s last website locale (`users.locale`, EN/DE/HU).
-- **OIDC** — enable Authentik (or another OpenID Connect provider), issuer, client ID/secret, optional sign-in button label, JIT account creation, optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env fallbacks: `OIDC_*`.
+- **Amazon SES** — region, configuration set, access key, secret. Used for
+  tenant SES send and domain verification. Secrets are never returned; blank
+  fields on save keep the stored secret.
+- **SMTP relay** — enable, host, port, TLS, username, password. Shared outbound
+  client for tenants without their own upstream.
+- **System domain** — platform sending domain (usually the current web host),
+  DNS records, and programmatic From locked to that domain. Fallback chain:
+  saved `platform_from`, then `PLATFORM_FROM`, then the alert From address,
+  then `FROM_EMAIL`.
+- **Monitoring / alerts** — destination and from address for operational
+  notices (waitlist, BYO request, sending freeze). Fallback chain: saved value,
+  then `ALERT_EMAIL` / `ADMIN_EMAIL` and `ALERT_FROM` / `FROM_EMAIL`. Waitlist,
+  password-reset, and configuration-test mail use the recipient’s last website
+  locale (`users.locale`, EN/DE/HU).
+- **OIDC** — enable Authentik (or another OpenID Connect provider), issuer,
+  client ID/secret, optional sign-in button label, JIT account creation,
+  optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env
+  fallbacks: `OIDC_*`.
 
-Existing databases need every `database-migrate-*.sql` once (`platform-settings`, `oidc`, `user-profile`, `user-locale`, `accepted-terms`, `sending-caps`, `sending-tier`, and the others). New installs get columns from `database.sql`.
+Existing databases need every `database-migrate-*.sql` once
+(`platform-settings`, `oidc`, `user-profile`, `user-locale`, `accepted-terms`,
+`sending-caps`, `sending-tier`, `sending-freeze`, and the others). New installs
+get columns from `database.sql`.
 
 ## Tenancy and auth
 
-- Tenant, user, membership (`owner` | `admin` | `member`). Email is globally unique; a user may belong to several tenants.
-- Self-signup: `POST /api/auth/register` with the current `acceptedTermsVersion`. Admin provision: `POST /api/admin/customers`. Public legal pages: `/legal/terms`, `/legal/privacy`, `/legal/imprint`.
-- Dashboard: JWT after password or OIDC. Forgot password emails a one-hour link (`/login/reset?token=…`). Sending API: `frs_…` keys (bcrypt hashed, copy-once in the UI). MCP: `mcp_…` tokens.
-- Platform admin header `X-Tenant-Id` or `POST /api/auth/me` with `{ tenantId }` to switch context.
-- Suspended tenants cannot send. Domain names are globally unique. New tenants land in the **probation** pool (`sending_tier`) with hour / day / month caps 5,000 / 20,000 / 100,000. Portal Manage can promote the pool and set `billing_mode` (`exempt` | `invoiced`). Permanent SES bounces and complaints suppress the recipient.
+- Tenant, user, membership (`owner` | `admin` | `member`). Email is globally
+  unique; a user may belong to several tenants.
+- Self-signup: `POST /api/auth/register` with the current `acceptedTermsVersion`.
+  Admin provision: `POST /api/admin/customers`.
+- Dashboard: JWT after password or OIDC. Forgot password emails a one-hour link
+  (`/login/reset?token=…`). Sending API: `frs_…` keys (bcrypt hashed, copy-once
+  in the UI). MCP: `mcp_…` tokens.
+- Platform admin header `X-Tenant-Id` or `POST /api/auth/me` with `{ tenantId }`
+  to switch context.
+- Suspended tenants cannot send. Frozen tenants can open the console but cannot
+  send. Domain names are globally unique.
 
 ## HTTP API and MCP (iteration 1)
 
-- Auth, tenant routing (`GET`/`PATCH /api/tenant`), domains, API keys, email logs, Resend-compatible `POST /api/emails`.
-- Admin: customers plus `GET`/`PATCH /api/admin/settings`.
-- MCP JSON-RPC at `/mcp`: platform tools include `list_tenants`, `setup_customer`, `get_platform_health`, `list_platform_admins`. Shared tools include tenant settings, traffic, domains, and email logs. HTTPS send still uses an `frs_` API key.
+- Auth, tenant routing (`GET`/`PATCH /api/tenant`), domains, API keys, email
+  logs, Resend-compatible `POST /api/emails`.
+- `GET /api/stats/tenant` — traffic + used caps. `GET /api/tenant/abuse` —
+  pool, rates, suppressions, freeze, warnings.
+- Admin: customers (including pool, billing mode, unfreeze) plus
+  `GET`/`PATCH /api/admin/settings`.
+- MCP JSON-RPC at `/mcp`: platform tools include `list_tenants`,
+  `setup_customer`, `get_platform_health`, `list_platform_admins`. Shared tools
+  include tenant settings, traffic, domains, and email logs. HTTPS send still
+  uses an `frs_` API key.
 
 ## What is intentionally not built yet
 
 - Incoming mail / hosting mailboxes.
-- Bounce/complaint webhook mail to the alert address (avoided so far to prevent noise and loops).
+- Tenant Billing tab, `billing_plans`, Stripe tenant invoicing, Számlázz.hu.
+- Portal CMS for legal / pricing / news (legal pages are git markdown).
+- Automatic promotion onto a higher pool because someone paid.
+- Dedicated-IP automation.
 
-Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts` (same list; Unreleased appears in the top-bar notes). The console version label is **v1.9.2**.
+Version history: [CHANGELOG.md](../CHANGELOG.md) and `src/lib/releases.ts`
+(same list; Unreleased appears in the top-bar notes when something is queued).
+Hosted billing backlog:
+[commercialize-plan.md](commercialize-plan.md).
 
 ## Local run
 
-Postgres on host port **5436**, app typically `npm run dev` (port 3000 or 3001). `POST /api/setup` creates the platform admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`. SMTP submission: `npm run smtp`. Optional MailHog via Compose profile `dev`.
+Postgres on host port **5436**, app typically `npm run dev` (local port
+**3001**). `POST /api/setup` creates the platform admin from `ADMIN_EMAIL` /
+`ADMIN_PASSWORD`. SMTP submission: `npm run smtp`. Optional MailHog via Compose
+profile `dev`.
 
 ## Related docs
 

@@ -1,12 +1,11 @@
 # RelayHorizon — Commercial operations plan
 
-Status: **planning** for billing, pools, and CMS. **In product** (unreleased on
-`development`, 4 September 2026): BYO request / approve, dual SES–SMTP DNS, and
-platform-SMTP failover records on the SES set. Built 1.9.2 snapshot is in
-[progress-summary.md](progress-summary.md). This note is the backlog for
-**hosted commercial operation**: protect the master SES account, sell packages,
-invoice automatically across the EU (and later anywhere), and publish legal and
-marketing copy from the portal.
+Status: **policy A is live** on `development` (4 September 2026, **v1.9.3**).
+**Still planning:** billing plans, Stripe invoicing, issuer adapters, and CMS.
+Built snapshot is in [progress-summary.md](progress-summary.md). This note is
+the backlog for **hosted commercial operation**: protect the master SES
+account, sell packages, invoice automatically across the EU (and later
+anywhere), and publish legal and marketing copy from the portal.
 
 UI language remains EN / DE / HU.
 
@@ -39,7 +38,8 @@ UI language remains EN / DE / HU.
   has **Abuse** (read-only health). No Billing tab.
 - `/pricing` is a Resend vs self-host **calculator** plus waitlist. Stripe Payment
   Links exist for Launch Kit / Deployment Review. `collectStripeMetrics` runs if
-  `STRIPE_SECRET_KEY` is set. There are no T&C pages, no CMS, no tenant invoices.
+  `STRIPE_SECRET_KEY` is set. Versioned T&C / Privacy / Imprint are live at
+  `/legal`. There is no portal CMS and no tenant invoices.
 
 ## Design rules
 
@@ -139,25 +139,25 @@ tenant-SES (or tenant-SMTP) path.
 ## Abuse controls
 
 **Send path** (`dispatchTenantEmail`): hourly, daily, and monthly caps from the
-pool; refuse suppressed recipients; tenant must stay `active`.
+pool; refuse suppressed recipients; tenant must stay `active` and not
+sending-frozen.
 
 **Webhook** (existing `/api/webhooks/ses`): on bounce/complaint, update rates;
-suppress hard-bounce and complaint addresses; if bounce or complaint rate crosses
-the pool tripwire over a minimum sample, freeze SES egress or `suspend` and notify.
+suppress hard-bounce and complaint addresses; if the 24-hour bounce rate reaches
+**10%** over at least **50** messages, or complaints reach **3** (or **0.1%**
+over at least **100** messages), freeze sending (HTTP **423**) and mail the
+operator plus tenant owners. The console stays up. An administrator unfreezes.
 
 **SES-side** (master account): per-tenant configuration set where possible;
 CloudWatch alarms; do not put untrusted tenants on a shared dedicated IP.
 
-**Portal → Abuse:** define pools; queue of tenants near a tripwire; promote /
-demote / suspend.
-
-**Customers → Manage:** assign pool, optional quota override, 24h rates,
-suppressions, **billing mode** (invoiced / exempt + reason).
+**Portal → Abuse queue** (still later): tenants near a tripwire. Today
+**Customers → Manage** assigns pool, overrides caps, sets billing mode, and
+unfreezes.
 
 **Tenant console → Abuse:** same numbers, warnings, “what happens next.” They
-cannot raise the pool or disable the breaker. In-app banner until acknowledged.
-Mail (existing locale-aware system mail): approaching cap, rising bounce, freeze,
-suspend.
+cannot raise the pool or disable the breaker. In-app banner until dismissed.
+Mail today: freeze. Not yet: approaching-cap or rising-bounce warnings.
 
 ## Billing and invoices
 

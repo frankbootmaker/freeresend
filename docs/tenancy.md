@@ -2,14 +2,14 @@
 
 ## Model
 
-- **Tenant** = customer or internal product (`slug`, quota, `outbound_transport`)
+- **Tenant** = customer or internal product (`slug`, sending pool, caps, `outbound_transport`)
 - **User** = person; email is globally unique; a user may belong to several tenants
 - **Membership** = `owner` | `admin` | `member`
 - **Platform admin** = `users.is_platform_admin`; can list/create customers and switch tenant via `X-Tenant-Id` or `POST /api/auth/me`
 
 ## Provisioning
 
-**Self-signup** `POST /api/auth/register` creates a tenant and an owner membership.
+**Self-signup** `POST /api/auth/register` creates a tenant and an owner membership. The body must accept the current Terms / Privacy / Imprint version. New tenants start in the **probation** sending pool (`exempt` billing mode).
 
 **Admin setup** `POST /api/admin/customers` (platform admin JWT) can create tenant, owner user, optional domain, API key, and MCP token in one call. Secrets are returned **once**.
 
@@ -22,4 +22,5 @@
 - Domains, API keys, email logs, MCP tokens (when tenant-scoped) always carry `tenant_id`
 - Domain names are globally unique (shared SES identity space)
 - A tenant MCP token cannot pass another `tenant_id`
-- Suspended tenants cannot send
+- Suspended tenants cannot send. Frozen tenants can open the console; HTTPS/SMTP send returns **423** until portal Manage unfreezes
+- `sending_tier` is `probation` | `shared` | `byo` | `dedicated`. `billing_mode` is `exempt` | `invoiced` (no card charge yet)
