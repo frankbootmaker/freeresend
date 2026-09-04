@@ -5,7 +5,7 @@
 - `postgres` — loopback **5436** (container 5432) so it does not collide with other local databases; init from `database.sql`
 - `web` — container **3000**, published on loopback **3001** (`WEB_HOST_PORT`) so it does not collide with other stacks; healthcheck hits `/api/health`
 - `db-backup` — scheduled `pg_dump -Fc` onto volume `relayhorizon_backups`
-- `smtp` — profile `smtp`, submission listener on **2525** (and 587/465 when you publish them)
+- `smtp` — profile `smtp`. The process listens on `0.0.0.0` for `SMTP_LISTEN_PORTS` (default **2525,587**). Compose publishes **2525** on `127.0.0.1` only, **587** and **465** on all host interfaces. **465** stays silent unless Configuration includes it.
 - `mailhog` — profile `dev`, SMTP 1025, UI 8025
 
 Password and database name come from `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` (defaults `relayhorizon`). Compose interpolates those from a project `.env` or the Dokploy environment — not `.env.local`. Use a URL-safe password in production and set the same values on `postgres`, `web`, and `db-backup`.
@@ -41,7 +41,7 @@ SMTP submission (how apps talk *to* RelayHorizon):
 npm run smtp
 ```
 
-Username `relayhorizon`, password = API key, port **2525**. Compose: `docker compose --profile smtp up -d smtp`.
+Username `relayhorizon`, password = API key. Local `npm run smtp` defaults to **2525**. Compose: `docker compose --profile smtp up -d smtp` — remote clients use **587**; **2525** is `127.0.0.1` only.
 
 ## Full Compose web
 

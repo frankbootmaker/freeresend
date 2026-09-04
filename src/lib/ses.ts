@@ -15,16 +15,36 @@ import { getResolvedPlatformSettings } from "./platform-settings";
 
 let cachedClient: { key: string; client: SESClient } | null = null;
 
+export type SesAccountOverride = {
+  region?: string;
+  accessKeyId?: string;
+  secretAccessKey?: string;
+  configurationSet?: string;
+};
+
+async function resolveSesAccount(account?: SesAccountOverride) {
+  const settings = await getResolvedPlatformSettings();
+  return {
+    region: account?.region || settings.sesRegion || "us-east-1",
+    accessKeyId: account?.accessKeyId || settings.sesAccessKeyId,
+    secretAccessKey: account?.secretAccessKey || settings.sesSecretAccessKey,
+    configurationSet:
+      account?.configurationSet !== undefined
+        ? account.configurationSet
+        : settings.sesConfigurationSet,
+  };
+}
+
 export async function getSesRegion(): Promise<string> {
   const settings = await getResolvedPlatformSettings();
   return settings.sesRegion || "us-east-1";
 }
 
-export async function getSesClient(): Promise<SESClient> {
-  const settings = await getResolvedPlatformSettings();
-  const region = settings.sesRegion || "us-east-1";
-  const accessKeyId = settings.sesAccessKeyId;
-  const secretAccessKey = settings.sesSecretAccessKey;
+export async function getSesClient(
+  account?: SesAccountOverride,
+): Promise<SESClient> {
+  const resolved = await resolveSesAccount(account);
+  const { region, accessKeyId, secretAccessKey } = resolved;
   if (!accessKeyId || !secretAccessKey) {
     throw new Error("SES credentials are not configured");
   }
@@ -56,10 +76,12 @@ export async function getSesSendQuota(): Promise<{
   };
 }
 
-async function sesSendOptions(): Promise<{ ConfigurationSetName?: string }> {
-  const settings = await getResolvedPlatformSettings();
-  return settings.sesConfigurationSet
-    ? { ConfigurationSetName: settings.sesConfigurationSet }
+async function sesSendOptions(
+  account?: SesAccountOverride,
+): Promise<{ ConfigurationSetName?: string }> {
+  const resolved = await resolveSesAccount(account);
+  return resolved.configurationSet
+    ? { ConfigurationSetName: resolved.configurationSet }
     : {};
 }
 
@@ -87,12 +109,15 @@ export interface SESVerificationResult {
   status: "Pending" | "Success" | "Failed" | "TemporaryFailure" | "NotStarted";
 }
 
-export async function sendEmail(options: SendEmailOptions): Promise<string> {
+export async function sendEmail(
+  options: SendEmailOptions,
+  account?: SesAccountOverride,
+): Promise<string> {
   const { from, to, cc, bcc, subject, html, text, replyTo, tags } = options;
 
   if (options.attachments && options.attachments.length > 0) {
     // Use raw email for attachments
-    return sendRawEmail(options);
+    return sendRawEmail(options, account);
   }
 
   const command = new SendEmailCommand({
@@ -126,14 +151,17 @@ export async function sendEmail(options: SendEmailOptions): Promise<string> {
     Tags: tags
       ? Object.entries(tags).map(([Name, Value]) => ({ Name, Value }))
       : undefined,
-    ...(await sesSendOptions()),
+    ...(await sesSendOptions(account)),
   });
 
-  const response = await (await getSesClient()).send(command);
+  const response = await (await getSesClient(account)).send(command);
   return response.MessageId!;
 }
 
-export async function sendRawEmail(options: SendEmailOptions): Promise<string> {
+export async function sendRawEmail(
+  options: SendEmailOptions,
+  account?: SesAccountOverride,
+): Promise<string> {
   const {
     from,
     to,
@@ -197,10 +225,10 @@ export async function sendRawEmail(options: SendEmailOptions): Promise<string> {
     RawMessage: {
       Data: new TextEncoder().encode(rawMessage),
     },
-    ...(await sesSendOptions()),
+    ...(await sesSendOptions(account)),
   });
 
-  const response = await (await getSesClient()).send(command);
+  const response = await (await getSesClient(account)).send(command);
   return response.MessageId!;
 }
 

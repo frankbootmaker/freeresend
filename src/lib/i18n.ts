@@ -243,6 +243,11 @@ type Dict = {
     secretKey: string;
     saveRoute: string;
     platformRelayHint: string;
+    sesAccountAria: string;
+    sesPlatform: string;
+    sesByo: string;
+    sesByoLockedHint: string;
+    sesPlatformHint: (region: string, configurationSet: string) => string;
   };
   customers: {
     kicker: string;
@@ -291,6 +296,8 @@ type Dict = {
     confirmDelete: string;
     deleted: string;
     deleteFailed: string;
+    sesByoAllowed: string;
+    sesByoAllowedHint: string;
   };
   organization: {
     aboutTitle: string;
@@ -930,7 +937,8 @@ const en: Dict = {
     ingressAria: 'Ingress',
     httpsHint:
       'Resend SDK: set RESEND_BASE_URL to this origin plus /api. Raw clients POST /api/emails.',
-    smtpIngressHint: 'SMTP submission on 587 (also 2525). Username relayhorizon, password is an API key.',
+    smtpIngressHint:
+      'Public SMTP is 587 (STARTTLS). 2525 is localhost-only on Compose. Username relayhorizon, password is an API key.',
     bothHint: 'Accept both HTTPS and SMTP. Use the matching endpoint below.',
     smtpSubmit: 'SMTP submission',
     smtpSubmitHint: 'Username is relayhorizon. Password is an API key.',
@@ -958,6 +966,15 @@ const en: Dict = {
     saveRoute: 'Save route',
     platformRelayHint:
       'Leave host empty to send through the platform SMTP relay.',
+    sesAccountAria: 'SES account',
+    sesPlatform: 'Platform',
+    sesByo: 'Bring your own',
+    sesByoLockedHint:
+      'Bring-your-own SES is available when a platform administrator enables it for this organization.',
+    sesPlatformHint: (region, configurationSet) =>
+      configurationSet
+        ? `Mail leaves through RelayHorizon SES (${region}, ${configurationSet}).`
+        : `Mail leaves through RelayHorizon SES (${region}).`,
   },
   customers: {
     kicker: 'Portal administration',
@@ -1006,6 +1023,9 @@ const en: Dict = {
     confirmDelete: 'Delete this tenant and its domains, keys, and logs?',
     deleted: 'Tenant deleted.',
     deleteFailed: 'Could not delete tenant',
+    sesByoAllowed: 'Allow bring-your-own SES',
+    sesByoAllowedHint:
+      'Unlocks the BYO SES toggle on Sending. Until then mail uses the platform SES account.',
   },
   organization: {
     aboutTitle: 'This organization',
@@ -1107,7 +1127,7 @@ const en: Dict = {
     smtpDisabled: 'Disabled',
     ingressTitle: 'SMTP submission',
     ingressLead:
-      'Ports the inbound listener binds. 587 uses STARTTLS when a certificate is set; 465 is implicit TLS. 2525 stays useful for local clients. Save, then keep the SMTP process running — it reloads these settings.',
+      'Ports the inbound listener binds. 587 uses STARTTLS when a certificate is set; 465 is implicit TLS. Compose publishes 2525 on 127.0.0.1 only and 587/465 on all interfaces. 465 stays silent unless this list includes it. Save, then keep the SMTP process running — it reloads these settings.',
     listenPorts: 'Listen ports',
     port2525: '2525',
     port587: '587',
@@ -1679,7 +1699,7 @@ const de: Dict = {
     httpsHint:
       'Resend-SDK: RESEND_BASE_URL ist dieser Host plus /api. Direkte Clients senden POST /api/emails.',
     smtpIngressHint:
-      'SMTP-Submission auf 587 (auch 2525). Benutzername relayhorizon, Passwort ist ein API-Schlüssel.',
+      'Öffentliches SMTP ist 587 (STARTTLS). 2525 ist unter Compose nur localhost. Benutzername relayhorizon, Passwort ist ein API-Schlüssel.',
     bothHint: 'HTTPS und SMTP akzeptieren. Nutzen Sie den passenden Endpunkt unten.',
     smtpSubmit: 'SMTP-Submission',
     smtpSubmitHint: 'Benutzername ist relayhorizon. Passwort ist ein API-Schlüssel.',
@@ -1707,6 +1727,15 @@ const de: Dict = {
     saveRoute: 'Route speichern',
     platformRelayHint:
       'Host leer lassen, um das Plattform-SMTP-Relay zu nutzen.',
+    sesAccountAria: 'SES-Konto',
+    sesPlatform: 'Plattform',
+    sesByo: 'Eigenes Konto',
+    sesByoLockedHint:
+      'Eigenes SES ist verfügbar, wenn ein Plattformadministrator es für diese Organisation einschaltet.',
+    sesPlatformHint: (region, configurationSet) =>
+      configurationSet
+        ? `Post geht über RelayHorizon-SES (${region}, ${configurationSet}).`
+        : `Post geht über RelayHorizon-SES (${region}).`,
   },
   customers: {
     kicker: 'Portalverwaltung',
@@ -1756,6 +1785,9 @@ const de: Dict = {
     confirmDelete: 'Diesen Mandanten mit Domains, Schlüsseln und Protokollen löschen?',
     deleted: 'Mandant gelöscht.',
     deleteFailed: 'Mandant konnte nicht gelöscht werden',
+    sesByoAllowed: 'Eigenes SES erlauben',
+    sesByoAllowedHint:
+      'Schaltet den BYO-SES-Schalter unter Versand frei. Sonst nutzt der Versand das Plattform-SES.',
   },
   organization: {
     aboutTitle: 'Diese Organisation',
@@ -1859,7 +1891,7 @@ const de: Dict = {
     smtpDisabled: 'Inaktiv',
     ingressTitle: 'SMTP-Submission',
     ingressLead:
-      'Ports des Eingangs-Listeners. 587 nutzt STARTTLS mit Zertifikat; 465 ist implizites TLS. 2525 eignet sich lokal. Speichern, SMTP-Prozess weiterlaufen lassen — er lädt neu.',
+      'Ports des Eingangs-Listeners. 587 nutzt STARTTLS mit Zertifikat; 465 ist implizites TLS. Compose veröffentlicht 2525 nur auf 127.0.0.1, 587/465 auf allen Interfaces. 465 bleibt still, bis diese Liste ihn enthält. Speichern, SMTP-Prozess weiterlaufen lassen — er lädt neu.',
     listenPorts: 'Hörende Ports',
     port2525: '2525',
     port587: '587',
@@ -2430,7 +2462,7 @@ const hu: Dict = {
     httpsHint:
       'Resend SDK: a RESEND_BASE_URL legyen ez az origin plusz /api. Közvetlen kliens: POST /api/emails.',
     smtpIngressHint:
-      'SMTP beküldés a 587-es porton (2525 is). Felhasználónév: relayhorizon, jelszó: API-kulcs.',
+      'A nyilvános SMTP a 587 (STARTTLS). A 2525 Compose-on csak localhost. Felhasználónév: relayhorizon, jelszó: API-kulcs.',
     bothHint: 'HTTPS és SMTP is elfogadott. Az alábbi végpontot használja.',
     smtpSubmit: 'SMTP beküldés',
     smtpSubmitHint: 'A felhasználónév relayhorizon. A jelszó egy API-kulcs.',
@@ -2458,6 +2490,15 @@ const hu: Dict = {
     saveRoute: 'Útvonal mentése',
     platformRelayHint:
       'Hagyja üresen a gépet a platform SMTP-relé használatához.',
+    sesAccountAria: 'SES-fiók',
+    sesPlatform: 'Platform',
+    sesByo: 'Saját fiók',
+    sesByoLockedHint:
+      'A saját SES akkor érhető el, ha a platformadminisztrátor engedélyezi a szervezetnek.',
+    sesPlatformHint: (region, configurationSet) =>
+      configurationSet
+        ? `A levél a RelayHorizon SES-en megy ki (${region}, ${configurationSet}).`
+        : `A levél a RelayHorizon SES-en megy ki (${region}).`,
   },
   customers: {
     kicker: 'Portáladminisztráció',
@@ -2507,6 +2548,9 @@ const hu: Dict = {
     confirmDelete: 'Törli ezt a bérlőt a domainjeivel, kulcsaival és naplóival?',
     deleted: 'A bérlő törölve.',
     deleteFailed: 'A bérlő törlése sikertelen',
+    sesByoAllowed: 'Saját SES engedélyezése',
+    sesByoAllowedHint:
+      'Feloldja a saját SES kapcsolót a Küldés lapon. Addig a platform SES-fiók megy.',
   },
   organization: {
     aboutTitle: 'Ez a szervezet',
@@ -2609,7 +2653,7 @@ const hu: Dict = {
     smtpDisabled: 'Kikapcsolva',
     ingressTitle: 'SMTP-beküldés',
     ingressLead:
-      'A bemeneti listener portjai. 587 STARTTLS-t használ tanúsítvánnyal; 465 implicit TLS. A 2525 helyi tesztre jó. Mentés után a SMTP-folyamat újratölti.',
+      'A bemeneti listener portjai. 587 STARTTLS-t használ tanúsítvánnyal; 465 implicit TLS. A Compose a 2525-öt csak 127.0.0.1-re publikálja, a 587/465-öt minden interfészre. A 465 csendben marad, amíg ez a lista nem tartalmazza. Mentés után a SMTP-folyamat újratölti.',
     listenPorts: 'Figyelt portok',
     port2525: '2525',
     port587: '587',

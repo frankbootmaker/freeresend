@@ -2,10 +2,18 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
-import { deleteTenant, TenantError, updateTenantName } from '@/lib/tenants';
+import {
+  deleteTenant,
+  TenantError,
+  updateTenantName,
+  updateTenantSesByoAllowed,
+} from '@/lib/tenants';
 
 const updateSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().min(1).optional(),
+  sesByoAllowed: z.boolean().optional(),
+}).refine((body) => body.name || body.sesByoAllowed !== undefined, {
+  message: 'No customer changes provided',
 });
 
 export async function OPTIONS() {
@@ -23,7 +31,15 @@ export async function PATCH(
     }
     const { id } = await params;
     const body = updateSchema.parse(await request.json());
-    const tenant = await updateTenantName(id, body.name);
+    let tenant = body.name
+      ? await updateTenantName(id, body.name)
+      : null;
+    if (body.sesByoAllowed !== undefined) {
+      tenant = await updateTenantSesByoAllowed(id, body.sesByoAllowed);
+    }
+    if (!tenant) {
+      return json({ error: 'No customer changes provided' }, 400);
+    }
     return json({ success: true, data: { tenant } });
   } catch (error: unknown) {
     if (error instanceof AuthError) {

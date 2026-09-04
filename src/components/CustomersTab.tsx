@@ -6,6 +6,7 @@ import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import ListPager from './ListPager';
+import { tenantAllowsByoSes } from '@/lib/tenant-ses';
 
 type TenantRow = {
   id: string;
@@ -14,6 +15,7 @@ type TenantRow = {
   status: string;
   inbound_transport?: string;
   outbound_transport: string;
+  metadata?: Record<string, unknown>;
 };
 
 export default function CustomersTab() {
@@ -31,6 +33,7 @@ export default function CustomersTab() {
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [managed, setManaged] = useState<TenantRow | null>(null);
   const [editName, setEditName] = useState('');
+  const [editByo, setEditByo] = useState(false);
   const [panelError, setPanelError] = useState('');
   const [panelResult, setPanelResult] = useState('');
   const [saving, setSaving] = useState(false);
@@ -115,6 +118,7 @@ export default function CustomersTab() {
     setPanelResult('');
     setManaged(row);
     setEditName(row.name);
+    setEditByo(tenantAllowsByoSes(row));
   };
 
   const closeManage = () => {
@@ -131,10 +135,16 @@ export default function CustomersTab() {
     setPanelResult('');
     setSaving(true);
     try {
-      const res = await api.updateCustomer(managed.id, { name: editName });
-      const nextName = res.data?.tenant?.name || editName.trim();
-      setManaged({ ...managed, name: nextName });
+      const res = await api.updateCustomer(managed.id, {
+        name: editName,
+        sesByoAllowed: editByo,
+      });
+      const next = res.data?.tenant;
+      const nextName = next?.name || editName.trim();
+      const nextMeta = next?.metadata || { ...managed.metadata };
+      setManaged({ ...managed, name: nextName, metadata: nextMeta });
       setEditName(nextName);
+      setEditByo(tenantAllowsByoSes({ metadata: nextMeta }));
       setPanelResult(t.customers.updated);
       refresh();
     } catch (err: unknown) {
@@ -359,6 +369,18 @@ export default function CustomersTab() {
                 <div className="field">
                   <label>{t.customers.state}</label>
                   <div className="ok">{managed.status.toUpperCase()}</div>
+                </div>
+                <div className="field">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={editByo}
+                      onChange={(e) => setEditByo(e.target.checked)}
+                    />
+                    {' '}
+                    {t.customers.sesByoAllowed}
+                  </label>
+                  <p className="muted">{t.customers.sesByoAllowedHint}</p>
                 </div>
               </div>
               <div className="inline-actions">

@@ -5,6 +5,7 @@ import type { SendEmailOptions } from './ses';
 import type { Tenant } from './tenants';
 import { getTenantBySlug } from './tenants';
 import { getResolvedPlatformSettings } from './platform-settings';
+import { tenantSesSendAccount } from './tenant-ses';
 
 export interface OutboundDkim {
   domainName?: string | null;
@@ -86,7 +87,7 @@ export async function sendOutboundEmail(
     throw new Error('Tenant SMTP upstream is not configured');
   }
 
-  return sendViaSes(options);
+  return sendViaSes(options, tenantSesSendAccount(tenant));
 }
 
 export type PlatformMailVia = 'ses' | 'smtp';

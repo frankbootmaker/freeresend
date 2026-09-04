@@ -170,6 +170,13 @@ class ApiClient {
   async updateTenantSending(payload: {
     inboundTransport?: "https" | "smtp" | "both";
     outboundTransport?: "ses" | "smtp";
+    sesMode?: "platform" | "byo";
+    sesConfig?: {
+      region?: string;
+      configurationSet?: string;
+      accessKeyId?: string;
+      secretAccessKey?: string;
+    };
     smtpUpstream?: {
       host: string;
       port: number;
@@ -234,7 +241,10 @@ class ApiClient {
     return this.request(`/admin/users/${id}?purge=1`, { method: 'DELETE' });
   }
 
-  async updateCustomer(id: string, payload: { name: string }) {
+  async updateCustomer(id: string, payload: {
+    name?: string;
+    sesByoAllowed?: boolean;
+  }) {
     return this.request(`/admin/customers/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),

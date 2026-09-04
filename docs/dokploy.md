@@ -53,7 +53,15 @@ Fresh volume: schema comes from `database.sql`. Existing database: apply every `
 
 ## SMTP submission later
 
-The `smtp` profile builds the submission listener (2525 plus 587/465). Leave it off until you are ready to publish those ports and finish TLS in Portal → Configuration. HTTPS API sending does not need that profile.
+The `smtp` profile builds the submission listener. Leave it off until you are ready to publish ports and finish inbound TLS in Portal → Configuration. HTTPS API sending does not need that profile.
+
+Dokploy must start Compose with `--profile smtp` (the default command does not). The process listens on `0.0.0.0` inside the container; Docker then publishes:
+
+- **2525** as `127.0.0.1:2525` — VPS localhost only
+- **587** on all interfaces — public STARTTLS submission
+- **465** on all interfaces — implicit TLS, only if Configuration includes 465
+
+Traefik fronts HTTPS on the hostname, not SMTP. Open **587** (and **465** if you enable it) on the VPS firewall. Clients use the public host, port 587, username `relayhorizon`, password = API key.
 
 ## Checks
 

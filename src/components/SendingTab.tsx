@@ -7,18 +7,27 @@ import { usePrefs } from '@/contexts/PrefsContext';
 
 type Ingress = 'https' | 'smtp' | 'both';
 type Egress = 'ses' | 'smtp';
+type SesMode = 'platform' | 'byo';
 
 function SegButton({
   active,
   onClick,
   children,
+  disabled,
 }: {
   active: boolean;
   onClick: () => void;
   children: ReactNode;
+  disabled?: boolean;
 }) {
   return (
-    <button type="button" className={active ? 'on' : undefined} onClick={onClick}>
+    <button
+      type="button"
+      className={active ? 'on' : undefined}
+      onClick={onClick}
+      disabled={disabled}
+      aria-disabled={disabled}
+    >
       {children}
     </button>
   );
@@ -40,9 +49,14 @@ export default function SendingTab() {
     port: 587,
     ports: [587, 2525],
   });
+  const [sesMode, setSesMode] = useState<SesMode>('platform');
+  const [sesByoAllowed, setSesByoAllowed] = useState(false);
+  const [sesAccessKey, setSesAccessKey] = useState('');
+  const [sesSecretKey, setSesSecretKey] = useState('');
   const [ses, setSes] = useState({
     region: 'eu-central-1',
     configurationSet: DEFAULT_SES_CONFIGURATION_SET,
+    accessKeyConfigured: false,
   });
   const [platformRelay, setPlatformRelay] = useState({
     enabled: false,
@@ -73,9 +87,14 @@ export default function SendingTab() {
         });
       }
       if (res.data.ses) {
+        const allowed = Boolean(res.data.ses.byoAllowed);
+        setSesByoAllowed(allowed);
+        setSesMode(allowed && res.data.ses.mode === 'byo' ? 'byo' : 'platform');
         setSes({
           region: res.data.ses.region,
-          configurationSet: res.data.ses.configurationSet || DEFAULT_SES_CONFIGURATION_SET,
+          configurationSet:
+            res.data.ses.configurationSet || DEFAULT_SES_CONFIGURATION_SET,
+          accessKeyConfigured: Boolean(res.data.ses.accessKeyConfigured),
         });
       }
       if (res.data.platformSmtpRelay) {
@@ -95,6 +114,16 @@ export default function SendingTab() {
       await api.updateTenantSending({
         inboundTransport: ingress,
         outboundTransport: transport,
+        sesMode: transport === 'ses' ? sesMode : undefined,
+        sesConfig:
+          transport === 'ses' && sesMode === 'byo'
+            ? {
+                region: ses.region,
+                configurationSet: ses.configurationSet,
+                accessKeyId: sesAccessKey,
+                secretAccessKey: sesSecretKey,
+              }
+            : undefined,
         smtpUpstream:
           transport === 'smtp'
             ? host.trim()
@@ -196,6 +225,30 @@ export default function SendingTab() {
                 {t.sending.smtpRelay}
               </SegButton>
             </div>
+            {transport === 'ses' && (
+              <>
+                <div className="seg" role="radiogroup" aria-label={t.sending.sesAccountAria}>
+                  <SegButton
+                    active={sesMode === 'platform'}
+                    onClick={() => setSesMode('platform')}
+                  >
+                    {t.sending.sesPlatform}
+                  </SegButton>
+                  <SegButton
+                    active={sesMode === 'byo'}
+                    disabled={!sesByoAllowed}
+                    onClick={() => {
+                      if (sesByoAllowed) setSesMode('byo');
+                    }}
+                  >
+                    {t.sending.sesByo}
+                  </SegButton>
+                </div>
+                {!sesByoAllowed && (
+                  <p className="cardlead">{t.sending.sesByoLockedHint}</p>
+                )}
+              </>
+            )}
             {transport === 'smtp' ? (
               <div className="formgrid">
                 {platformRelay.enabled && (
@@ -247,25 +300,46 @@ export default function SendingTab() {
                   />
                 </div>
               </div>
-            ) : (
+            ) : sesMode === 'byo' && sesByoAllowed ? (
               <div className="formgrid">
                 <div className="field">
                   <label>{t.sending.awsRegion}</label>
-                  <input readOnly value={ses.region} />
+                  <input
+                    value={ses.region}
+                    onChange={(e) => setSes({ ...ses, region: e.target.value })}
+                  />
                 </div>
                 <div className="field">
                   <label>{t.sending.configSet}</label>
-                  <input readOnly value={ses.configurationSet} />
+                  <input
+                    value={ses.configurationSet}
+                    onChange={(e) =>
+                      setSes({ ...ses, configurationSet: e.target.value })
+                    }
+                  />
                 </div>
                 <div className="field">
                   <label>{t.sending.accessKey}</label>
-                  <input readOnly placeholder="AKIA…" value="AKIA…" />
+                  <input
+                    placeholder="AKIA…"
+                    value={sesAccessKey}
+                    onChange={(e) => setSesAccessKey(e.target.value)}
+                  />
                 </div>
                 <div className="field">
                   <label>{t.sending.secretKey}</label>
-                  <input readOnly type="password" value="••••••••" />
+                  <input
+                    type="password"
+                    placeholder={ses.accessKeyConfigured ? '••••••••' : ''}
+                    value={sesSecretKey}
+                    onChange={(e) => setSesSecretKey(e.target.value)}
+                  />
                 </div>
               </div>
+            ) : (
+              <p className="cardlead">
+                {t.sending.sesPlatformHint(ses.region, ses.configurationSet)}
+              </p>
             )}
             {error && <div className="fr-error">{error}</div>}
             {message && <div className="fr-ok">{message}</div>}

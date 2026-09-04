@@ -9,7 +9,7 @@ The sending console and portal share **EN, DE, and HU** in the header. Forgot-pa
 Each tenant chooses one of:
 
 - `https` — Resend SDK `RESEND_BASE_URL=https://<host>/api` (SDK POSTs `/emails`). Raw clients `POST /api/emails`
-- `smtp` — SMTP submission (`npm run smtp`, default port **2525**)
+- `smtp` — SMTP submission (public port **587**; local `npm run smtp` still defaults to **2525**)
 - `both`
 
 The tenant **Sending** tab only shows HTTPS or SMTP fields for the ingress you pick. TLS for the upstream relay is on SMTP egress, not on the HTTPS card.
@@ -28,6 +28,8 @@ Content-Type: application/json
 ```
 
 SMTP submission uses username `relayhorizon` and the API key as the password. Closed channels return an error (HTTPS `403`, SMTP `535`/`550`).
+
+Public mail clients use the host shown on **Sending** and port **587** (STARTTLS when the platform has a certificate). Port **2525** is a local/debug listener: on Compose it is published as `127.0.0.1:2525` only, so it is not reachable from the internet. Port **465** is implicit TLS and only answers when the platform has enabled that listen port and a certificate. If a client connects then refuses the session, inbound SMTP TLS still needs to be set under portal **Configuration**.
 
 `from` must match a **verified** domain on the same tenant as the API key.
 
@@ -50,7 +52,7 @@ Check records in the dashboard. Sending stays blocked until every required recor
 
 Each tenant has a switch:
 
-- `ses` — Amazon SES over HTTPS (platform AWS keys)
+- `ses` — Amazon SES over HTTPS. The Sending tab shows **Platform** (this installation’s account) or **Bring your own** (faded until a platform administrator enables it). Platform SES does not show API keys.
 - `smtp` — Nodemailer to `smtp_upstream` (host, port, TLS, credentials), DKIM-signed with the domain key RelayHorizon publishes
 
 Set both switches in the dashboard **Sending** tab or `PATCH /api/tenant`.

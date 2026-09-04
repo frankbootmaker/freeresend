@@ -13,6 +13,7 @@ import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 import { requestOrigin } from '@/lib/oidc';
 import { resolveSmtpPublicHost, resolveSmtpPublicPorts } from '@/lib/smtp-listen';
+import { tenantAllowsByoSes, tenantSesMode } from '@/lib/tenant-ses';
 
 const deleteSchema = z.object({
   confirmName: z.string().min(1),
@@ -21,6 +22,15 @@ const deleteSchema = z.object({
 const schema = z.object({
   inboundTransport: z.enum(['https', 'smtp', 'both']).optional(),
   outboundTransport: z.enum(['ses', 'smtp']).optional(),
+  sesMode: z.enum(['platform', 'byo']).optional(),
+  sesConfig: z
+    .object({
+      region: z.string().optional(),
+      configurationSet: z.string().optional(),
+      accessKeyId: z.string().optional(),
+      secretAccessKey: z.string().optional(),
+    })
+    .optional(),
   smtpUpstream: z
     .union([
       z.null(),
@@ -79,8 +89,19 @@ export async function GET(request: NextRequest) {
           passwordHint: 'Use a RelayHorizon API key as the SMTP password',
         },
         ses: {
-          region: platform.sesRegion,
-          configurationSet: platform.sesConfigurationSet,
+          region:
+            tenantSesMode(session.tenant) === 'byo'
+            && session.tenant.ses_config?.region
+              ? session.tenant.ses_config.region
+              : platform.sesRegion,
+          configurationSet:
+            tenantSesMode(session.tenant) === 'byo'
+            && session.tenant.ses_config?.configurationSet
+              ? session.tenant.ses_config.configurationSet
+              : platform.sesConfigurationSet,
+          mode: tenantSesMode(session.tenant),
+          byoAllowed: tenantAllowsByoSes(session.tenant),
+          accessKeyConfigured: Boolean(session.tenant.ses_config?.accessKeyId),
         },
         platformSmtpRelay: {
           enabled: platform.smtpEnabled && Boolean(platform.smtpHost),
@@ -109,17 +130,27 @@ export async function PATCH(request: NextRequest) {
       return json({ error: 'Insufficient role' }, 403);
     }
     const body = schema.parse(await request.json());
-    if (!body.inboundTransport && !body.outboundTransport) {
+    if (
+      !body.inboundTransport
+      && !body.outboundTransport
+      && !body.sesMode
+      && body.sesConfig === undefined
+    ) {
       return json({ error: 'No routing changes provided' }, 400);
     }
     const tenant = await updateTenantRouting(session.tenant.id, {
       inboundTransport: body.inboundTransport,
       outboundTransport: body.outboundTransport,
       smtpUpstream: body.smtpUpstream,
+      sesMode: body.sesMode,
+      sesConfig: body.sesConfig,
     });
     return json({ success: true, data: { tenant } });
   } catch (error: unknown) {
     if (error instanceof AuthError) {
+      return json({ error: error.message }, error.status);
+    }
+    if (error instanceof TenantError) {
       return json({ error: error.message }, error.status);
     }
     const err = error as { errors?: unknown; message?: string };

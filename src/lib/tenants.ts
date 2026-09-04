@@ -1,6 +1,14 @@
 import { query, transaction } from './database';
 import { hashPassword, randomToken } from './auth-crypto';
 import { normalizeInboundTransport, type InboundTransport } from './ingress';
+import {
+  parseJsonRecord,
+  parseTenantSesConfig,
+  tenantAllowsByoSes,
+  withSesByoAllowed,
+  type SesAccountMode,
+  type TenantSesConfig,
+} from './tenant-ses';
 
 export const PLATFORM_TENANT_SLUG = 'platform';
 
@@ -26,7 +34,7 @@ export interface Tenant {
   monthly_email_quota: number;
   inbound_transport: InboundTransport;
   outbound_transport: OutboundTransport;
-  ses_config?: Record<string, unknown> | null;
+  ses_config?: TenantSesConfig | null;
   smtp_upstream?: SmtpUpstream | null;
   metadata?: Record<string, unknown>;
   created_at: string;
@@ -63,7 +71,9 @@ function parseTenant(row: Record<string, unknown>): Tenant {
     ...(row as unknown as Tenant),
     monthly_email_quota: Number(row.monthly_email_quota ?? 100000),
     inbound_transport: normalizeInboundTransport(row.inbound_transport),
+    ses_config: parseTenantSesConfig(row.ses_config),
     smtp_upstream: smtp,
+    metadata: parseJsonRecord(row.metadata) || {},
   };
 }
 
@@ -311,12 +321,40 @@ export async function addMembership(
   );
 }
 
+export async function updateTenantSesByoAllowed(
+  tenantId: string,
+  allowed: boolean,
+): Promise<Tenant> {
+  const existing = await getTenantById(tenantId);
+  if (!existing) {
+    throw new Error('Tenant not found');
+  }
+  const result = await query(
+    `UPDATE tenants
+     SET metadata = $2::jsonb
+     WHERE id = $1
+     RETURNING *`,
+    [tenantId, JSON.stringify(withSesByoAllowed(existing.metadata, allowed))],
+  );
+  if (!result.rows[0]) {
+    throw new Error('Tenant not found');
+  }
+  return parseTenant(result.rows[0]);
+}
+
 export async function updateTenantRouting(
   tenantId: string,
   input: {
     inboundTransport?: InboundTransport;
     outboundTransport?: OutboundTransport;
     smtpUpstream?: SmtpUpstream | null;
+    sesMode?: SesAccountMode;
+    sesConfig?: {
+      region?: string;
+      configurationSet?: string;
+      accessKeyId?: string;
+      secretAccessKey?: string;
+    } | null;
   },
 ): Promise<Tenant> {
   const existing = await getTenantById(tenantId);
@@ -349,11 +387,37 @@ export async function updateTenantRouting(
     }
   }
 
+  let sesConfig = existing.ses_config || {};
+  if (input.sesMode || input.sesConfig !== undefined) {
+    if (input.sesMode === 'byo' && !tenantAllowsByoSes(existing)) {
+      throw new TenantError(
+        'SES_BYO_NOT_ALLOWED',
+        'Bring-your-own SES is not enabled for this organization',
+        403,
+      );
+    }
+    const next = input.sesConfig || {};
+    const secret =
+      !next.secretAccessKey || next.secretAccessKey === '********'
+        ? existing.ses_config?.secretAccessKey
+        : next.secretAccessKey;
+    sesConfig = {
+      ...sesConfig,
+      mode: input.sesMode || existing.ses_config?.mode || 'platform',
+      region: next.region ?? existing.ses_config?.region,
+      configurationSet:
+        next.configurationSet ?? existing.ses_config?.configurationSet,
+      accessKeyId: next.accessKeyId || existing.ses_config?.accessKeyId,
+      secretAccessKey: secret,
+    };
+  }
+
   const result = await query(
     `UPDATE tenants
      SET inbound_transport = $2,
          outbound_transport = $3,
-         smtp_upstream = $4
+         smtp_upstream = $4,
+         ses_config = $5
      WHERE id = $1
      RETURNING *`,
     [
@@ -363,6 +427,7 @@ export async function updateTenantRouting(
       transport === 'smtp' && smtpUpstream?.host
         ? JSON.stringify(smtpUpstream)
         : null,
+      JSON.stringify(sesConfig),
     ],
   );
 

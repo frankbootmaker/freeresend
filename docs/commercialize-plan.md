@@ -1,0 +1,169 @@
+# RelayHorizon — Commercial operations plan
+
+Status: **planning**. Do not implement until this note is agreed. Built product as of
+3 September 2026 is in [progress-summary.md](progress-summary.md) (v1.9.2). This note
+is the backlog for **hosted commercial operation**: protect the master SES account,
+sell packages, invoice automatically across the EU (and later anywhere), and publish
+legal and marketing copy from the portal.
+
+UI language remains EN / DE / HU.
+
+## What is already true
+
+- Tenants send through RelayHorizon (HTTPS and/or SMTP ingress). Egress is platform
+  SES **or** tenant SMTP upstream (empty host → platform SMTP relay).
+- `tenants.ses_config` exists but is unused. SES send always uses platform keys.
+- Safety today: tenant `active`, verified DNS, API key `send`, calendar-month quota
+  (default **100000**). The SES webhook marks bounce/complaint on logs; it does not
+  suppress or trip the tenant.
+- Portal **Customers → Manage** is rename + delete. Tenant nav has no Abuse or Billing.
+- `/pricing` is a Resend vs self-host **calculator** plus waitlist. Stripe Payment
+  Links exist for Launch Kit / Deployment Review. `collectStripeMetrics` runs if
+  `STRIPE_SECRET_KEY` is set. There are no T&C pages, no CMS, no tenant invoices.
+
+## Design rules
+
+1. **Sending pool** = whose SES/IP and which caps. **Billing mode**
+   (`invoiced` | `exempt`) is a separate flag. **People roles** stay
+   `owner` / `admin` / `member`.
+2. Invoice-exempt (in-house) tenants keep every guard and every log. No Stripe
+   charge, no invoice document.
+3. CMS holds **prose** (pricing page, T&C, news). **Prices, caps, and pool
+   eligibility** are data the send path and Stripe use. An editor must not be able
+   to publish “50k included” while the API still enforces 500.
+4. Tenant Abuse is **transparency**. Tenant Billing is **money**. Portal Manage /
+   Abuse is **power** (promote, freeze, assign pool).
+5. One `invoices` table for every billed tenant, any country. Stripe and optional
+   issuer adapters (for example Számlázz.hu) are columns, not two histories.
+6. Automatic promotion on payment alone is forbidden. Volume unlocks
+   **eligibility**; reputation + admin (or a documented auto-rule with a sample
+   floor) **moves** the pool.
+7. T&C must describe the same thresholds the product enforces. Signup stores
+   `accepted_terms_version`.
+
+## Sending pools
+
+Starter catalog (names can change; fields matter):
+
+| Pool | Egress | Typical caps | Who |
+| --- | --- | --- | --- |
+| **Probation** | Platform SES | Tight hour / day / month | Every new tenant |
+| **Shared** | Platform SES | Medium | Proven clean, modest volume |
+| **BYO** | Tenant SES or SMTP | High on our side | Heavy or untrusted-on-master |
+| **Dedicated** | Platform SES + dedicated IP / config set | High | High invoice volume, clean |
+
+New tenants land in Probation. Egress becomes a **consequence of the pool**. The
+tenant Sending tab must not let them put themselves on platform SES if the pool
+is BYO, or the reverse.
+
+Optional later: an **Internal** pool (tight bursts, platform SES) for in-house
+apps that are also `billing_mode = exempt`.
+
+## Abuse controls
+
+**Send path** (`dispatchTenantEmail`): hourly, daily, and monthly caps from the
+pool; refuse suppressed recipients; tenant must stay `active`.
+
+**Webhook** (existing `/api/webhooks/ses`): on bounce/complaint, update rates;
+suppress hard-bounce and complaint addresses; if bounce or complaint rate crosses
+the pool tripwire over a minimum sample, freeze SES egress or `suspend` and notify.
+
+**SES-side** (master account): per-tenant configuration set where possible;
+CloudWatch alarms; do not put untrusted tenants on a shared dedicated IP.
+
+**Portal → Abuse:** define pools; queue of tenants near a tripwire; promote /
+demote / suspend.
+
+**Customers → Manage:** assign pool, optional quota override, 24h rates,
+suppressions, **billing mode** (invoiced / exempt + reason).
+
+**Tenant console → Abuse:** same numbers, warnings, “what happens next.” They
+cannot raise the pool or disable the breaker. In-app banner until acknowledged.
+Mail (existing locale-aware system mail): approaching cap, rising bounce, freeze,
+suspend.
+
+## Billing and invoices
+
+Invoicing is **EU-wide** (and later anywhere), not Hungary-only.
+
+- **Stripe** is the default money and invoice rail for every invoiced tenant:
+  customer, payment method, subscription or usage, automatic card charge, invoice
+  PDF, dunning. **Stripe Tax** (or equivalent) handles EU VAT — local rate for
+  B2C, reverse charge for B2B with a valid VAT number, OSS if you sell across the
+  EU from one establishment.
+- Tenant Billing collects legal name, address, and VAT/tax ID for any country.
+- `billing_plans` map to sending-pool eligibility and to Stripe Products/Prices.
+- Nightly (or Stripe usage records): count billable sends for `invoiced` tenants
+  → Stripe subscription/usage → card charge → store the row tenants see.
+- Failed payment: Stripe dunning, then **freeze sending** after N days (T&C).
+- Exempt: skip Stripe and every invoice adapter; still meter; Health may show
+  “SES cost of exempt tenants.”
+- **Számlázz.hu** is an optional **issuer-side** adapter when the *company*
+  needs a Hungarian NAV invoice for that sale — not a “Hungarian customers only”
+  product path. If used, it runs after `invoice.paid` and stores ids on the same
+  `invoices` row. If Stripe is merchant of record and that satisfies the
+  accountant, Számlázz.hu can wait or be skipped.
+- **Tenant → Billing** (owner, maybe admin): plan (only eligible plans), invoice
+  details, card via Stripe Customer Portal (no raw card form), invoice list,
+  **resend** the stored PDF (do not mint a new legal invoice number). Exempt sees
+  “not invoiced.”
+- **Portal → Billing:** failed invoices, adapter errors, exempt list, MRR.
+
+Do not build a third invoicing engine, and do not add a per-country invoicer for
+every EU state.
+
+## CMS and legal
+
+Portal **CMS** submenu:
+
+- **Pricing** — public `/pricing`: commercial packages (plus optional calculator
+  subsection).
+- **Legal** — `/legal/terms`, `/privacy`, `/imprint`; versioned; EN/DE/HU;
+  `effective_at`.
+- **News** — `/news` or `/blog` (last).
+
+Footer on the landing page reads **published** documents. Checkout/signup
+requires current T&C.
+
+T&C must cover: caps; freeze/suspend; no guarantee of platform SES; we may
+require BYO; log retention; abuse may close the account; card dunning then
+freeze; exempt in-house still logged and capped; invoices issued for EU
+customers (VAT/reverse charge as applicable).
+
+## Phased delivery (implementation order)
+
+Do not start C until A is live and T&C match the product.
+
+**A — Policy the T&C can tell the truth about**  
+Pools (or a `sending_tier` enum), hour/day/month caps, webhook breaker +
+suppression, portal Manage assignment, tenant Abuse tab + warnings, versioned
+T&C/Privacy/Imprint (static markdown is enough), signup stores accepted version.
+
+**B — Plans that match pools**  
+`billing_plans` + `billing_mode` (including exempt). Split `/pricing` into real
+packages. Tenant Billing: details + current plan (checkout may still be manual).
+
+**C — Automatic cards and EU invoices**  
+Stripe Customer + subscription/usage + Stripe Tax. Failed-payment freeze.
+Invoice list + resend for every invoiced tenant.
+
+**D — Issuer adapters**  
+Számlázz.hu (or others) only if the issuing company needs them. VAT fields are
+already on Billing from B/C.
+
+**E — CMS + news**  
+Move legal/pricing copy into portal CMS. Blog last.
+
+## Out of scope for this plan
+
+- Incoming mail / mailboxes.
+- Letting tenants disable abuse checks.
+- Auto-promote onto master SES because they paid.
+- Dedicated-IP automation on day one (model the pool; implement later).
+- A separate invoicing product per EU member state.
+
+## Related docs
+
+- [progress-summary.md](progress-summary.md) — what is built
+- [admin-guide.md](admin-guide.md) / [sending.md](sending.md) — current manuals
+- [security.md](security.md)
