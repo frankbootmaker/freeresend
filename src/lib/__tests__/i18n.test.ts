@@ -38,6 +38,9 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.hu.legal.privacy).toMatch(/adatvédelem/i);
     expect(dictionaries.en.register.mustAccept).toMatch(/imprint/i);
     expect(dictionaries.hu.register.mustAccept).toMatch(/impresszum/i);
+    expect(dictionaries.en.sending.capsTitle).toMatch(/caps/i);
+    expect(dictionaries.de.sending.capsTitle).toMatch(/versand/i);
+    expect(dictionaries.hu.sending.capsTitle).toMatch(/korlát/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);
     expect(readBrowserLocale()).toBe('en');
   });

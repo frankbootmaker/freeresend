@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS tenants (
   status VARCHAR(50) DEFAULT 'active',
   billing_email VARCHAR(255),
   monthly_email_quota INTEGER DEFAULT 100000,
+  hourly_email_quota INTEGER NOT NULL DEFAULT 5000,
+  daily_email_quota INTEGER NOT NULL DEFAULT 20000,
   inbound_transport VARCHAR(20) NOT NULL DEFAULT 'https',
   outbound_transport VARCHAR(20) NOT NULL DEFAULT 'ses',
   ses_config JSONB,
@@ -18,7 +20,9 @@ CREATE TABLE IF NOT EXISTS tenants (
   CONSTRAINT tenants_transport_check CHECK (outbound_transport IN ('ses', 'smtp')),
   CONSTRAINT tenants_status_check CHECK (
     status IN ('pending_verification', 'active', 'suspended')
-  )
+  ),
+  CONSTRAINT tenants_hourly_quota_check CHECK (hourly_email_quota > 0),
+  CONSTRAINT tenants_daily_quota_check CHECK (daily_email_quota > 0)
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -145,6 +149,21 @@ CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
 CREATE INDEX IF NOT EXISTS idx_email_logs_tenant_created ON email_logs(tenant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_logs_created ON email_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs(tenant_id, status);
+
+CREATE TABLE IF NOT EXISTS suppressed_recipients (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  email VARCHAR(255) NOT NULL,
+  reason VARCHAR(20) NOT NULL,
+  bounce_type VARCHAR(40),
+  email_log_id UUID REFERENCES email_logs(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (tenant_id, email),
+  CONSTRAINT suppressed_reason_check CHECK (reason IN ('bounce', 'complaint', 'manual'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_suppressed_recipients_tenant
+  ON suppressed_recipients (tenant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_mcp_tokens_prefix ON mcp_tokens(key_prefix);
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()

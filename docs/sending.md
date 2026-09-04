@@ -33,6 +33,8 @@ Public mail clients use the host shown on **Sending** and port **587** (STARTTLS
 
 `from` must match a **verified** domain on the same tenant as the API key.
 
+Sends that are not `failed` count against hour / day / month caps (defaults **5,000** per rolling hour, **20,000** per calendar day, **100,000** per calendar month). Permanent SES bounces and complaints suppress that recipient; further sends to them return **422**. Transient bounces are not suppressed. SMTP-uplink failures do not write the suppression list.
+
 API keys are listed with label, **domain**, prefix, scope, and last used. Any member of the tenant can delete a key (including the provisioned default). Copy a new secret once.
 
 Delivery **Logs** (tenant and portal) page at 25 rows by default. Choose 5, 10, 25, or 50. Search applies on Apply, not every keystroke.

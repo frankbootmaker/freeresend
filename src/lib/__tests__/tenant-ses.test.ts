@@ -24,6 +24,8 @@ function tenant(partial: Partial<Tenant>): Tenant {
     name: 'Acme',
     status: 'active',
     monthly_email_quota: 1000,
+    hourly_email_quota: 100,
+    daily_email_quota: 400,
     inbound_transport: 'https',
     outbound_transport: 'ses',
     ...partial,

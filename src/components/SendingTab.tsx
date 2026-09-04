@@ -64,8 +64,30 @@ export default function SendingTab() {
     enabled: false,
     host: '',
   });
+  const [caps, setCaps] = useState<{
+    hourly: number;
+    daily: number;
+    monthly: number;
+    usedHour: number;
+    usedDay: number;
+    used: number;
+  } | null>(null);
 
   useEffect(() => {
+    api.getTenantStats(1).then((res) => {
+      const quota = res.data?.quota;
+      if (!quota) return;
+      setCaps({
+        hourly: quota.hourly,
+        daily: quota.daily,
+        monthly: quota.monthly,
+        usedHour: quota.usedHour,
+        usedDay: quota.usedDay,
+        used: quota.used,
+      });
+    }).catch(() => {
+      setCaps(null);
+    });
     api.getTenant().then((res) => {
       const tenant = res.data.tenant;
       setIngress(tenant.inbound_transport || 'https');
@@ -193,6 +215,21 @@ export default function SendingTab() {
               </SegButton>
             </div>
             <p className="cardlead">{ingressLead}</p>
+            {caps && (
+              <p className="cardlead" data-testid="sending-caps">
+                <strong>{t.sending.capsTitle}.</strong>{' '}
+                {t.sending.capsLine(
+                  caps.usedHour,
+                  caps.hourly,
+                  caps.usedDay,
+                  caps.daily,
+                  caps.used,
+                  caps.monthly,
+                )}
+                .{' '}
+                {t.sending.capsHint}
+              </p>
+            )}
             <div className="formgrid">
               {showHttps && (
                 <>

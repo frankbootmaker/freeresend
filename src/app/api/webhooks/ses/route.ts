@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { query } from "@/lib/database";
+import { recordSesSuppressions } from "@/lib/suppression";
 
 interface SESMessage {
   eventType: "send" | "delivery" | "bounce" | "complaint" | "reject";
@@ -130,6 +131,12 @@ async function processSESEvent(message: SESMessage) {
        VALUES ($1, $2, $3, $4)`,
       [emailLog.id, message.eventType, JSON.stringify(message), true]
     );
+
+    await recordSesSuppressions({
+      tenantId: emailLog.tenant_id,
+      emailLogId: emailLog.id,
+      event: message,
+    });
 
     console.log(
       `Processed ${message.eventType} event for email ${emailLog.id}`

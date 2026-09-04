@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { json, optionsResponse } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
-import { getMonthlySendCount, getTenantTraffic } from '@/lib/tenants';
+import { getSendWindowCounts, getTenantTraffic } from '@/lib/tenants';
+import { capsFromTenant } from '@/lib/sending-quota';
 
 export async function OPTIONS() {
   return optionsResponse();
@@ -13,14 +14,19 @@ export async function GET(request: NextRequest) {
     const days = Number(new URL(request.url).searchParams.get('days') || '30');
     const since = new Date(Date.now() - Math.max(days, 1) * 24 * 60 * 60 * 1000);
     const traffic = await getTenantTraffic(session.tenant.id, since);
-    const monthCount = await getMonthlySendCount(session.tenant.id);
+    const used = await getSendWindowCounts(session.tenant.id);
+    const caps = capsFromTenant(session.tenant);
     return json({
       success: true,
       data: {
         traffic,
         quota: {
-          monthly: session.tenant.monthly_email_quota,
-          used: monthCount,
+          hourly: caps.hourly,
+          daily: caps.daily,
+          monthly: caps.monthly,
+          usedHour: used.hour,
+          usedDay: used.day,
+          used: used.month,
         },
       },
     });

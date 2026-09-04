@@ -2,6 +2,12 @@ import { query, transaction } from './database';
 import { hashPassword, randomToken } from './auth-crypto';
 import { normalizeInboundTransport, type InboundTransport } from './ingress';
 import {
+  DEFAULT_DAILY_EMAIL_QUOTA,
+  DEFAULT_HOURLY_EMAIL_QUOTA,
+  DEFAULT_MONTHLY_EMAIL_QUOTA,
+  type SendWindowCounts,
+} from './sending-quota';
+import {
   parseJsonRecord,
   parseTenantSesConfig,
   tenantAllowsByoSes,
@@ -37,6 +43,8 @@ export interface Tenant {
   status: TenantStatus;
   billing_email?: string;
   monthly_email_quota: number;
+  hourly_email_quota: number;
+  daily_email_quota: number;
   inbound_transport: InboundTransport;
   outbound_transport: OutboundTransport;
   ses_config?: TenantSesConfig | null;
@@ -74,7 +82,13 @@ function parseTenant(row: Record<string, unknown>): Tenant {
   }
   return {
     ...(row as unknown as Tenant),
-    monthly_email_quota: Number(row.monthly_email_quota ?? 100000),
+    monthly_email_quota: Number(
+      row.monthly_email_quota ?? DEFAULT_MONTHLY_EMAIL_QUOTA,
+    ),
+    hourly_email_quota: Number(
+      row.hourly_email_quota ?? DEFAULT_HOURLY_EMAIL_QUOTA,
+    ),
+    daily_email_quota: Number(row.daily_email_quota ?? DEFAULT_DAILY_EMAIL_QUOTA),
     inbound_transport: normalizeInboundTransport(row.inbound_transport),
     ses_config: parseTenantSesConfig(row.ses_config),
     smtp_upstream: smtp,
@@ -318,7 +332,7 @@ export async function createTenant(input: {
       input.name,
       input.status || 'active',
       input.billingEmail || null,
-      input.quota ?? 100000,
+      input.quota ?? DEFAULT_MONTHLY_EMAIL_QUOTA,
       input.inboundTransport || 'https',
       input.outboundTransport || 'ses',
       input.smtpUpstream ? JSON.stringify(input.smtpUpstream) : null,
@@ -529,16 +543,30 @@ export async function updateTenantTransport(
   });
 }
 
-export async function getMonthlySendCount(tenantId: string): Promise<number> {
+export async function getSendWindowCounts(
+  tenantId: string,
+): Promise<SendWindowCounts> {
   const result = await query(
-    `SELECT COUNT(*)::int AS count
+    `SELECT
+       COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 hour')::int AS hour,
+       COUNT(*) FILTER (WHERE created_at >= date_trunc('day', NOW()))::int AS day,
+       COUNT(*) FILTER (WHERE created_at >= date_trunc('month', NOW()))::int AS month
      FROM email_logs
      WHERE tenant_id = $1
-       AND created_at >= date_trunc('month', NOW())
        AND status NOT IN ('failed')`,
     [tenantId],
   );
-  return Number(result.rows[0]?.count ?? 0);
+  const row = result.rows[0] || {};
+  return {
+    hour: Number(row.hour ?? 0),
+    day: Number(row.day ?? 0),
+    month: Number(row.month ?? 0),
+  };
+}
+
+export async function getMonthlySendCount(tenantId: string): Promise<number> {
+  const counts = await getSendWindowCounts(tenantId);
+  return counts.month;
 }
 
 export async function getTenantTraffic(
@@ -617,7 +645,7 @@ export async function setupCustomer(
         slug,
         input.name,
         input.ownerEmail,
-        input.quota ?? 100000,
+        input.quota ?? DEFAULT_MONTHLY_EMAIL_QUOTA,
         input.inboundTransport || 'https',
         input.outboundTransport || 'ses',
         input.smtpUpstream ? JSON.stringify(input.smtpUpstream) : null,

@@ -338,6 +338,7 @@ const TENANT: Record<Locale, Guide> = {
           'The Sending tab only shows HTTPS or SMTP fields for the ingress you pick. TLS for the upstream relay is on SMTP egress.',
           'SMTP username is relayhorizon. The password is an API key. Closed channels return HTTPS 403 or SMTP 535/550.',
           'SES uses the platform AWS account unless a platform administrator enables bring-your-own SES. SMTP egress uses your upstream host, or the platform relay if you leave host empty.',
+          'Default caps are 5,000 messages per rolling hour, 20,000 per calendar day, and 100,000 per calendar month. Hard bounces and complaints are suppressed and further sends to those addresses are rejected.',
         ],
       },
       {
@@ -382,7 +383,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Logs',
         paragraphs: [
           'Delivery events for this tenant. Filter by recipient or status, then Apply. Choose 5, 10, 25, or 50 rows per page.',
-          'Bounces and complaints update after SES SNS is connected to /api/webhooks/ses.',
+          'Bounces and complaints update after SES SNS is connected to /api/webhooks/ses. Permanent bounces and complaints also join the suppression list.',
         ],
       },
       {
@@ -416,6 +417,7 @@ const TENANT: Record<Locale, Guide> = {
           'Die Versandseite zeigt nur HTTPS- oder SMTP-Felder zum gewählten Ingress. TLS für das Upstream-Relais steht beim SMTP-Egress.',
           'SMTP-Benutzername ist relayhorizon. Das Passwort ist ein API-Schlüssel. Geschlossene Kanäle liefern HTTPS 403 oder SMTP 535/550.',
           'SES nutzt das Plattform-AWS-Konto, bis ein Administrator eigenes SES freischaltet. SMTP-Egress nutzt Ihren Upstream oder das Plattform-Relais, wenn der Host leer bleibt.',
+          'Standardgrenzen sind 5.000 Nachrichten pro gleitender Stunde, 20.000 pro Kalendertag und 100.000 pro Kalendermonat. Harte Bounces und Beschwerden werden unterdrückt; weitere Sendungen an diese Adressen werden abgelehnt.',
         ],
       },
       {
@@ -460,7 +462,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Protokolle',
         paragraphs: [
           'Zustellereignisse dieses Mandanten. Nach Empfänger oder Status filtern, dann Anwenden. 5, 10, 25 oder 50 Zeilen pro Seite.',
-          'Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt.',
+          'Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt. Permanente Bounces und Beschwerden kommen auf die Unterdrückungsliste.',
         ],
       },
       {
@@ -494,6 +496,7 @@ const TENANT: Record<Locale, Guide> = {
           'A Küldés lap csak a választott bejövő útnak megfelelő HTTPS- vagy SMTP-mezőket mutatja. Az upstream relé TLS-e a SMTP kimeneten van.',
           'Az SMTP felhasználónév: relayhorizon. A jelszó egy API-kulcs. Lezárt csatorna HTTPS 403 vagy SMTP 535/550.',
           'A SES a platform AWS-fiókot használja, amíg a platformadminisztrátor saját SES-t nem engedélyez. SMTP kimenetnél a saját upstream, vagy üres hostnál a platform relé.',
+          'Az alapértelmezett korlát 5 000 üzenet gördülő óránként, 20 000 naptári naponként és 100 000 naptári havonta. A kemény visszapattanások és a panaszok tiltólistára kerülnek, ezekre a címekre a további küldés elutasított.',
         ],
       },
       {
@@ -538,7 +541,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Naplók',
         paragraphs: [
           'Ennek a bérlőnek a kézbesítési eseményei. Szűrjön címzett vagy állapot szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
-          'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat.',
+          'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
         ],
       },
       {

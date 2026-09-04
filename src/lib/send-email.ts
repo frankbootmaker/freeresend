@@ -1,8 +1,13 @@
 import { query } from './database';
 import { sendOutboundEmail } from './mail-transport';
 import { getDomainById, getDomainByName } from './domains';
-import { getMonthlySendCount, getTenantById, type Tenant } from './tenants';
+import { getSendWindowCounts, getTenantById, type Tenant } from './tenants';
 import { ingressAllows, ingressBlockedMessage, type IngressChannel } from './ingress';
+import { capsFromTenant, quotaRejection } from './sending-quota';
+import {
+  collectRecipientEmails,
+  findSuppressedRecipients,
+} from './suppression';
 import type { ApiKey } from './database';
 import type { SendEmailOptions } from './ses';
 
@@ -44,9 +49,19 @@ export async function dispatchTenantEmail(input: DispatchEmailInput) {
     throw new SendDispatchError('Tenant is not active', 403);
   }
 
-  const used = await getMonthlySendCount(tenant.id);
-  if (used >= tenant.monthly_email_quota) {
-    throw new SendDispatchError('Monthly email quota exceeded', 429);
+  const used = await getSendWindowCounts(tenant.id);
+  const quotaError = quotaRejection(used, capsFromTenant(tenant));
+  if (quotaError) {
+    throw new SendDispatchError(quotaError, 429);
+  }
+
+  const recipients = collectRecipientEmails(payload);
+  const suppressed = await findSuppressedRecipients(tenant.id, recipients);
+  if (suppressed.length > 0) {
+    throw new SendDispatchError(
+      `Recipient is suppressed: ${suppressed.join(', ')}`,
+      422,
+    );
   }
 
   const fromDomain = domainOf(payload.from);

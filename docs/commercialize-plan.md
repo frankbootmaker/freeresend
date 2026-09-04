@@ -27,9 +27,10 @@ UI language remains EN / DE / HU.
 - When the platform SMTP relay is enabled, the **SES (base) set** also includes
   that host in SPF and the RelayHorizon DKIM TXT so you can fail over to the
   relay without a DNS change. Bounce MX on `outbound.{domain}` stays Amazon.
-- Safety today: tenant `active`, verified DNS, API key `send`, calendar-month quota
-  (default **100000**). The SES webhook marks bounce/complaint on logs; it does not
-  suppress or trip the tenant.
+- Safety today: tenant `active`, verified DNS, API key `send`, hour / day / month
+  caps (defaults **5,000** / **20,000** / **100,000**). The SES webhook marks
+  bounce/complaint on logs and suppresses permanent bounces and complaints.
+  Soft bounces are not suppressed. There is not yet a pool breaker or Abuse tab.
 - Portal **Customers → Manage** is rename + delete. Tenant nav has no Abuse or Billing.
 - `/pricing` is a Resend vs self-host **calculator** plus waitlist. Stripe Payment
   Links exist for Launch Kit / Deployment Review. `collectStripeMetrics` runs if
@@ -213,8 +214,10 @@ Do not start C until A is live and T&C match the product.
 **A0 shipped:** git-backed Terms / Privacy / Imprint at `/legal` (EN/DE/HU,
 version + `effective_at`), landing footer, self-signup stores
 `accepted_terms_version`. Not a portal CMS (that is E).  
-Still in A: pools (or a `sending_tier` enum), hour/day/month caps, webhook
-breaker + suppression, portal Manage assignment, tenant Abuse tab + warnings.
+**A1 shipped:** hour / day / month caps on the send path; SES hard-bounce and
+complaint suppression.  
+Still in A: pools (or a `sending_tier` enum), webhook breaker, portal Manage
+assignment, tenant Abuse tab + warnings.
 
 **B — Plans that match pools**  
 `billing_plans` + `billing_mode` (including exempt). Split `/pricing` into real

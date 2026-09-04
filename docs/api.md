@@ -16,7 +16,7 @@ Header `X-Tenant-Id` lets a platform admin act on another tenant.
 
 - `GET /api/tenant` — settings (SMTP password masked) + SMTP submission host/port
 - `PATCH /api/tenant` — `{ inboundTransport: "https"|"smtp"|"both", outboundTransport: "ses"|"smtp", smtpUpstream? }`
-- `GET /api/stats/tenant?days=30` — traffic + quota
+- `GET /api/stats/tenant?days=30` — traffic + hour / day / month quota used
 
 ## Resources
 

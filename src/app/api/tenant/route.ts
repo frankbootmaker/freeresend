@@ -68,6 +68,8 @@ export async function GET(request: NextRequest) {
           name: session.tenant.name,
           status: session.tenant.status,
           monthly_email_quota: session.tenant.monthly_email_quota,
+          hourly_email_quota: session.tenant.hourly_email_quota,
+          daily_email_quota: session.tenant.daily_email_quota,
           inbound_transport: session.tenant.inbound_transport,
           outbound_transport: session.tenant.outbound_transport,
           smtp_upstream: smtp

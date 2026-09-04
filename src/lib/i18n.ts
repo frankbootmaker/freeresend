@@ -212,6 +212,16 @@ type Dict = {
     lead: string;
     quota: string;
     used: (n: number) => string;
+    capsTitle: string;
+    capsLine: (
+      hourUsed: number,
+      hourCap: number,
+      dayUsed: number,
+      dayCap: number,
+      monthUsed: number,
+      monthCap: number,
+    ) => string;
+    capsHint: string;
     loading: string;
     volume: string;
     volumeHint: string;
@@ -978,6 +988,10 @@ const en: Dict = {
       'Choose how applications hand mail to RelayHorizon, then how RelayHorizon delivers it.',
     quota: 'Monthly quota',
     used: (n) => `${n} used this month`,
+    capsTitle: 'Sending caps',
+    capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
+      `${hourUsed} / ${hourCap} hour · ${dayUsed} / ${dayCap} day · ${monthUsed} / ${monthCap} month`,
+    capsHint: 'Hard bounces and complaints are suppressed. Reaching a cap rejects further sends until the window resets.',
     loading: 'Loading…',
     volume: '30-day volume',
     volumeHint: 'Logged sends for this tenant',
@@ -1797,6 +1811,10 @@ const de: Dict = {
       'Wählen Sie, wie Anwendungen Post an RelayHorizon übergeben und wie RelayHorizon zustellt.',
     quota: 'Monatskontingent',
     used: (n) => `${n} in diesem Monat genutzt`,
+    capsTitle: 'Versandgrenzen',
+    capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
+      `${hourUsed} / ${hourCap} Stunde · ${dayUsed} / ${dayCap} Tag · ${monthUsed} / ${monthCap} Monat`,
+    capsHint: 'Harte Bounces und Beschwerden werden unterdrückt. Ist die Grenze erreicht, werden weitere Sendungen abgelehnt, bis das Fenster neu beginnt.',
     loading: 'Laden…',
     volume: '30-Tage-Volumen',
     volumeHint: 'Protokollierte Sendungen dieses Mandanten',
@@ -2619,6 +2637,10 @@ const hu: Dict = {
       'Válassza ki, hogyan adják be az alkalmazások a levelet, majd hogyan kézbesíti a RelayHorizon.',
     quota: 'Havi kvóta',
     used: (n) => `${n} felhasználva ebben a hónapban`,
+    capsTitle: 'Küldési korlátok',
+    capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
+      `${hourUsed} / ${hourCap} óra · ${dayUsed} / ${dayCap} nap · ${monthUsed} / ${monthCap} hónap`,
+    capsHint: 'A kemény visszapattanások és a panaszok tiltólistára kerülnek. A plafon elérése után a további küldés elutasított, amíg az ablak újra nem nyílik.',
     loading: 'Betöltés…',
     volume: '30 napos forgalom',
     volumeHint: 'A bérlő naplózott küldései',

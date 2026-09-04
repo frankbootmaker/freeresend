@@ -6,10 +6,11 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, and published legal pages.
+BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, and send-path caps plus suppression.
 
 ### Added
 
+- Hour / day / month sending caps (defaults 5,000 / 20,000 / 100,000) enforced on HTTPS and SMTP send; SES hard bounces and complaints are suppressed
 - Public **Terms**, **Privacy**, and **Imprint** at `/legal` (EN/DE/HU, version `2026-09-04`); landing footer links; self-signup must accept the current version
 - Tenant Sending **Request bring-your-own SES**; portal Customers → Manage **Approve / Deny** and a registry filter for requested or approved BYO
 - Domains keep both SES and SMTP record sets; the unused set is dimmed; switching Sending rebuilds and re-checks the live set

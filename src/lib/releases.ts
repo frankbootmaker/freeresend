@@ -22,8 +22,12 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
     summary:
-      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, and published legal pages.',
+      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, and send-path caps plus suppression.',
     changes: [
+      {
+        kind: 'added',
+        text: 'Hour, day, and month sending caps (defaults 5,000 / 20,000 / 100,000) enforced on HTTPS and SMTP send; SES hard bounces and complaints are suppressed.',
+      },
       {
         kind: 'added',
         text: 'Public Terms, Privacy, and Imprint at /legal (EN/DE/HU, version 2026-09-04); landing footer links; self-signup must accept the current version.',
