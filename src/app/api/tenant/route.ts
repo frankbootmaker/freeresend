@@ -9,6 +9,7 @@ import {
   TenantError,
   updateTenantRouting,
 } from '@/lib/tenants';
+import { refreshTenantSendingDns } from '@/lib/domains';
 import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 import { requestOrigin } from '@/lib/oidc';
@@ -150,6 +151,9 @@ export async function PATCH(request: NextRequest) {
       sesMode: body.sesMode,
       sesConfig: body.sesConfig,
     });
+    if (body.outboundTransport || body.smtpUpstream !== undefined) {
+      await refreshTenantSendingDns(tenant.id);
+    }
     return json({ success: true, data: { tenant } });
   } catch (error: unknown) {
     if (error instanceof AuthError) {

@@ -19,7 +19,13 @@ export async function GET(request: NextRequest) {
       return json({ error: 'Dashboard session required' }, 401);
     }
     const domains = await getTenantDomains(session.tenant.id);
-    return json({ success: true, data: { domains } });
+    return json({
+      success: true,
+      data: {
+        domains,
+        outboundTransport: session.tenant.outbound_transport || 'ses',
+      },
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, error.status);

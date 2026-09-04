@@ -613,6 +613,10 @@ type Dict = {
     dnsTitle: string;
     sesRecords: string;
     smtpRecords: string;
+    inUse: string;
+    inactiveSes: string;
+    inactiveSmtp: string;
+    sesFailoverHint: string;
     noDomainYet: string;
     emptyTitle: string;
     expectedValue: string;
@@ -1403,6 +1407,13 @@ const en: Dict = {
     dnsTitle: 'DNS verification',
     sesRecords: 'SES records',
     smtpRecords: 'SMTP records',
+    inUse: 'In use',
+    inactiveSes:
+      'These SES records are not in use. Switch Sending to Amazon SES to publish and verify them.',
+    inactiveSmtp:
+      'These SMTP records are not in use. Switch Sending to SMTP relay to publish and verify them.',
+    sesFailoverHint:
+      'These SES records also authorize the platform SMTP relay and RelayHorizon DKIM, so failover can send without republishing DNS. Bounce MX stays on Amazon.',
     noDomainYet: 'No domain yet',
     emptyTitle: 'No domains yet',
     expectedValue: 'Expected value',
@@ -2202,6 +2213,13 @@ const de: Dict = {
     dnsTitle: 'DNS-Verifizierung',
     sesRecords: 'SES-Records',
     smtpRecords: 'SMTP-Records',
+    inUse: 'Aktiv',
+    inactiveSes:
+      'Diese SES-Records sind nicht in Gebrauch. Stellen Sie Sending auf Amazon SES um, um sie zu veröffentlichen und zu prüfen.',
+    inactiveSmtp:
+      'Diese SMTP-Records sind nicht in Gebrauch. Stellen Sie Sending auf SMTP-Relay um, um sie zu veröffentlichen und zu prüfen.',
+    sesFailoverHint:
+      'Diese SES-Records autorisieren auch das Plattform-SMTP-Relay und RelayHorizon-DKIM, damit Failover ohne neue DNS-Records senden kann. Bounce-MX bleibt bei Amazon.',
     noDomainYet: 'Noch keine Domain',
     emptyTitle: 'Noch keine Domains',
     expectedValue: 'Erwarteter Wert',
@@ -2999,6 +3017,13 @@ const hu: Dict = {
     dnsTitle: 'DNS-ellenőrzés',
     sesRecords: 'SES-rekordok',
     smtpRecords: 'SMTP-rekordok',
+    inUse: 'Használatban',
+    inactiveSes:
+      'Ezek a SES-rekordok most nem érvényesek. A Sending oldalon válassza az Amazon SES-t, ha ezeket szeretné közzétenni és ellenőrizni.',
+    inactiveSmtp:
+      'Ezek az SMTP-rekordok most nem érvényesek. A Sending oldalon válassza az SMTP relét, ha ezeket szeretné közzétenni és ellenőrizni.',
+    sesFailoverHint:
+      'Ezek a SES-rekordok a platform SMTP relét és a RelayHorizon DKIM-et is engedélyezik, így failoverkor nem kell új DNS-t közzétenni. A bounce MX Amazonon marad.',
     noDomainYet: 'Még nincs domain',
     emptyTitle: 'Még nincsenek domainek',
     expectedValue: 'Várt érték',

@@ -10,6 +10,7 @@ interface DnsRecord {
   value: string;
   purpose?: string;
   status?: 'pending' | 'valid' | 'invalid';
+  lane?: 'ses' | 'smtp';
 }
 
 interface Domain {
@@ -20,6 +21,22 @@ interface Domain {
   created_at: string;
 }
 
+type RecordSet = 'ses' | 'smtp';
+
+function recordLane(record: DnsRecord): RecordSet {
+  if (record.lane === 'ses' || record.lane === 'smtp') return record.lane;
+  if (record.purpose === 'ses_verify') return 'ses';
+  if (record.type === 'CNAME' && /amazonses/i.test(record.value)) return 'ses';
+  if (record.purpose === 'dkim' && record.type === 'TXT') return 'smtp';
+  if (record.purpose === 'mx' && /inbound-smtp|amazonses/i.test(record.value)) {
+    return 'ses';
+  }
+  if (record.purpose === 'mx') return 'smtp';
+  if (record.purpose === 'spf' && /amazonses/i.test(record.value)) return 'ses';
+  if (record.purpose === 'spf') return 'smtp';
+  return 'ses';
+}
+
 export default function DomainsTab() {
   const { t } = usePrefs();
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -27,7 +44,8 @@ export default function DomainsTab() {
   const [addingDomain, setAddingDomain] = useState(false);
   const [newDomain, setNewDomain] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [recordSet, setRecordSet] = useState<'ses' | 'smtp'>('ses');
+  const [outboundTransport, setOutboundTransport] = useState<RecordSet>('ses');
+  const [recordSet, setRecordSet] = useState<RecordSet>('ses');
   const [checkingId, setCheckingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -42,6 +60,10 @@ export default function DomainsTab() {
       const response = await api.getDomains();
       const list = response.data.domains;
       setDomains(list);
+      const transport =
+        response.data.outboundTransport === 'smtp' ? 'smtp' : 'ses';
+      setOutboundTransport(transport);
+      setRecordSet(transport);
       if (list.length) setActiveId((current) => current || list[0].id);
     } catch (err) {
       console.error('Failed to load domains:', err);
@@ -62,6 +84,7 @@ export default function DomainsTab() {
       setDomains([domain, ...domains]);
       setNewDomain('');
       setActiveId(domain.id);
+      setRecordSet(outboundTransport);
       setMessage(response.message || t.domains.cannotSend);
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.domains.addFailed);
@@ -110,11 +133,18 @@ export default function DomainsTab() {
   };
 
   const active = domains.find((d) => d.id === activeId);
-  const records = (active?.dns_records || []).filter((record) => {
-    if (recordSet === 'ses') {
-      return record.purpose !== 'smtp' && record.type !== 'SMTP';
-    }
-    return true;
+  const viewingInactive = recordSet !== outboundTransport;
+  const records = (active?.dns_records || []).filter(
+    (record) => recordLane(record) === recordSet,
+  );
+  const sesHasFailover = records.some((record) => {
+    if (recordSet !== 'ses') return false;
+    if (record.purpose === 'dkim' && record.type === 'TXT') return true;
+    return (
+      record.purpose === 'spf'
+      && /amazonses/i.test(record.value)
+      && /(?:\ba:|\bip4:)/i.test(record.value)
+    );
   });
 
   if (loading) {
@@ -147,7 +177,7 @@ export default function DomainsTab() {
           </select>
           <button
             type="button"
-            disabled={!active}
+            disabled={!active || viewingInactive}
             onClick={() => active && handleVerifyDomain(active.id)}
           >
             {checkingId === active?.id ? t.domains.checking : t.domains.check}
@@ -174,6 +204,9 @@ export default function DomainsTab() {
             onClick={() => setRecordSet('ses')}
           >
             {t.domains.sesRecords}
+            {outboundTransport === 'ses' && (
+              <span className="lane-use">{t.domains.inUse}</span>
+            )}
           </button>
           <button
             type="button"
@@ -181,6 +214,9 @@ export default function DomainsTab() {
             onClick={() => setRecordSet('smtp')}
           >
             {t.domains.smtpRecords}
+            {outboundTransport === 'smtp' && (
+              <span className="lane-use">{t.domains.inUse}</span>
+            )}
           </button>
         </div>
 
@@ -190,34 +226,48 @@ export default function DomainsTab() {
             <p>{t.domains.empty}</p>
           </div>
         ) : (
-          <div className="tablewrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>{t.domains.type}</th>
-                  <th>{t.domains.host}</th>
-                  <th>{t.domains.expectedValue}</th>
-                  <th>{t.domains.state}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((record, index) => (
-                  <tr key={`${active.id}-${index}`}>
-                    <td>
-                      <code>{record.type}</code>
-                    </td>
-                    <td>{record.name}</td>
-                    <td>
-                      <code>{record.value}</code>
-                    </td>
-                    <td className={record.status === 'valid' ? 'ok' : undefined}>
-                      {statusLabel(record.status)}
-                    </td>
+          <>
+            {viewingInactive && (
+              <p className="cardlead dns-lane-note">
+                {recordSet === 'ses' ? t.domains.inactiveSes : t.domains.inactiveSmtp}
+              </p>
+            )}
+            {!viewingInactive && recordSet === 'ses' && sesHasFailover && (
+              <p className="cardlead dns-lane-note">{t.domains.sesFailoverHint}</p>
+            )}
+            <div
+              className={
+                viewingInactive ? 'tablewrap dns-lane-inactive' : 'tablewrap'
+              }
+            >
+              <table>
+                <thead>
+                  <tr>
+                    <th>{t.domains.type}</th>
+                    <th>{t.domains.host}</th>
+                    <th>{t.domains.expectedValue}</th>
+                    <th>{t.domains.state}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {records.map((record, index) => (
+                    <tr key={`${active.id}-${recordSet}-${index}`}>
+                      <td>
+                        <code>{record.type}</code>
+                      </td>
+                      <td>{record.name}</td>
+                      <td>
+                        <code>{record.value}</code>
+                      </td>
+                      <td className={record.status === 'valid' ? 'ok' : undefined}>
+                        {statusLabel(record.status)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </section>

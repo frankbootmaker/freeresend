@@ -16,6 +16,7 @@ export interface DnsRecord {
   required: boolean;
   status?: DnsRecordStatus;
   observed?: string | null;
+  lane?: OutboundTransport;
 }
 
 export interface DkimKeyPair {
@@ -54,6 +55,16 @@ export function pemToBase64(pem: string): string {
     .replace(/\s+/g, '');
 }
 
+export function resolveSmtpDnsHost(input: {
+  tenantSmtpHost?: string | null;
+  platformSmtpHost?: string | null;
+}): string | null {
+  const tenant = input.tenantSmtpHost?.trim();
+  if (tenant) return tenant;
+  const platform = input.platformSmtpHost?.trim();
+  return platform || null;
+}
+
 export function generateSendingDnsRecords(input: {
   domain: string;
   outboundTransport: OutboundTransport;
@@ -61,6 +72,7 @@ export function generateSendingDnsRecords(input: {
   sesDkimTokens?: string[];
   sesRegion?: string;
   smtpMxHost?: string | null;
+  platformSmtpHost?: string | null;
   dkimSelector?: string | null;
   dkimPublicKey?: string | null;
 }): DnsRecord[] {
@@ -82,23 +94,28 @@ export function generateSendingDnsRecords(input: {
         'MX on outbound — SES bounce MAIL FROM. The target host is Amazon’s (inbound-smtp); this does not receive your mail.',
       required: true,
     });
+    const sesSpf = sesSpfValue(input.platformSmtpHost, domain);
+    const failoverReady = smtpSpfMechanisms(input.platformSmtpHost, domain).length > 0;
     records.push({
       type: 'TXT',
       name: mailFrom,
-      value: 'v=spf1 include:amazonses.com ~all',
+      value: sesSpf,
       ttl,
       purpose: 'spf',
-      description: 'SPF on outbound — authorize Amazon SES for bounce MAIL FROM',
+      description: failoverReady
+        ? 'SPF on outbound — Amazon SES plus the platform SMTP relay for failover'
+        : 'SPF on outbound — authorize Amazon SES for bounce MAIL FROM',
       required: true,
     });
     records.push({
       type: 'TXT',
       name: domain,
-      value: 'v=spf1 include:amazonses.com ~all',
+      value: sesSpf,
       ttl,
       purpose: 'spf',
-      description:
-        'SPF on the sending domain — include amazonses.com because egress is Amazon SES',
+      description: failoverReady
+        ? 'SPF on the sending domain — Amazon SES plus the platform SMTP relay so failover can send without a DNS change'
+        : 'SPF on the sending domain — include amazonses.com because egress is Amazon SES',
       required: true,
     });
     if (input.sesVerificationToken) {
@@ -138,41 +155,67 @@ export function generateSendingDnsRecords(input: {
         });
       });
     }
+    if (failoverReady) {
+      records.push(
+        relayDkimRecord({
+          domain,
+          selector: input.dkimSelector || DEFAULT_DKIM_SELECTOR,
+          publicKey: input.dkimPublicKey || '',
+          ttl,
+          description:
+            'RelayHorizon DKIM — publish now so platform SMTP failover can sign without a DNS change',
+        }),
+      );
+    }
   } else {
+    const smtpHost = resolveSmtpDnsHost({
+      tenantSmtpHost: input.smtpMxHost,
+      platformSmtpHost: input.platformSmtpHost,
+    });
+    const viaPlatform = !input.smtpMxHost?.trim() && Boolean(smtpHost);
     records.push({
       type: 'MX',
       name: mailFrom,
-      value: smtpMxValue(input.smtpMxHost, domain),
+      value: smtpMxValue(smtpHost, domain),
       ttl,
       purpose: 'mx',
-      description: 'MX on outbound — bounce MAIL FROM for SMTP egress',
+      description: viaPlatform
+        ? 'MX on outbound — bounce MAIL FROM for the platform SMTP relay'
+        : 'MX on outbound — bounce MAIL FROM for your SMTP upstream',
+      required: true,
+    });
+    records.push({
+      type: 'TXT',
+      name: mailFrom,
+      value: smtpSpfValue(smtpHost, domain),
+      ttl,
+      purpose: 'spf',
+      description: viaPlatform
+        ? 'SPF on outbound — authorize the platform SMTP relay for bounce MAIL FROM'
+        : 'SPF on outbound — authorize your SMTP upstream for bounce MAIL FROM',
       required: true,
     });
     records.push({
       type: 'TXT',
       name: domain,
-      value: smtpSpfValue(input.smtpMxHost, domain),
+      value: smtpSpfValue(smtpHost, domain),
       ttl,
       purpose: 'spf',
-      description:
-        'SPF on the sending domain — authorize the SMTP upstream, not Amazon SES',
+      description: viaPlatform
+        ? 'SPF on the sending domain — authorize the platform SMTP relay, not Amazon SES'
+        : 'SPF on the sending domain — authorize your SMTP upstream, not Amazon SES',
       required: true,
     });
-    const selector = input.dkimSelector || DEFAULT_DKIM_SELECTOR;
-    const publicKey = input.dkimPublicKey || '';
-    records.push({
-      type: 'TXT',
-      name: `${selector}._domainkey.${domain}`,
-      value: publicKey
-        ? `v=DKIM1; k=rsa; p=${publicKey}`
-        : 'v=DKIM1; k=rsa; p=',
-      ttl,
-      purpose: 'dkim',
-      description: `DKIM TXT for selector ${selector}`,
-      required: true,
-      status: publicKey ? 'pending' : 'invalid',
-      observed: publicKey ? null : 'DKIM key has not been generated',
-    });
+    records.push(
+      relayDkimRecord({
+        domain,
+        selector: input.dkimSelector || DEFAULT_DKIM_SELECTOR,
+        publicKey: input.dkimPublicKey || '',
+        ttl,
+        description:
+          `DKIM TXT for selector ${input.dkimSelector || DEFAULT_DKIM_SELECTOR} — RelayHorizon signs; the SMTP relay only forwards`,
+      }),
+    );
   }
 
   records.push({
@@ -185,7 +228,92 @@ export function generateSendingDnsRecords(input: {
     required: true,
   });
 
-  return records;
+  return records.map((record) => ({
+    ...record,
+    lane: input.outboundTransport,
+  }));
+}
+
+export function generateDualSendingDnsRecords(
+  input: Omit<Parameters<typeof generateSendingDnsRecords>[0], 'outboundTransport'>,
+): DnsRecord[] {
+  return [
+    ...generateSendingDnsRecords({ ...input, outboundTransport: 'ses' }),
+    ...generateSendingDnsRecords({ ...input, outboundTransport: 'smtp' }),
+  ];
+}
+
+export function inferRecordLane(
+  record: Pick<DnsRecord, 'lane' | 'type' | 'value' | 'purpose'>,
+): OutboundTransport {
+  if (record.lane === 'ses' || record.lane === 'smtp') return record.lane;
+  if (record.purpose === 'ses_verify') return 'ses';
+  if (record.type === 'CNAME' && /amazonses/i.test(record.value || '')) return 'ses';
+  if (record.purpose === 'dkim' && record.type === 'TXT') return 'smtp';
+  if (record.purpose === 'mx' && /inbound-smtp|amazonses/i.test(record.value || '')) {
+    return 'ses';
+  }
+  if (record.purpose === 'mx') return 'smtp';
+  if (record.purpose === 'spf' && /amazonses/i.test(record.value || '')) return 'ses';
+  if (record.purpose === 'spf') return 'smtp';
+  return 'ses';
+}
+
+export function recordsForLane(
+  records: DnsRecord[],
+  lane: OutboundTransport,
+): DnsRecord[] {
+  return records.filter((record) => inferRecordLane(record) === lane);
+}
+
+export function hasSendingLane(
+  records: DnsRecord[],
+  lane: OutboundTransport,
+): boolean {
+  return records.some(
+    (record) => inferRecordLane(record) === lane && record.purpose !== 'dmarc',
+  );
+}
+
+export function dnsRecordSignature(records: DnsRecord[]): string {
+  return records
+    .map((record) => (
+      `${inferRecordLane(record)}\0${record.type}\0${record.name}\0${record.value}`
+    ))
+    .sort()
+    .join('\n');
+}
+
+export function mergeDnsRecordStatuses(
+  next: DnsRecord[],
+  previous: DnsRecord[],
+  resetLanes: OutboundTransport[] = [],
+): DnsRecord[] {
+  return next.map((record) => {
+    const lane = inferRecordLane(record);
+    if (resetLanes.includes(lane)) {
+      return {
+        ...record,
+        lane,
+        status: 'pending' as const,
+        observed: null,
+      };
+    }
+    const prior = previous.find((candidate) => {
+      if (inferRecordLane(candidate) !== lane) return false;
+      if (candidate.type !== record.type) return false;
+      if (normalizeHost(candidate.name) !== normalizeHost(record.name)) {
+        return false;
+      }
+      return normalizeDnsValue(candidate) === normalizeDnsValue(record);
+    });
+    return {
+      ...record,
+      lane,
+      status: prior?.status || record.status || 'pending',
+      observed: prior?.observed ?? record.observed ?? null,
+    };
+  });
 }
 
 export function extractSesDkimTokens(records: DnsRecord[]): string[] {
@@ -318,15 +446,67 @@ function smtpMxValue(host: string | null | undefined, domain: string): string {
   return `10 ${normalizeHost(target)}.`;
 }
 
-function smtpSpfValue(host: string | null | undefined, domain: string): string {
+function smtpSpfMechanisms(
+  host: string | null | undefined,
+  domain: string,
+): string[] {
   const target = host?.trim();
-  if (!target || isLocalHost(target)) {
+  if (!target || isLocalHost(target)) return [];
+  if (isIpv4(target)) return [`ip4:${target}`];
+  const hostname = normalizeHost(target);
+  const parent = parentDomain(hostname);
+  if (parent && parent !== hostname && parent !== domain) {
+    return [`a:${hostname}`, `include:${parent}`];
+  }
+  return [`a:${hostname}`];
+}
+
+function smtpSpfValue(host: string | null | undefined, domain: string): string {
+  const mechanisms = smtpSpfMechanisms(host, domain);
+  if (mechanisms.length === 0) {
     return `v=spf1 mx:${outboundHost(domain)} ~all`;
   }
-  if (isIpv4(target)) {
-    return `v=spf1 ip4:${target} ~all`;
+  return `v=spf1 ${mechanisms.join(' ')} ~all`;
+}
+
+function sesSpfValue(
+  platformSmtpHost: string | null | undefined,
+  domain: string,
+): string {
+  const mechanisms = smtpSpfMechanisms(platformSmtpHost, domain);
+  if (mechanisms.length === 0) {
+    return 'v=spf1 include:amazonses.com ~all';
   }
-  return `v=spf1 include:${normalizeHost(target)} ~all`;
+  return `v=spf1 include:amazonses.com ${mechanisms.join(' ')} ~all`;
+}
+
+function relayDkimRecord(input: {
+  domain: string;
+  selector: string;
+  publicKey: string;
+  ttl: number;
+  description: string;
+}): DnsRecord {
+  const publicKey = input.publicKey;
+  return {
+    type: 'TXT',
+    name: `${input.selector}._domainkey.${input.domain}`,
+    value: publicKey
+      ? `v=DKIM1; k=rsa; p=${publicKey}`
+      : 'v=DKIM1; k=rsa; p=',
+    ttl: input.ttl,
+    purpose: 'dkim',
+    description: input.description,
+    required: true,
+    status: publicKey ? 'pending' : 'invalid',
+    observed: publicKey ? null : 'DKIM key has not been generated',
+  };
+}
+
+function parentDomain(host: string): string | null {
+  const parts = host.split('.');
+  if (parts.length < 3) return null;
+  return parts.slice(1).join('.');
 }
 
 function isLocalHost(value: string): boolean {

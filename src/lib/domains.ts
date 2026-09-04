@@ -14,16 +14,25 @@ import {
 } from "./digitalocean";
 import { getTenantById } from "./tenants";
 import { getSesRegion } from "./ses";
-import { hasSesCredentials } from "./platform-settings";
+import {
+  getResolvedPlatformSettings,
+  hasSesCredentials,
+} from "./platform-settings";
 import {
   allRequiredRecordsValid,
   checkDnsRecords,
   extractSesDkimTokens,
   generateDkimKeyPair,
-  generateSendingDnsRecords,
+  dnsRecordSignature,
+  generateDualSendingDnsRecords,
+  hasSendingLane,
+  inferRecordLane,
+  mergeDnsRecordStatuses,
   pemToBase64,
+  recordsForLane,
   skipDnsVerification,
   type DnsRecord,
+  type OutboundTransport,
 } from "./dns-records";
 import type { Domain } from "./database";
 
@@ -141,12 +150,13 @@ export async function addDomain(
     // 3. Create SES configuration set
     const configurationSet = await createConfigurationSet(domainName);
 
-    // 4. Generate DNS records (including DKIM if available)
-    const dnsRecords = generateSendingDnsRecords({
+    const smtpPair = generateDkimKeyPair();
+    const dnsRecords = generateDualSendingDnsRecords({
       domain: domainName,
-      outboundTransport: 'ses',
       sesVerificationToken: sesVerification.verificationToken,
       sesDkimTokens: dkimTokens,
+      dkimSelector: smtpPair.selector,
+      dkimPublicKey: smtpPair.publicKeyBase64,
     });
 
     // 5. Setup DNS records in Digital Ocean (if configured)
@@ -176,8 +186,9 @@ export async function addDomain(
     // 6. Store domain information in database
     const result = await query(
       `INSERT INTO domains
-        (tenant_id, user_id, domain, status, ses_configuration_set, dns_records, verification_token)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (tenant_id, user_id, domain, status, ses_configuration_set, dns_records,
+         verification_token, dkim_selector, dkim_private_key)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         tenantId,
@@ -187,6 +198,8 @@ export async function addDomain(
         configurationSet,
         safeJSONStringify(dnsRecords || []),
         sesVerification.verificationToken,
+        smtpPair.selector,
+        smtpPair.privateKeyPem,
       ]
     );
 
@@ -301,13 +314,26 @@ async function verifyAndCompleteExistingDomain(
       }
     }
 
-    // 4. Generate current DNS records
-    const dnsRecords = generateSendingDnsRecords({
+    const smtpPair = existingDomain.dkim_private_key
+      ? null
+      : generateDkimKeyPair();
+    if (smtpPair) {
+      updateFields.dkim_selector = smtpPair.selector;
+      updateFields.dkim_private_key = smtpPair.privateKeyPem;
+      needsUpdate = true;
+    }
+    const dnsRecords = generateDualSendingDnsRecords({
       domain: domainName,
-      outboundTransport: 'ses',
       sesVerificationToken: sesVerificationToken || '',
       sesDkimTokens: dkimTokens,
+      dkimSelector: smtpPair?.selector || existingDomain.dkim_selector,
+      dkimPublicKey: smtpPair
+        ? smtpPair.publicKeyBase64
+        : existingDomain.dkim_private_key
+          ? publicKeyFromPrivate(existingDomain.dkim_private_key)
+          : null,
     });
+    needsUpdate = true;
 
     // 5. Check/setup Digital Ocean DNS
     try {
@@ -398,7 +424,11 @@ export async function getTenantDomains(tenantId: string): Promise<Domain[]> {
       [tenantId],
     );
 
-    return result.rows.map((row) => toPublicDomain(row));
+    const domains: Domain[] = [];
+    for (const row of result.rows) {
+      domains.push(await ensureDualDnsRecords(row as Domain));
+    }
+    return domains;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to fetch domains: ${errorMessage}`);
@@ -502,9 +532,18 @@ export async function verifyDomainDns(domainId: string): Promise<{
     throw new Error("Domain not found");
   }
 
+  const tenant = await getTenantById(domain.tenant_id);
+  const transport: OutboundTransport = tenant?.outbound_transport || "ses";
   const expected = await expectedRecordsForDomain(domain);
-  const checked = await checkDnsRecords(expected.records);
-  const dnsOk = allRequiredRecordsValid(checked);
+  const existing = safeParseDNSRecords(domain.dns_records);
+  const prepared = mergeDnsRecordStatuses(expected.records, existing);
+  const active = recordsForLane(prepared, transport);
+  const inactive = prepared.filter(
+    (record) => inferRecordLane(record) !== transport,
+  );
+  const checkedActive = await checkDnsRecords(active);
+  const checked = [...checkedActive, ...inactive];
+  const dnsOk = allRequiredRecordsValid(checkedActive);
   const skip = skipDnsVerification();
 
   let newStatus: Domain["status"] = "pending";
@@ -513,7 +552,7 @@ export async function verifyDomainDns(domainId: string): Promise<{
   } else if (dnsOk) {
     newStatus = "verified";
     if (
-      (await getTenantById(domain.tenant_id))?.outbound_transport === "ses"
+      transport === "ses"
       && await hasSesCredentials()
     ) {
       try {
@@ -656,13 +695,14 @@ export async function registerTenantDomain(
   let verificationToken: string | null = null;
   let configurationSet: string | undefined;
   let sesDkimTokens: string[] = [];
-  let dkimSelector: string | null = null;
-  let dkimPrivateKey: string | null = null;
-  let dkimPublicKey: string | null = null;
+  const pair = generateDkimKeyPair();
+  const dkimSelector = pair.selector;
+  const dkimPrivateKey = pair.privateKeyPem;
+  const dkimPublicKey = pair.publicKeyBase64;
   let setupInstructions =
     'Publish every DNS record below. Sending stays blocked until MX, SPF, DKIM, and DMARC match.';
 
-  if (tenant.outbound_transport === 'ses' && await hasSesCredentials()) {
+  if (await hasSesCredentials()) {
     try {
       const sesVerification = await verifyDomain(normalized);
       verificationToken = sesVerification.verificationToken;
@@ -681,20 +721,13 @@ export async function registerTenantDomain(
     }
   }
 
-  if (tenant.outbound_transport === 'smtp') {
-    const pair = generateDkimKeyPair();
-    dkimSelector = pair.selector;
-    dkimPrivateKey = pair.privateKeyPem;
-    dkimPublicKey = pair.publicKeyBase64;
-  }
-
-  const dnsRecords = generateSendingDnsRecords({
+  const dnsRecords = generateDualSendingDnsRecords({
     domain: normalized,
-    outboundTransport: tenant.outbound_transport,
     sesVerificationToken: verificationToken,
     sesDkimTokens,
     sesRegion: await getSesRegion(),
     smtpMxHost: tenant.smtp_upstream?.host,
+    platformSmtpHost: await platformSmtpHost(),
     dkimSelector,
     dkimPublicKey,
   });
@@ -704,7 +737,7 @@ export async function registerTenantDomain(
     if (isDomainInDO) {
       await setupDomainDNS(
         normalized,
-        dnsRecords.map((record) => ({
+        recordsForLane(dnsRecords, tenant.outbound_transport).map((record) => ({
           type: record.type,
           name: record.name,
           value: record.value,
@@ -752,29 +785,109 @@ export async function registerTenantDomain(
   };
 }
 
+async function platformSmtpHost(): Promise<string | null> {
+  const platform = await getResolvedPlatformSettings();
+  if (!platform.smtpEnabled || !platform.smtpHost) return null;
+  return platform.smtpHost;
+}
+
+export async function refreshTenantSendingDns(tenantId: string): Promise<void> {
+  const tenant = await getTenantById(tenantId);
+  const transport: OutboundTransport = tenant?.outbound_transport || 'ses';
+  const result = await query(
+    `SELECT * FROM domains WHERE tenant_id = $1`,
+    [tenantId],
+  );
+  for (const row of result.rows) {
+    const domain = {
+      ...(row as Domain),
+      dns_records: safeParseDNSRecords(row.dns_records),
+    };
+    const expected = await expectedRecordsForDomain(domain);
+    const existing = safeParseDNSRecords(domain.dns_records);
+    const records = mergeDnsRecordStatuses(
+      expected.records,
+      existing,
+      [transport],
+    );
+    await query(
+      `UPDATE domains
+       SET dns_records = $2,
+           status = $3,
+           dkim_selector = COALESCE($4, dkim_selector),
+           dkim_private_key = COALESCE($5, dkim_private_key)
+       WHERE id = $1`,
+      [
+        domain.id,
+        safeJSONStringify(records),
+        skipDnsVerification() ? 'verified' : 'pending',
+        expected.dkimSelector || null,
+        expected.dkimPrivateKey || null,
+      ],
+    );
+    await verifyDomainDns(domain.id);
+  }
+}
+
+async function ensureDualDnsRecords(row: Domain): Promise<Domain> {
+  const existing = safeParseDNSRecords(row.dns_records);
+  const domain = {
+    ...row,
+    dns_records: existing,
+  };
+  const expected = await expectedRecordsForDomain(domain);
+  const records = mergeDnsRecordStatuses(expected.records, existing);
+  const missingLane =
+    !hasSendingLane(existing, 'ses') || !hasSendingLane(existing, 'smtp');
+  const changed = dnsRecordSignature(records) !== dnsRecordSignature(existing);
+  if (!missingLane && !changed) {
+    return toPublicDomain({
+      ...domain,
+      dns_records: existing,
+    } as unknown as Record<string, unknown>);
+  }
+  await query(
+    `UPDATE domains
+     SET dns_records = $2,
+         dkim_selector = COALESCE($3, dkim_selector),
+         dkim_private_key = COALESCE($4, dkim_private_key)
+     WHERE id = $1`,
+    [
+      domain.id,
+      safeJSONStringify(records),
+      expected.dkimSelector || null,
+      expected.dkimPrivateKey || null,
+    ],
+  );
+  return toPublicDomain({
+    ...domain,
+    dns_records: records,
+    dkim_selector: expected.dkimSelector || domain.dkim_selector,
+  } as unknown as Record<string, unknown>);
+}
+
 async function expectedRecordsForDomain(domain: Domain): Promise<{
   records: DnsRecord[];
   dkimSelector?: string | null;
   dkimPrivateKey?: string | null;
 }> {
   const tenant = await getTenantById(domain.tenant_id);
-  const transport = tenant?.outbound_transport || 'ses';
   const existing = safeParseDNSRecords(domain.dns_records);
   let dkimSelector = domain.dkim_selector || null;
   let dkimPrivateKey = domain.dkim_private_key || null;
   let dkimPublicKey: string | null = null;
   let sesDkimTokens = extractSesDkimTokens(existing);
 
-  if (transport === 'smtp') {
-    if (!dkimPrivateKey) {
-      const pair = generateDkimKeyPair();
-      dkimSelector = pair.selector;
-      dkimPrivateKey = pair.privateKeyPem;
-      dkimPublicKey = pair.publicKeyBase64;
-    } else {
-      dkimPublicKey = publicKeyFromPrivate(dkimPrivateKey);
-    }
-  } else if (await hasSesCredentials()) {
+  if (!dkimPrivateKey) {
+    const pair = generateDkimKeyPair();
+    dkimSelector = pair.selector;
+    dkimPrivateKey = pair.privateKeyPem;
+    dkimPublicKey = pair.publicKeyBase64;
+  } else {
+    dkimPublicKey = publicKeyFromPrivate(dkimPrivateKey);
+  }
+
+  if (await hasSesCredentials()) {
     try {
       const tokens = await getDomainDkimTokens(domain.domain);
       if (tokens.length > 0) {
@@ -786,13 +899,13 @@ async function expectedRecordsForDomain(domain: Domain): Promise<{
   }
 
   return {
-    records: generateSendingDnsRecords({
+    records: generateDualSendingDnsRecords({
       domain: domain.domain,
-      outboundTransport: transport,
       sesVerificationToken: domain.verification_token,
       sesDkimTokens,
       sesRegion: await getSesRegion(),
       smtpMxHost: tenant?.smtp_upstream?.host,
+      platformSmtpHost: await platformSmtpHost(),
       dkimSelector,
       dkimPublicKey,
     }),

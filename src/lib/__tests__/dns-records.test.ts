@@ -1,8 +1,14 @@
 import {
   allRequiredRecordsValid,
+  generateDualSendingDnsRecords,
   generateSendingDnsRecords,
+  hasSendingLane,
+  inferRecordLane,
+  mergeDnsRecordStatuses,
   normalizeDnsValue,
   recordMatches,
+  recordsForLane,
+  resolveSmtpDnsHost,
   skipDnsVerification,
 } from '../dns-records';
 
@@ -33,6 +39,51 @@ describe('sending DNS records', () => {
       expect.arrayContaining(['mail.example.com', 'outbound.mail.example.com']),
     );
     expect(records.filter((record) => record.purpose === 'dkim')).toHaveLength(2);
+    expect(records.every((record) => record.lane === 'ses')).toBe(true);
+  });
+
+  it('adds platform SMTP SPF and RelayHorizon DKIM to SES records for failover', () => {
+    const records = generateSendingDnsRecords({
+      domain: 'acme.test',
+      outboundTransport: 'ses',
+      sesDkimTokens: ['abc123'],
+      platformSmtpHost: 'smtp.relay.example',
+      dkimSelector: 'relayhorizon',
+      dkimPublicKey: 'MIIBIjAN',
+    });
+    const spf = records.filter((record) => record.purpose === 'spf');
+    expect(spf).toHaveLength(2);
+    expect(spf.every((record) => (
+      record.value ===
+        'v=spf1 include:amazonses.com a:smtp.relay.example include:relay.example ~all'
+    ))).toBe(true);
+    expect(records.find((record) => record.purpose === 'mx')?.value).toContain(
+      'inbound-smtp',
+    );
+    const dkim = records.filter((record) => record.purpose === 'dkim');
+    expect(dkim.some((record) => record.type === 'CNAME')).toBe(true);
+    expect(dkim.find((record) => record.type === 'TXT')?.name).toBe(
+      'relayhorizon._domainkey.acme.test',
+    );
+  });
+
+  it('does not add localhost platform SMTP into SES SPF', () => {
+    const records = generateSendingDnsRecords({
+      domain: 'acme.test',
+      outboundTransport: 'ses',
+      sesDkimTokens: ['abc123'],
+      platformSmtpHost: 'localhost',
+      dkimSelector: 'relayhorizon',
+      dkimPublicKey: 'MIIBIjAN',
+    });
+    expect(
+      records.filter((record) => record.purpose === 'spf').every((record) => (
+        record.value === 'v=spf1 include:amazonses.com ~all'
+      )),
+    ).toBe(true);
+    expect(
+      records.some((record) => record.purpose === 'dkim' && record.type === 'TXT'),
+    ).toBe(false);
   });
 
   it('lists SMTP-aligned SPF and a RelayHorizon DKIM TXT for SMTP egress', () => {
@@ -46,9 +97,11 @@ describe('sending DNS records', () => {
     expect(records.find((record) => record.purpose === 'mx')?.name).toBe(
       'outbound.acme.test',
     );
-    expect(records.find((record) => record.purpose === 'spf')?.value).toBe(
-      'v=spf1 include:smtp.provider.example ~all',
-    );
+    const spf = records.filter((record) => record.purpose === 'spf');
+    expect(spf).toHaveLength(2);
+    expect(spf.every((record) =>
+      record.value === 'v=spf1 a:smtp.provider.example include:provider.example ~all',
+    )).toBe(true);
     expect(records.find((record) => record.purpose === 'spf')?.value).not.toMatch(
       /amazonses/,
     );
@@ -134,6 +187,76 @@ describe('sending DNS records', () => {
     expect(records.find((record) => record.purpose === 'spf')?.value).toBe(
       'v=spf1 mx:outbound.beta.test ~all',
     );
+  });
+
+  it('uses the platform SMTP host when the tenant left upstream empty', () => {
+    expect(resolveSmtpDnsHost({
+      tenantSmtpHost: '',
+      platformSmtpHost: 'smtp.relay.example',
+    })).toBe('smtp.relay.example');
+    const records = generateSendingDnsRecords({
+      domain: 'acme.test',
+      outboundTransport: 'smtp',
+      platformSmtpHost: 'smtp.relay.example',
+      dkimSelector: 'relayhorizon',
+      dkimPublicKey: 'MIIBIjAN',
+    });
+    expect(records.find((record) => record.purpose === 'mx')?.value).toBe(
+      '10 smtp.relay.example.',
+    );
+    expect(
+      records.find((record) => record.purpose === 'spf' && record.name === 'acme.test')
+        ?.value,
+    ).toBe('v=spf1 a:smtp.relay.example include:relay.example ~all');
+    expect(records.find((record) => record.purpose === 'dkim')?.name).toBe(
+      'relayhorizon._domainkey.acme.test',
+    );
+    expect(records.find((record) => record.purpose === 'ses_verify')).toBeUndefined();
+  });
+
+  it('keeps SES and SMTP lanes together and can reset the live lane', () => {
+    const records = generateDualSendingDnsRecords({
+      domain: 'acme.test',
+      sesVerificationToken: 'verify-token',
+      sesDkimTokens: ['abc123'],
+      platformSmtpHost: 'smtp.relay.example',
+      dkimSelector: 'relayhorizon',
+      dkimPublicKey: 'MIIBIjAN',
+    });
+    expect(hasSendingLane(records, 'ses')).toBe(true);
+    expect(hasSendingLane(records, 'smtp')).toBe(true);
+    expect(
+      recordsForLane(records, 'ses').find((record) => record.purpose === 'spf')
+        ?.value,
+    ).toBe(
+      'v=spf1 include:amazonses.com a:smtp.relay.example include:relay.example ~all',
+    );
+    expect(
+      recordsForLane(records, 'smtp').find((record) => record.purpose === 'spf')
+        ?.value,
+    ).toContain('smtp.relay.example');
+    expect(
+      recordsForLane(records, 'smtp').find((record) => record.purpose === 'dkim')
+        ?.type,
+    ).toBe('TXT');
+    expect(
+      inferRecordLane({
+        type: 'TXT',
+        value: 'v=spf1 include:amazonses.com ~all',
+        purpose: 'spf',
+      }),
+    ).toBe('ses');
+    const merged = mergeDnsRecordStatuses(
+      records,
+      records.map((record) => ({ ...record, status: 'valid' as const })),
+      ['smtp'],
+    );
+    expect(
+      recordsForLane(merged, 'ses').every((record) => record.status === 'valid'),
+    ).toBe(true);
+    expect(
+      recordsForLane(merged, 'smtp').every((record) => record.status === 'pending'),
+    ).toBe(true);
   });
 
   it('treats SKIP_DNS_VERIFICATION as an explicit local override', () => {
