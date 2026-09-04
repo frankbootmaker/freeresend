@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { LogIn, Rocket } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 import OpsBrand from './ops/OpsBrand';
@@ -33,12 +34,24 @@ export default function LandingPage() {
       <header className="pubhead">
         <OpsBrand onClick={() => setMode('home')} />
         <nav className="pubnav" aria-label={t.landing.publicNav}>
-          <button type="button" className="textlink" onClick={() => setMode('login')}>
-            {t.landing.login}
+          <button
+            type="button"
+            className="textlink pubnav-action"
+            onClick={() => setMode('login')}
+            aria-label={t.landing.login}
+          >
+            <LogIn className="pubnav-ico" aria-hidden />
+            <span className="pubnav-label">{t.landing.login}</span>
           </button>
           <OpsPrefs />
-          <button type="button" className="button" onClick={() => setMode('register')}>
-            {t.landing.getStarted}
+          <button
+            type="button"
+            className="button pubnav-action"
+            onClick={() => setMode('register')}
+            aria-label={t.landing.getStarted}
+          >
+            <Rocket className="pubnav-ico" aria-hidden />
+            <span className="pubnav-label">{t.landing.getStarted}</span>
           </button>
         </nav>
       </header>

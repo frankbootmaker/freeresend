@@ -1,10 +1,12 @@
 'use client';
 
+import { Moon, Sun } from 'lucide-react';
 import { LOCALE_LABEL, LOCALES, type Locale } from '@/lib/i18n';
 import { usePrefs } from '@/contexts/PrefsContext';
 
 export default function OpsPrefs() {
   const { locale, theme, setLocale, setTheme, t } = usePrefs();
+  const themeLabel = theme === 'dark' ? t.prefs.light.toUpperCase() : t.prefs.dark.toUpperCase();
 
   const cycleLocale = () => {
     const index = LOCALES.indexOf(locale);
@@ -28,7 +30,10 @@ export default function OpsPrefs() {
         aria-label={t.prefs.toggleTheme}
         onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
       >
-        {theme === 'dark' ? t.prefs.light.toUpperCase() : t.prefs.dark.toUpperCase()}
+        {theme === 'dark'
+          ? <Sun className="pubnav-ico" aria-hidden />
+          : <Moon className="pubnav-ico" aria-hidden />}
+        <span className="pubnav-label">{themeLabel}</span>
       </button>
     </>
   );
