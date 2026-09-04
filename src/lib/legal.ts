@@ -9,7 +9,10 @@ export const LEGAL_DOCS = ['terms', 'privacy', 'imprint'] as const;
 export type LegalDocId = (typeof LEGAL_DOCS)[number];
 
 export type LegalBlock =
-  | { type: 'h1' | 'h2' | 'h3' | 'p'; text: string }
+  | { type: 'h1'; text: string }
+  | { type: 'h2'; text: string }
+  | { type: 'h3'; text: string }
+  | { type: 'p'; text: string }
   | { type: 'ul'; items: string[] };
 
 export function isLegalDocId(value: string): value is LegalDocId {
@@ -84,8 +87,10 @@ export function parseLegalMarkdown(markdown: string): LegalBlock[] {
 
 export function getLegalDocument(doc: LegalDocId, locale: Locale | string) {
   const blocks = parseLegalMarkdown(legalMarkdown(doc, locale));
-  const title =
-    blocks.find((block) => block.type === 'h1')?.text ?? doc;
+  const heading = blocks.find(
+    (block): block is Extract<LegalBlock, { type: 'h1' }> => block.type === 'h1',
+  );
+  const title = heading?.text ?? doc;
   const body = blocks.filter(
     (block, index) => !(index === 0 && block.type === 'h1'),
   );
