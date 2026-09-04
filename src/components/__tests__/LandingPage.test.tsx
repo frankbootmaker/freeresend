@@ -44,6 +44,18 @@ describe('LandingPage', () => {
       screen.getByRole('button', { name: /deploy relayhorizon/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute(
+      'href',
+      '/legal/terms',
+    );
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute(
+      'href',
+      '/legal/privacy',
+    );
+    expect(screen.getByRole('link', { name: 'Imprint' })).toHaveAttribute(
+      'href',
+      '/legal/imprint',
+    );
   });
 
   it('opens the login form', async () => {

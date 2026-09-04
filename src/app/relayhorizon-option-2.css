@@ -332,10 +332,100 @@ button.brand:hover {
 
 .foot {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  gap: 12px 24px;
   padding: 22px clamp(18px, 4vw, 60px);
   color: var(--muted);
   font-size: 12px;
+}
+
+.foot-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.foot-legal a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.foot-legal a:hover {
+  color: var(--accent);
+}
+
+.legal-shell {
+  min-height: calc(100vh - 140px);
+}
+
+.legal-doc {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 40px clamp(18px, 4vw, 60px) 80px;
+}
+
+.legal-doc h1 {
+  margin: 0 0 8px;
+}
+
+.legal-doc h2 {
+  margin: 1.6em 0 0.5em;
+  font-size: 1.15rem;
+}
+
+.legal-doc h3 {
+  margin: 1.3em 0 0.4em;
+  font-size: 1.05rem;
+}
+
+.legal-doc p,
+.legal-doc li {
+  line-height: 1.55;
+}
+
+.legal-doc ul {
+  padding-left: 1.25em;
+}
+
+.legal-doc a {
+  color: var(--accent);
+}
+
+.legal-meta {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 24px;
+}
+
+.legal-index {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+.legal-index li {
+  margin: 10px 0;
+}
+
+.legal-index a {
+  font-weight: 600;
+}
+
+.checkline-legal {
+  align-items: flex-start;
+  width: 100%;
+  max-width: 36rem;
+}
+
+.checkline-legal span {
+  line-height: 1.45;
+}
+
+.checkline-legal a {
+  color: var(--accent);
 }
 
 .auth {

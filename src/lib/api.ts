@@ -95,6 +95,8 @@ class ApiClient {
     slug?: string;
     email: string;
     password: string;
+    acceptedTerms: boolean;
+    acceptedTermsVersion: string;
   }) {
     const response = await this.request("/auth/register", {
       method: "POST",

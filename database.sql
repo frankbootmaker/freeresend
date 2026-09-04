@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(255),
   avatar TEXT,
   locale VARCHAR(8),
+  accepted_terms_version VARCHAR(32),
+  accepted_terms_at TIMESTAMP WITH TIME ZONE,
   is_platform_admin BOOLEAN NOT NULL DEFAULT FALSE,
   email_verified_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

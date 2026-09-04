@@ -1,10 +1,12 @@
 # RelayHorizon — Commercial operations plan
 
-Status: **planning**. Do not implement until this note is agreed. Built product as of
-3 September 2026 is in [progress-summary.md](progress-summary.md) (v1.9.2). This note
-is the backlog for **hosted commercial operation**: protect the master SES account,
-sell packages, invoice automatically across the EU (and later anywhere), and publish
-legal and marketing copy from the portal.
+Status: **planning** for billing, pools, and CMS. **In product** (unreleased on
+`development`, 4 September 2026): BYO request / approve, dual SES–SMTP DNS, and
+platform-SMTP failover records on the SES set. Built 1.9.2 snapshot is in
+[progress-summary.md](progress-summary.md). This note is the backlog for
+**hosted commercial operation**: protect the master SES account, sell packages,
+invoice automatically across the EU (and later anywhere), and publish legal and
+marketing copy from the portal.
 
 UI language remains EN / DE / HU.
 
@@ -15,7 +17,16 @@ UI language remains EN / DE / HU.
 - BYO SES send is wired when an admin allows it and the tenant saves keys
   (`tenants.ses_config` + `metadata.ses_byo_allowed`). Domain identity, DKIM, and
   configuration-set create still run on **platform** SES. New tenants stay on
-  platform SES until you sell and enable BYO.
+  platform SES until you sell and enable BYO. They can **Request bring-your-own
+  SES** from Sending; portal Customers → Manage Approve / Deny (or the allow
+  checkbox) and a registry filter for requested / approved.
+- Domains store **both** SES and SMTP DNS sets. The live Sending route is checked;
+  the other set is shown dimmed. Switching SES ↔ SMTP rebuilds the live set and
+  forces a re-check. Empty SMTP host publishes the **platform** relay, not Amazon.
+  RelayHorizon signs DKIM on SMTP; the uplink only forwards.
+- When the platform SMTP relay is enabled, the **SES (base) set** also includes
+  that host in SPF and the RelayHorizon DKIM TXT so you can fail over to the
+  relay without a DNS change. Bounce MX on `outbound.{domain}` stays Amazon.
 - Safety today: tenant `active`, verified DNS, API key `send`, calendar-month quota
   (default **100000**). The SES webhook marks bounce/complaint on logs; it does not
   suppress or trip the tenant.
@@ -102,6 +113,23 @@ only. Prefer: stay on platform SES until `ProductionAccessEnabled`, then flip
 If you later require BYO (reputation or volume on master SES), the same
 checklist and fee apply; T&C already allow “we may require BYO.”
 
+## Platform SMTP failover (DNS)
+
+The platform SMTP relay is the **shared dumb uplink**: it forwards what
+RelayHorizon already signed. For hosted SES tenants, publish the relay on the
+SES record set (SPF `a:` / `include:` plus RelayHorizon DKIM) as soon as
+Configuration has a real relay host. Then an SES outage or a manual flip to
+SMTP (empty tenant host) does not wait on customer DNS.
+
+Do **not** put a second bounce MX on `outbound.{domain}` — that would steal SES
+MAIL FROM. Tenant-owned SMTP stays on the SMTP tab only; it is not mixed into
+everyone’s SES SPF.
+
+T&C should say: we may send via the platform SMTP relay if SES is unavailable,
+provided the listed failover records are published. That is operational
+continuity, not a second billed pool. The **BYO** pool remains the sold
+tenant-SES (or tenant-SMTP) path.
+
 ## Abuse controls
 
 **Send path** (`dispatchTenantEmail`): hourly, daily, and monthly caps from the
@@ -171,8 +199,9 @@ Footer on the landing page reads **published** documents. Checkout/signup
 requires current T&C.
 
 T&C must cover: caps; freeze/suspend; no guarantee of platform SES; we may
-require BYO; BYO is sold (contact, monthly relay fee, their AWS bill);
-log retention; abuse may close the account; card dunning then
+send via the platform SMTP relay if SES is unavailable when failover DNS is
+published; we may require BYO; BYO is sold (contact, monthly relay fee, their
+AWS bill); log retention; abuse may close the account; card dunning then
 freeze; exempt in-house still logged and capped; invoices issued for EU
 customers (VAT/reverse charge as applicable).
 
@@ -181,9 +210,11 @@ customers (VAT/reverse charge as applicable).
 Do not start C until A is live and T&C match the product.
 
 **A — Policy the T&C can tell the truth about**  
-Pools (or a `sending_tier` enum), hour/day/month caps, webhook breaker +
-suppression, portal Manage assignment, tenant Abuse tab + warnings, versioned
-T&C/Privacy/Imprint (static markdown is enough), signup stores accepted version.
+**A0 shipped:** git-backed Terms / Privacy / Imprint at `/legal` (EN/DE/HU,
+version + `effective_at`), landing footer, self-signup stores
+`accepted_terms_version`. Not a portal CMS (that is E).  
+Still in A: pools (or a `sending_tier` enum), hour/day/month caps, webhook
+breaker + suppression, portal Manage assignment, tenant Abuse tab + warnings.
 
 **B — Plans that match pools**  
 `billing_plans` + `billing_mode` (including exempt). Split `/pricing` into real

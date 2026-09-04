@@ -39,6 +39,8 @@ interface AuthContextType {
     slug?: string;
     email: string;
     password: string;
+    acceptedTerms: boolean;
+    acceptedTermsVersion: string;
   }) => Promise<void>;
   switchTenant: (tenantId: string) => Promise<void>;
   completeOidc: (token: string) => Promise<AuthUser>;
@@ -101,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     slug?: string;
     email: string;
     password: string;
+    acceptedTerms: boolean;
+    acceptedTermsVersion: string;
   }) => {
     const response = await api.register(payload);
     applySession(response.data);

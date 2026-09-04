@@ -51,6 +51,8 @@ export interface User {
   name?: string;
   avatar?: string | null;
   is_platform_admin?: boolean;
+  accepted_terms_version?: string | null;
+  accepted_terms_at?: string | null;
   created_at: string;
   updated_at: string;
 }

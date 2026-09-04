@@ -4,7 +4,7 @@ All JSON. Bearer token unless noted.
 
 ## Auth
 
-- `POST /api/auth/register` — `{ name, slug?, email, password }`
+- `POST /api/auth/register` — `{ name, slug?, email, password, acceptedTerms: true, acceptedTermsVersion }` (version must match the published legal documents)
 - `POST /api/auth/login` — `{ email, password }` → `{ user, token, tenant, memberships }`
 - `GET /api/auth/me` — current user + tenant
 - `POST /api/auth/me` — `{ tenantId }` reissues JWT

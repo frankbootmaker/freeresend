@@ -20,9 +20,39 @@ export const UNRELEASED_VERSION = 'unreleased';
 export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
-    date: '2026-09-02',
-    summary: 'Work on development since 1.9.2.',
-    changes: [],
+    date: '2026-09-04',
+    summary:
+      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, and published legal pages.',
+    changes: [
+      {
+        kind: 'added',
+        text: 'Public Terms, Privacy, and Imprint at /legal (EN/DE/HU, version 2026-09-04); landing footer links; self-signup must accept the current version.',
+      },
+      {
+        kind: 'added',
+        text: 'Tenant Sending Request bring-your-own SES; portal Customers Manage Approve / Deny and a registry filter for requested or approved BYO.',
+      },
+      {
+        kind: 'added',
+        text: 'Domains keep both SES and SMTP record sets; the unused set is dimmed; switching Sending rebuilds and re-checks the live set.',
+      },
+      {
+        kind: 'added',
+        text: 'When the platform SMTP relay is enabled, SES records also authorize that host and publish RelayHorizon DKIM so failover can send without a DNS change (bounce MX stays Amazon).',
+      },
+      {
+        kind: 'added',
+        text: 'Public landing header uses icon buttons on small screens so Sign in stays visible.',
+      },
+      {
+        kind: 'changed',
+        text: 'Platform SES secrets stay hidden; bring-your-own SES is sold (request + admin allow), not a self-serve toggle.',
+      },
+      {
+        kind: 'changed',
+        text: 'Empty tenant SMTP host uses the platform relay in SMTP DNS; RelayHorizon signs DKIM because the uplink only forwards.',
+      },
+    ],
   },
   {
     version: '1.9.2',

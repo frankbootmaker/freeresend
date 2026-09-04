@@ -33,6 +33,11 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.hu.login.forgotPassword).toMatch(/jelszó/i);
     expect(dictionaries.en.login.title).toBe('Sign in');
     expect(dictionaries.en.register.useExisting).toMatch(/already have an account/i);
+    expect(dictionaries.en.legal.terms).toBe('Terms');
+    expect(dictionaries.de.legal.imprint).toMatch(/impressum/i);
+    expect(dictionaries.hu.legal.privacy).toMatch(/adatvédelem/i);
+    expect(dictionaries.en.register.mustAccept).toMatch(/imprint/i);
+    expect(dictionaries.hu.register.mustAccept).toMatch(/impresszum/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);
     expect(readBrowserLocale()).toBe('en');
   });

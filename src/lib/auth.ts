@@ -60,18 +60,33 @@ export function verifyJWT(token: string): AuthUser | null {
   }
 }
 
+export type CreateUserOptions = {
+  acceptedTermsVersion?: string | null;
+};
+
 export async function createUser(
   email: string,
   password: string,
   name?: string,
   isPlatformAdmin = false,
+  options: CreateUserOptions = {},
 ): Promise<User> {
   const passwordHash = await hashPassword(password);
+  const acceptedVersion = options.acceptedTermsVersion?.trim() || null;
   const result = await query(
-    `INSERT INTO users (email, password_hash, name, is_platform_admin)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (
+       email, password_hash, name, is_platform_admin,
+       accepted_terms_version, accepted_terms_at
+     )
+     VALUES ($1, $2, $3, $4, $5, CASE WHEN $5 IS NULL THEN NULL ELSE NOW() END)
      RETURNING *`,
-    [normalizeLoginEmail(email), passwordHash, name, isPlatformAdmin],
+    [
+      normalizeLoginEmail(email),
+      passwordHash,
+      name,
+      isPlatformAdmin,
+      acceptedVersion,
+    ],
   );
   if (result.rows.length === 0) {
     throw new Error('Failed to create user');

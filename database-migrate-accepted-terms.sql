@@ -1,0 +1,5 @@
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS accepted_terms_version VARCHAR(32);
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS accepted_terms_at TIMESTAMP WITH TIME ZONE;

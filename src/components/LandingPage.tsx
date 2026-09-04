@@ -7,6 +7,7 @@ import RegisterForm from './RegisterForm';
 import OpsBrand from './ops/OpsBrand';
 import OpsPrefs from './ops/OpsPrefs';
 import { usePrefs } from '@/contexts/PrefsContext';
+import LegalFooterNav from './LegalFooterNav';
 
 export default function LandingPage() {
   const [mode, setMode] = useState<'home' | 'login' | 'register'>('home');
@@ -118,6 +119,7 @@ export default function LandingPage() {
       </section>
       <footer className="foot">
         <span>{t.landing.footBrand}</span>
+        <LegalFooterNav />
         <span>{t.landing.sourceCredit}</span>
       </footer>
     </main>

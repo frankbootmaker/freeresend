@@ -39,14 +39,14 @@ Delivery **Logs** (tenant and portal) page at 25 rows by default. Choose 5, 10, 
 
 ## Domain DNS (required before sending)
 
-Adding a domain lists **MX, SPF, DKIM, and DMARC**. Bounce MX is published on `outbound.{domain}` so the domain’s existing inbound MX is left alone.
+Adding a domain lists **MX, SPF, DKIM, and DMARC** for **both** SES and SMTP. The live Sending route is checked; the other set is shown dimmed. Switching SES ↔ SMTP rebuilds the live set and re-checks. Bounce MX is published on `outbound.{domain}` so the domain’s existing inbound MX is left alone.
 
-SPF depends on egress:
+SPF and DKIM depend on the set:
 
-- **SES** — `include:amazonses.com` on the sending domain and on `outbound.{domain}`. The MX *target* `inbound-smtp.{region}.amazonaws.com` is Amazon’s bounce host; that name is theirs.
-- **SMTP** — authorize the upstream host (or `mx:outbound.{domain}`). Do **not** include Amazon SES.
+- **SES** — `include:amazonses.com` on the sending domain and on `outbound.{domain}`. The MX *target* `inbound-smtp.{region}.amazonaws.com` is Amazon’s bounce host; that name is theirs. If the **platform SMTP relay** is enabled, this set also adds that host to SPF and a RelayHorizon DKIM TXT so failover can send without a DNS change. Bounce MX stays Amazon.
+- **SMTP** — authorize the tenant upstream, or the platform relay when the tenant left host empty (or `mx:outbound.{domain}` for localhost). RelayHorizon signs DKIM; the uplink only forwards. Do **not** include Amazon SES.
 
-Check records in the dashboard. Sending stays blocked until every required record matches, unless `SKIP_DNS_VERIFICATION=true` (local only).
+Check records in the dashboard. Sending stays blocked until every required record on the **live** set matches, unless `SKIP_DNS_VERIFICATION=true` (local only).
 
 ## How mail leaves (egress)
 

@@ -85,6 +85,18 @@ type Dict = {
     publicNav: string;
     sourceCredit: string;
   };
+  legal: {
+    nav: string;
+    terms: string;
+    privacy: string;
+    imprint: string;
+    indexTitle: string;
+    indexLead: string;
+    version: (version: string) => string;
+    effective: (date: string) => string;
+    notFound: string;
+    backHome: string;
+  };
   login: {
     kickerStory: string;
     headline: string;
@@ -150,6 +162,10 @@ type Dict = {
     emailPlaceholder: string;
     passwordPlaceholder: string;
     prefsAria: string;
+    acceptLead: string;
+    acceptAnd: string;
+    acceptVersion: (version: string) => string;
+    mustAccept: string;
   };
   nav: {
     sending: string;
@@ -827,6 +843,18 @@ const en: Dict = {
     publicNav: 'Public',
     sourceCredit: 'Source credit: FreeResend',
   },
+  legal: {
+    nav: 'Legal',
+    terms: 'Terms',
+    privacy: 'Privacy',
+    imprint: 'Imprint',
+    indexTitle: 'Legal',
+    indexLead: 'Published documents for this RelayHorizon installation.',
+    version: (version) => `Version ${version}`,
+    effective: (date) => `Effective ${date}`,
+    notFound: 'That document is not published.',
+    backHome: 'Back to RelayHorizon',
+  },
   login: {
     kickerStory: 'RelayHorizon console',
     headline: 'Return to the sending room.',
@@ -898,6 +926,11 @@ const en: Dict = {
     emailPlaceholder: 'you@company.test',
     passwordPlaceholder: '12 characters minimum',
     prefsAria: 'Account preferences',
+    acceptLead: 'I have read and agree to the',
+    acceptAnd: 'and',
+    acceptVersion: (version) => `(version ${version})`,
+    mustAccept:
+      'Accept the current Terms, Privacy policy, and Imprint to create an account.',
   },
   nav: {
     sending: 'Sending',
@@ -1628,6 +1661,18 @@ const de: Dict = {
     publicNav: 'Öffentlich',
     sourceCredit: 'Basiert auf FreeResend von EliteCoders.',
   },
+  legal: {
+    nav: 'Rechtliches',
+    terms: 'Nutzungsbedingungen',
+    privacy: 'Datenschutz',
+    imprint: 'Impressum',
+    indexTitle: 'Rechtliches',
+    indexLead: 'Veröffentlichte Dokumente dieser RelayHorizon-Installation.',
+    version: (version) => `Version ${version}`,
+    effective: (date) => `Wirksam ab ${date}`,
+    notFound: 'Dieses Dokument ist nicht veröffentlicht.',
+    backHome: 'Zurück zu RelayHorizon',
+  },
   login: {
     kickerStory: 'RelayHorizon-Konsole',
     headline: 'Zurück in den Versandraum.',
@@ -1700,6 +1745,11 @@ const de: Dict = {
     emailPlaceholder: 'sie@firma.test',
     passwordPlaceholder: 'Mindestens 12 Zeichen',
     prefsAria: 'Konto-Einstellungen',
+    acceptLead: 'Ich habe gelesen und stimme zu:',
+    acceptAnd: 'und',
+    acceptVersion: (version) => `(Version ${version})`,
+    mustAccept:
+      'Stimmen Sie den aktuellen Nutzungsbedingungen, der Datenschutzerklärung und dem Impressum zu, um ein Konto anzulegen.',
   },
   nav: {
     sending: 'Versand',
@@ -2434,6 +2484,18 @@ const hu: Dict = {
     publicNav: 'Nyilvános',
     sourceCredit: 'A FreeResend (EliteCoders) kódbázisán.',
   },
+  legal: {
+    nav: 'Jogi dokumentumok',
+    terms: 'Felhasználási feltételek',
+    privacy: 'Adatvédelem',
+    imprint: 'Impresszum',
+    indexTitle: 'Jogi dokumentumok',
+    indexLead: 'A RelayHorizon-telepítés közzétett dokumentumai.',
+    version: (version) => `${version} verzió`,
+    effective: (date) => `Hatályos: ${date}`,
+    notFound: 'Ez a dokumentum nincs közzétéve.',
+    backHome: 'Vissza a RelayHorizonhoz',
+  },
   login: {
     kickerStory: 'RelayHorizon konzol',
     headline: 'Vissza a küldőszobába.',
@@ -2505,6 +2567,11 @@ const hu: Dict = {
     emailPlaceholder: 'on@ceg.test',
     passwordPlaceholder: 'Legalább 12 karakter',
     prefsAria: 'Fiókbeállítások',
+    acceptLead: 'Elolvastam és elfogadom a',
+    acceptAnd: 'és az',
+    acceptVersion: (version) => `(verzió: ${version})`,
+    mustAccept:
+      'A fiók létrehozásához el kell fogadnia a hatályos Felhasználási feltételeket, az Adatvédelmi tájékoztatót és az Impresszumot.',
   },
   nav: {
     sending: 'Küldés',

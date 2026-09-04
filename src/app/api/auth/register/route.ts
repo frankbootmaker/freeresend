@@ -4,6 +4,7 @@ import { createUser, generateJWT, buildAuthUser } from '@/lib/auth';
 import { addMembership, createTenant, getMembershipsForUser } from '@/lib/tenants';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
 import { attachProfile } from '@/lib/profile';
+import { CURRENT_TERMS_VERSION, termsAcceptanceError } from '@/lib/legal';
 
 const registerSchema = z.object({
   name: z.string().min(1),
@@ -11,6 +12,8 @@ const registerSchema = z.object({
   email: emailSchema,
   password: z.string().min(8),
   ownerName: z.string().optional(),
+  acceptedTerms: z.boolean(),
+  acceptedTermsVersion: z.string().min(1),
 });
 
 export async function OPTIONS() {
@@ -20,11 +23,19 @@ export async function OPTIONS() {
 export async function POST(request: NextRequest) {
   try {
     const body = registerSchema.parse(await request.json());
+    const acceptError = termsAcceptanceError({
+      acceptedTerms: body.acceptedTerms,
+      acceptedTermsVersion: body.acceptedTermsVersion,
+    });
+    if (acceptError) {
+      return json({ error: acceptError }, 400);
+    }
     const user = await createUser(
       body.email,
       body.password,
       body.ownerName || body.name,
       false,
+      { acceptedTermsVersion: CURRENT_TERMS_VERSION },
     );
     const tenant = await createTenant({
       name: body.name,

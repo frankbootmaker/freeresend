@@ -6,7 +6,20 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-Nothing staged after 1.9.2.
+BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, and published legal pages.
+
+### Added
+
+- Public **Terms**, **Privacy**, and **Imprint** at `/legal` (EN/DE/HU, version `2026-09-04`); landing footer links; self-signup must accept the current version
+- Tenant Sending **Request bring-your-own SES**; portal Customers → Manage **Approve / Deny** and a registry filter for requested or approved BYO
+- Domains keep both SES and SMTP record sets; the unused set is dimmed; switching Sending rebuilds and re-checks the live set
+- When the platform SMTP relay is enabled, SES records also authorize that host and publish RelayHorizon DKIM so failover can send without a DNS change (bounce MX stays Amazon)
+- Public landing header uses icon buttons on small screens so Sign in stays visible
+
+### Changed
+
+- Platform SES secrets stay hidden; bring-your-own SES is sold (request + admin allow), not a self-serve toggle
+- Empty tenant SMTP host uses the platform relay in SMTP DNS; RelayHorizon signs DKIM because the uplink only forwards
 
 ## 1.9.2 — 2026-09-02
 

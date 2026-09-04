@@ -42,7 +42,7 @@ Postgres is bound to `127.0.0.1:5436` on the VPS. Remove the postgres `ports` bl
 5. **Health** — database, SES/SMTP, and backup sidecar heartbeat.
 6. Provision one customer, publish MX/SPF/DKIM/DMARC, send a test.
 
-Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`), including `database-migrate-oidc.sql`, `database-migrate-oidc-button-label.sql`, `database-migrate-user-profile.sql`, `database-migrate-password-reset.sql`, and `database-migrate-user-locale.sql`.
+Fresh volume: schema comes from `database.sql`. Existing database: apply every `database-migrate-*.sql` (all `IF NOT EXISTS`), including `database-migrate-oidc.sql`, `database-migrate-oidc-button-label.sql`, `database-migrate-user-profile.sql`, `database-migrate-password-reset.sql`, `database-migrate-user-locale.sql`, and `database-migrate-accepted-terms.sql`.
 
 ## After the first send
 

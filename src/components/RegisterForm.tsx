@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
+import { CURRENT_TERMS_VERSION, legalHref } from '@/lib/legal';
 import OpsBrand from './ops/OpsBrand';
 import OpsPrefs from './ops/OpsPrefs';
 
@@ -26,9 +27,14 @@ export default function RegisterForm({
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!acceptedTerms) {
+      setError(t.register.mustAccept);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -36,6 +42,8 @@ export default function RegisterForm({
         name,
         email,
         password,
+        acceptedTerms: true,
+        acceptedTermsVersion: CURRENT_TERMS_VERSION,
       });
     } catch (err: unknown) {
       const errorObj = err as { message?: string };
@@ -90,6 +98,41 @@ export default function RegisterForm({
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+          <label className="checkline checkline-legal">
+            <input
+              type="checkbox"
+              required
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+            />
+            <span>
+              {t.register.acceptLead}{' '}
+              <a
+                href={legalHref('terms')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.legal.terms}
+              </a>
+              {', '}
+              <a
+                href={legalHref('privacy')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.legal.privacy}
+              </a>{' '}
+              {t.register.acceptAnd}{' '}
+              <a
+                href={legalHref('imprint')}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t.legal.imprint}
+              </a>{' '}
+              {t.register.acceptVersion(CURRENT_TERMS_VERSION)}
+            </span>
+          </label>
           {error && <div className="fr-error">{error}</div>}
           <button className="primary" type="submit" disabled={loading}>
             {loading ? t.register.submitting : t.register.submit}
