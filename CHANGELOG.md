@@ -6,10 +6,11 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
-BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, and sending-pool assignment.
+BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, and a tenant Abuse tab.
 
 ### Added
 
+- Tenant console **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next; Sending shows a dismissible warning when one is open
 - Portal Customers → Manage assigns a sending pool (probation / shared / BYO / dedicated) and billing mode (exempt / invoiced); changing the pool resets hour / day / month caps
 - Hour / day / month sending caps (defaults 5,000 / 20,000 / 100,000) enforced on HTTPS and SMTP send; SES hard bounces and complaints are suppressed
 - Public **Terms**, **Privacy**, and **Imprint** at `/legal` (EN/DE/HU, version `2026-09-04`); landing footer links; self-signup must accept the current version

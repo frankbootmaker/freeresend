@@ -201,6 +201,10 @@ class ApiClient {
     return this.request(`/stats/tenant?days=${days}`);
   }
 
+  async getTenantAbuse() {
+    return this.request('/tenant/abuse');
+  }
+
   async listCustomers(params: {
     page?: number;
     limit?: number;

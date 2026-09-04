@@ -59,6 +59,7 @@ describe('legal documents', () => {
     expect(terms).toMatch(/100,000/);
     expect(terms).toMatch(/bring-your-own SES/i);
     expect(terms).toMatch(/failover DNS/i);
+    expect(terms).toMatch(/\*\*Abuse\*\* tab/i);
     expect(terms).not.toMatch(/Stripe/i);
     expect(legalMarkdown('imprint', 'en')).toMatch(/to be completed/i);
     expect(legalMarkdown('imprint', 'hu')).toMatch(/kitöltendő/i);

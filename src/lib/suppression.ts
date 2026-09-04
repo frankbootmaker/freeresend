@@ -71,6 +71,16 @@ export function suppressionActionsFromSesEvent(
   return actions;
 }
 
+export async function countSuppressedRecipients(tenantId: string): Promise<number> {
+  const result = await query(
+    `SELECT COUNT(*)::int AS count
+     FROM suppressed_recipients
+     WHERE tenant_id = $1`,
+    [tenantId],
+  );
+  return Number(result.rows[0]?.count ?? 0);
+}
+
 export async function findSuppressedRecipients(
   tenantId: string,
   emails: string[],

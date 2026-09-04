@@ -387,6 +387,15 @@ const TENANT: Record<Locale, Guide> = {
         ],
       },
       {
+        id: 'abuse',
+        title: 'Abuse',
+        paragraphs: [
+          'Abuse shows the sending pool, used hour / day / month caps, last-24-hour bounce and complaint rates, and how many recipients are suppressed.',
+          'Open warnings appear when a cap is near or hit, bounce or complaint rates rise, or the organization is suspended. You cannot raise the pool or turn the checks off.',
+          'Reaching a cap returns HTTP 429. Sends to suppressed addresses return 422. The operator may freeze or suspend the organization. An automatic SES rate breaker is not live yet.',
+        ],
+      },
+      {
         id: 'organization',
         title: 'Organization',
         paragraphs: [
@@ -466,6 +475,15 @@ const TENANT: Record<Locale, Guide> = {
         ],
       },
       {
+        id: 'abuse',
+        title: 'Missbrauch',
+        paragraphs: [
+          'Missbrauch zeigt den Versandpool, verbrauchte Stunden-/Tages-/Monatsgrenzen, Bounce- und Beschwerderaten der letzten 24 Stunden und die Zahl unterdrückter Empfänger.',
+          'Offene Warnungen erscheinen nahe oder an der Grenze, bei steigender Bounce- oder Beschwerderate oder wenn die Organisation gesperrt ist. Sie können den Pool nicht anheben und die Prüfungen nicht abschalten.',
+          'Eine erreichte Grenze liefert HTTP 429. Sendungen an unterdrückte Adressen liefern 422. Der Betreiber kann sperren oder einfrieren. Ein automatischer SES-Grenzwächter ist noch nicht live.',
+        ],
+      },
+      {
         id: 'organization',
         title: 'Organisation',
         paragraphs: [
@@ -542,6 +560,15 @@ const TENANT: Record<Locale, Guide> = {
         paragraphs: [
           'Ennek a bérlőnek a kézbesítési eseményei. Szűrjön címzett vagy állapot szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
           'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
+        ],
+      },
+      {
+        id: 'abuse',
+        title: 'Visszaélés',
+        paragraphs: [
+          'A Visszaélés lap mutatja a küldési poolt, a felhasznált óra/nap/hó korlátokat, az elmúlt 24 óra visszapattanási és panaszarányát, és a tiltott címzettek számát.',
+          'Figyelmeztetés jelenik meg, ha a plafon közel van vagy elérve, ha nő a visszapattanás vagy a panasz, vagy ha a szervezet fel van függesztve. A poolt nem emelheti, az ellenőrzéseket nem kapcsolhatja ki.',
+          'A plafon elérése HTTP 429. Tiltott címekre 422. Az üzemeltető felfüggesztheti vagy befagyaszthatja a szervezetet. Automatikus SES-arányőr még nincs élesben.',
         ],
       },
       {

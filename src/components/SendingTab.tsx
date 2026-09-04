@@ -3,7 +3,9 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import { DEFAULT_SES_CONFIGURATION_SET, SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
+import type { AbuseWarning } from '@/lib/abuse-health';
 
 type Ingress = 'https' | 'smtp' | 'both';
 type Egress = 'ses' | 'smtp';
@@ -33,8 +35,24 @@ function SegButton({
   );
 }
 
+function dismissedKey(tenantId: string): string {
+  return `rh-abuse-dismissed:${tenantId}`;
+}
+
+function readDismissed(tenantId: string): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = sessionStorage.getItem(dismissedKey(tenantId));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.map(String) : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function SendingTab() {
   const { t } = usePrefs();
+  const { tenant } = useAuth();
   const [ingress, setIngress] = useState<Ingress>('https');
   const [transport, setTransport] = useState<Egress>('ses');
   const [host, setHost] = useState('');
@@ -73,6 +91,23 @@ export default function SendingTab() {
     used: number;
   } | null>(null);
   const [sendingTier, setSendingTier] = useState<string>('probation');
+  const [abuseBanner, setAbuseBanner] = useState<AbuseWarning | null>(null);
+
+  useEffect(() => {
+    const tenantId = tenant?.id;
+    api.getTenantAbuse().then((res) => {
+      const warnings = (res.data?.warnings || []) as AbuseWarning[];
+      const dismissed = tenantId ? readDismissed(tenantId) : [];
+      const visible = warnings.filter(
+        (row) => row.severity !== 'info' && !dismissed.includes(row.code),
+      );
+      setAbuseBanner(
+        visible.find((row) => row.severity === 'high') || visible[0] || null,
+      );
+    }).catch(() => {
+      setAbuseBanner(null);
+    });
+  }, [tenant?.id]);
 
   useEffect(() => {
     api.getTenantStats(1).then((res) => {
@@ -184,6 +219,14 @@ export default function SendingTab() {
     }
   };
 
+  const dismissAbuseBanner = () => {
+    if (abuseBanner && tenant?.id) {
+      const next = [...new Set([...readDismissed(tenant.id), abuseBanner.code])];
+      sessionStorage.setItem(dismissedKey(tenant.id), JSON.stringify(next));
+    }
+    setAbuseBanner(null);
+  };
+
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const showHttps = ingress === 'https' || ingress === 'both';
   const showSmtp = ingress === 'smtp' || ingress === 'both';
@@ -196,6 +239,23 @@ export default function SendingTab() {
 
   return (
     <form onSubmit={save}>
+      {abuseBanner && (
+        <div
+          className={abuseBanner.severity === 'high' ? 'fr-error' : 'fr-warn'}
+          role="status"
+          data-testid="abuse-banner"
+        >
+          <strong>{t.abuse.warningTitle(abuseBanner.code)}</strong>
+          {' '}
+          {t.abuse.warningBody(abuseBanner.code)}
+          {' '}
+          {t.abuse.bannerLead}
+          {' '}
+          <button type="button" onClick={dismissAbuseBanner}>
+            {t.abuse.dismiss}
+          </button>
+        </div>
+      )}
       <div className="cols">
         <section className="card">
           <header className="cardhead">

@@ -11,6 +11,7 @@ import EmailLogsTab from './EmailLogsTab';
 import SendingTab from './SendingTab';
 import GuideTab from './GuideTab';
 import OrganizationTab from './OrganizationTab';
+import AbuseTab from './AbuseTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
 type Tab =
@@ -19,6 +20,7 @@ type Tab =
   | 'apikeys'
   | 'agents'
   | 'logs'
+  | 'abuse'
   | 'organization'
   | 'guide';
 
@@ -34,6 +36,7 @@ export default function Dashboard() {
     apikeys: t.nav.apiKeys,
     agents: t.nav.agents,
     logs: t.nav.logs,
+    abuse: t.nav.abuse,
     organization: t.nav.organization,
     guide: t.nav.guide,
   };
@@ -44,6 +47,7 @@ export default function Dashboard() {
     { id: 'apikeys', label: tabLabels.apikeys },
     { id: 'agents', label: tabLabels.agents },
     { id: 'logs', label: tabLabels.logs },
+    { id: 'abuse', label: tabLabels.abuse },
     { id: 'organization', label: tabLabels.organization },
     { id: 'guide', label: tabLabels.guide },
   ];
@@ -78,6 +82,7 @@ export default function Dashboard() {
       {activeTab === 'apikeys' && <ApiKeysTab />}
       {activeTab === 'agents' && <AgentsTab kind="tenant" />}
       {activeTab === 'logs' && <EmailLogsTab />}
+      {activeTab === 'abuse' && <AbuseTab />}
       {activeTab === 'organization' && <OrganizationTab />}
       {activeTab === 'guide' && <GuideTab kind="tenant" />}
     </AppShell>

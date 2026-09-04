@@ -31,6 +31,8 @@ Each organization has sending caps. New organizations start in the **probation**
 
 Suspended organizations cannot send.
 
+The console **Abuse** tab shows your pool, used caps, recent bounce and complaint rates, and suppressed recipients. You cannot raise the pool or disable these checks from that tab. An automatic SES rate breaker is not live; the operator may still freeze or suspend the organization.
+
 ## Bring-your-own SES
 
 Using your own AWS SES account is a sold option, not a self-serve toggle. You request it; an administrator must allow it. When it is allowed, Amazon bills you for SES. We may require bring-your-own SES for volume, reputation, or policy. Any separate relay or platform fee is agreed with the operator — these terms do not charge it automatically.
@@ -124,6 +126,8 @@ Jede Organisation hat Versandgrenzen. Neue Organisationen starten im Pool **Prob
 
 Gesperrte Organisationen können nicht senden.
 
+Die Konsole **Missbrauch** zeigt Pool, verbrauchte Grenzen, aktuelle Bounce- und Beschwerderaten sowie unterdrückte Empfänger. Sie können den Pool dort nicht anheben und die Prüfungen nicht abschalten. Ein automatischer SES-Grenzwächter ist nicht live; der Betreiber kann die Organisation trotzdem sperren oder einfrieren.
+
 ## Eigenes SES (BYO)
 
 Ein eigenes AWS-SES-Konto ist eine verkaufte Option, kein Selbstbedienungsschalter. Sie beantragen es; ein Administrator muss es zulassen. Ist es zugelassen, rechnet Amazon SES mit Ihnen ab. Wir können eigenes SES aus Mengen-, Reputations- oder Richtliniengründen verlangen. Eine gesonderte Relay- oder Plattformgebühr wird mit dem Betreiber vereinbart — diese Bedingungen ziehen sie nicht automatisch ein.
@@ -216,6 +220,8 @@ Visszaélés, biztonsági kockázat, jogi kötelezettség vagy olyan tartozás m
 Minden szervezetnek küldési korlátjai vannak. Az új szervezetek **próbaidő** poolban indulnak. Az üzemeltető **megosztott**, **saját SES** vagy **dedikált** poolt rendelhet. A próbaidő alapértelmezettje **5 000** üzenet gördülő óránként, **20 000** naptári naponként és **100 000** naptári havonta, hacsak az üzemeltető nem írja felül. A plafon elérése után a további küldés elutasított, amíg az ablak újra nem nyílik, vagy az üzemeltető nem emeli a limitet. A számlázott és a mentes csak besorolás — kártyás fizetés nincs élesben.
 
 Felfüggesztett szervezet nem küldhet.
+
+A konzol **Visszaélés** lapja mutatja a poolt, a felhasznált korlátokat, a közelmúltbeli visszapattanási és panaszarányt, valamint a tiltott címzetteket. A poolt onnan nem emelheti, és ezeket az ellenőrzéseket nem kapcsolhatja ki. Automatikus SES-arányőr nincs élesben; az üzemeltető ettől még felfüggesztheti vagy befagyaszthatja a szervezetet.
 
 ## Saját SES (BYO)
 

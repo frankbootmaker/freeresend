@@ -42,6 +42,10 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.de.sending.capsTitle).toMatch(/versand/i);
     expect(dictionaries.hu.sending.capsTitle).toMatch(/korlát/i);
     expect(dictionaries.en.customers.sendingTier).toMatch(/pool/i);
+    expect(dictionaries.en.nav.abuse).toBe('Abuse');
+    expect(dictionaries.de.nav.abuse).toMatch(/missbrauch/i);
+    expect(dictionaries.hu.nav.abuse).toMatch(/visszaélés/i);
+    expect(dictionaries.en.abuse.nextBreaker).toMatch(/not live/i);
     expect(dictionaries.de.customers.tierProbation).toMatch(/probe/i);
     expect(dictionaries.hu.customers.billingExempt).toMatch(/mentes/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);

@@ -194,6 +194,7 @@ type Dict = {
     backToConsole: string;
     guide: string;
     organization: string;
+    abuse: string;
   };
   changelog: {
     title: string;
@@ -386,6 +387,40 @@ type Dict = {
     failed: string;
     ownerOnly: string;
     platformProtected: string;
+  };
+  abuse: {
+    title: string;
+    lead: string;
+    failed: string;
+    status: string;
+    statusActive: string;
+    statusPending: string;
+    statusSuspended: string;
+    last24hTitle: string;
+    last24hLine: (
+      total: number,
+      bounced: number,
+      bounceRate: string,
+      complained: number,
+      complaintRate: string,
+    ) => string;
+    last24hHint: string;
+    suppressionsTitle: string;
+    suppressionsLine: (count: number) => string;
+    suppressionsHint: string;
+    warningsTitle: string;
+    noWarnings: string;
+    severityLabel: (severity: string) => string;
+    warningTitle: (code: string) => string;
+    warningBody: (code: string) => string;
+    nextTitle: string;
+    nextLead: string;
+    nextCaps: string;
+    nextSuppress: string;
+    nextOperator: string;
+    nextBreaker: string;
+    bannerLead: string;
+    dismiss: string;
   };
   users: {
     addTitle: string;
@@ -982,6 +1017,7 @@ const en: Dict = {
     backToConsole: '← Tenant console',
     guide: 'Guide',
     organization: 'Organization',
+    abuse: 'Abuse',
   },
   changelog: {
     title: 'Release notes',
@@ -1190,6 +1226,74 @@ const en: Dict = {
     failed: 'Could not delete this organization',
     ownerOnly: 'Only the organization owner can delete this tenant.',
     platformProtected: 'The platform tenant cannot be deleted.',
+  },
+  abuse: {
+    title: 'Sending health',
+    lead:
+      'These numbers are the same checks the send path uses. You cannot raise the pool or turn the checks off.',
+    failed: 'Could not load sending health',
+    status: 'Organization state',
+    statusActive: 'Active',
+    statusPending: 'Pending verification',
+    statusSuspended: 'Suspended',
+    last24hTitle: 'Last 24 hours',
+    last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
+      `${total} messages · ${bounced} bounced (${bounceRate}) · ${complained} complaints (${complaintRate})`,
+    last24hHint:
+      'Bounce and complaint counts update after SES events reach /api/webhooks/ses.',
+    suppressionsTitle: 'Suppressed recipients',
+    suppressionsLine: (count) =>
+      count === 1
+        ? '1 address is suppressed'
+        : `${count} addresses are suppressed`,
+    suppressionsHint:
+      'Permanent SES bounces and complaints stay on this list. Further sends to them return 422.',
+    warningsTitle: 'Open warnings',
+    noWarnings: 'No open warnings.',
+    severityLabel: (severity) => {
+      if (severity === 'high') return 'High';
+      if (severity === 'warn') return 'Watch';
+      return 'Info';
+    },
+    warningTitle: (code) => {
+      if (code === 'suspended') return 'Sending is frozen';
+      if (code === 'cap_hour') return 'Hourly cap';
+      if (code === 'cap_day') return 'Daily cap';
+      if (code === 'cap_month') return 'Monthly cap';
+      if (code === 'bounce_rate') return 'Bounce rate';
+      if (code === 'complaint_rate') return 'Complaint rate';
+      if (code === 'suppressions') return 'Suppressions';
+      return code;
+    },
+    warningBody: (code) => {
+      if (code === 'suspended') {
+        return 'This organization cannot send until an administrator reactivates it.';
+      }
+      if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
+        return 'Further sends in this window return 429 when the cap is reached.';
+      }
+      if (code === 'bounce_rate') {
+        return 'Hard bounces are elevated. Clean lists and suppressions before increasing volume.';
+      }
+      if (code === 'complaint_rate') {
+        return 'Recipients marked mail as unwanted. The operator may freeze or close the organization.';
+      }
+      if (code === 'suppressions') {
+        return 'Addresses on this list will not be sent again.';
+      }
+      return '';
+    },
+    nextTitle: 'What happens next',
+    nextLead: 'These outcomes are already in the product. They are not a future billing rule.',
+    nextCaps:
+      'Reaching a cap rejects further sends (HTTP 429) until the window resets or the operator raises the limit.',
+    nextSuppress: 'Sends to suppressed addresses are rejected (HTTP 422).',
+    nextOperator:
+      'The operator may freeze, suspend, or close the organization for abuse, a security risk, or a legal duty.',
+    nextBreaker:
+      'An automatic SES rate breaker is not live yet. Elevated bounce or complaint rates are shown here for you and the operator.',
+    bannerLead: 'Open Abuse for sending health and what happens next.',
+    dismiss: 'Dismiss',
   },
   users: {
     addTitle: 'Add platform user',
@@ -1819,6 +1923,7 @@ const de: Dict = {
     backToConsole: '← Mandantenkonsole',
     guide: 'Handbuch',
     organization: 'Organisation',
+    abuse: 'Missbrauch',
   },
   changelog: {
     title: 'Versionshinweise',
@@ -2030,6 +2135,74 @@ const de: Dict = {
     failed: 'Organisation konnte nicht gelöscht werden',
     ownerOnly: 'Nur der Inhaber kann diesen Mandanten löschen.',
     platformProtected: 'Der Plattformmandant kann nicht gelöscht werden.',
+  },
+  abuse: {
+    title: 'Versandstatus',
+    lead:
+      'Das sind dieselben Prüfungen wie auf dem Sendeweg. Sie können den Pool nicht anheben und die Prüfungen nicht abschalten.',
+    failed: 'Versandstatus konnte nicht geladen werden',
+    status: 'Organisationsstatus',
+    statusActive: 'Aktiv',
+    statusPending: 'Prüfung ausstehend',
+    statusSuspended: 'Gesperrt',
+    last24hTitle: 'Letzte 24 Stunden',
+    last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
+      `${total} Nachrichten · ${bounced} unzustellbar (${bounceRate}) · ${complained} Beschwerden (${complaintRate})`,
+    last24hHint:
+      'Bounce- und Beschwerdezahlen erscheinen, sobald SES-Ereignisse /api/webhooks/ses erreichen.',
+    suppressionsTitle: 'Unterdrückte Empfänger',
+    suppressionsLine: (count) =>
+      count === 1
+        ? '1 Adresse ist unterdrückt'
+        : `${count} Adressen sind unterdrückt`,
+    suppressionsHint:
+      'Permanente SES-Bounces und Beschwerden bleiben auf dieser Liste. Weitere Sendungen dorthin liefern 422.',
+    warningsTitle: 'Offene Warnungen',
+    noWarnings: 'Keine offenen Warnungen.',
+    severityLabel: (severity) => {
+      if (severity === 'high') return 'Hoch';
+      if (severity === 'warn') return 'Achtung';
+      return 'Hinweis';
+    },
+    warningTitle: (code) => {
+      if (code === 'suspended') return 'Versand ist gesperrt';
+      if (code === 'cap_hour') return 'Stundengrenze';
+      if (code === 'cap_day') return 'Tagesgrenze';
+      if (code === 'cap_month') return 'Monatsgrenze';
+      if (code === 'bounce_rate') return 'Bounce-Rate';
+      if (code === 'complaint_rate') return 'Beschwerderate';
+      if (code === 'suppressions') return 'Unterdrückungen';
+      return code;
+    },
+    warningBody: (code) => {
+      if (code === 'suspended') {
+        return 'Diese Organisation kann nicht senden, bis ein Administrator sie wieder aktiviert.';
+      }
+      if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
+        return 'Weitere Sendungen in diesem Fenster liefern 429, wenn die Grenze erreicht ist.';
+      }
+      if (code === 'bounce_rate') {
+        return 'Harte Bounces sind erhöht. Listen und Unterdrückungen prüfen, bevor das Volumen steigt.';
+      }
+      if (code === 'complaint_rate') {
+        return 'Empfänger haben Mail als unerwünscht markiert. Der Betreiber kann die Organisation sperren oder schließen.';
+      }
+      if (code === 'suppressions') {
+        return 'Adressen auf dieser Liste werden nicht erneut bedient.';
+      }
+      return '';
+    },
+    nextTitle: 'Was als Nächstes passiert',
+    nextLead: 'Diese Folgen sind bereits im Produkt. Es ist keine künftige Abrechnungsregel.',
+    nextCaps:
+      'Ist eine Grenze erreicht, werden weitere Sendungen abgelehnt (HTTP 429), bis das Fenster neu beginnt oder der Betreiber das Limit anhebt.',
+    nextSuppress: 'Sendungen an unterdrückte Adressen werden abgelehnt (HTTP 422).',
+    nextOperator:
+      'Der Betreiber kann die Organisation bei Missbrauch, Sicherheitsrisiko oder rechtlicher Pflicht sperren, einfrieren oder schließen.',
+    nextBreaker:
+      'Ein automatischer SES-Grenzwächter ist noch nicht live. Erhöhte Bounce- oder Beschwerderaten stehen hier für Sie und den Betreiber.',
+    bannerLead: 'Öffnen Sie Missbrauch für Versandstatus und die nächsten Schritte.',
+    dismiss: 'Ausblenden',
   },
   users: {
     addTitle: 'Plattformbenutzer hinzufügen',
@@ -2659,6 +2832,7 @@ const hu: Dict = {
     backToConsole: '← Bérlőkonzol',
     guide: 'Útmutató',
     organization: 'Szervezet',
+    abuse: 'Visszaélés',
   },
   changelog: {
     title: 'Kiadási jegyzetek',
@@ -2869,6 +3043,74 @@ const hu: Dict = {
     failed: 'A szervezet törlése sikertelen',
     ownerOnly: 'Csak a szervezet tulajdonosa törölheti ezt a bérlőt.',
     platformProtected: 'A platform bérlő nem törölhető.',
+  },
+  abuse: {
+    title: 'Küldési állapot',
+    lead:
+      'Ezek ugyanazok az ellenőrzések, mint a küldési úton. A poolt nem emelheti, és az ellenőrzéseket nem kapcsolhatja ki.',
+    failed: 'A küldési állapot betöltése sikertelen',
+    status: 'Szervezet állapota',
+    statusActive: 'Aktív',
+    statusPending: 'Ellenőrzés folyamatban',
+    statusSuspended: 'Felfüggesztve',
+    last24hTitle: 'Elmúlt 24 óra',
+    last24hLine: (total, bounced, bounceRate, complained, complaintRate) =>
+      `${total} üzenet · ${bounced} visszapattanás (${bounceRate}) · ${complained} panasz (${complaintRate})`,
+    last24hHint:
+      'A visszapattanás és a panasz akkor frissül, ha a SES események elérik a /api/webhooks/ses címet.',
+    suppressionsTitle: 'Tiltott címzettek',
+    suppressionsLine: (count) =>
+      count === 1
+        ? '1 cím tiltott'
+        : `${count} cím tiltott`,
+    suppressionsHint:
+      'A tartós SES-visszapattanások és a panaszok ezen a listán maradnak. További küldés rájuk 422.',
+    warningsTitle: 'Nyitott figyelmeztetések',
+    noWarnings: 'Nincs nyitott figyelmeztetés.',
+    severityLabel: (severity) => {
+      if (severity === 'high') return 'Magas';
+      if (severity === 'warn') return 'Figyelés';
+      return 'Info';
+    },
+    warningTitle: (code) => {
+      if (code === 'suspended') return 'A küldés le van állítva';
+      if (code === 'cap_hour') return 'Órás plafon';
+      if (code === 'cap_day') return 'Napi plafon';
+      if (code === 'cap_month') return 'Havi plafon';
+      if (code === 'bounce_rate') return 'Visszapattanási arány';
+      if (code === 'complaint_rate') return 'Panaszarány';
+      if (code === 'suppressions') return 'Tiltólista';
+      return code;
+    },
+    warningBody: (code) => {
+      if (code === 'suspended') {
+        return 'Ez a szervezet addig nem küldhet, amíg egy adminisztrátor újra nem aktiválja.';
+      }
+      if (code === 'cap_hour' || code === 'cap_day' || code === 'cap_month') {
+        return 'Ebben az ablakban a további küldés 429, ha a plafon el van érve.';
+      }
+      if (code === 'bounce_rate') {
+        return 'A kemény visszapattanások magasak. Tisztítsa a listákat, mielőtt növeli a forgalmat.';
+      }
+      if (code === 'complaint_rate') {
+        return 'A címzettek kéretlennek jelölték a levelet. Az üzemeltető felfüggesztheti vagy bezárhatja a szervezetet.';
+      }
+      if (code === 'suppressions') {
+        return 'Ezekre a címekre nem megy újabb küldés.';
+      }
+      return '';
+    },
+    nextTitle: 'Mi következik',
+    nextLead: 'Ezek a következmények már a termékben vannak. Nem jövőbeli számlázási szabály.',
+    nextCaps:
+      'A plafon elérése után a további küldés elutasított (HTTP 429), amíg az ablak újra nem nyílik, vagy az üzemeltető nem emeli a limitet.',
+    nextSuppress: 'Tiltott címekre a küldés elutasított (HTTP 422).',
+    nextOperator:
+      'Az üzemeltető visszaélés, biztonsági kockázat vagy jogi kötelezettség miatt befagyaszthatja, felfüggesztheti vagy bezárhatja a szervezetet.',
+    nextBreaker:
+      'Automatikus SES-arányőr még nincs élesben. A magas visszapattanási vagy panaszarány itt látszik Önnek és az üzemeltetőnek.',
+    bannerLead: 'Nyissa meg a Visszaélés lapot a küldési állapothoz és a következő lépésekhez.',
+    dismiss: 'Elrejtés',
   },
   users: {
     addTitle: 'Platformfelhasználó hozzáadása',

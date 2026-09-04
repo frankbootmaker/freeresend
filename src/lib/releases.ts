@@ -22,8 +22,12 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
     summary:
-      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, and sending-pool assignment.',
+      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, sending-pool assignment, and a tenant Abuse tab.',
     changes: [
+      {
+        kind: 'added',
+        text: 'Tenant console Abuse tab shows pool, used caps, 24-hour bounce and complaint rates, suppressions, and what happens next; Sending shows a dismissible warning when one is open.',
+      },
       {
         kind: 'added',
         text: 'Portal Customers Manage assigns a sending pool (probation / shared / BYO / dedicated) and billing mode (exempt / invoiced); changing the pool resets hour, day, and month caps.',
