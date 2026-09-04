@@ -31,7 +31,10 @@ UI language remains EN / DE / HU.
   caps (defaults **5,000** / **20,000** / **100,000**). The SES webhook marks
   bounce/complaint on logs and suppresses permanent bounces and complaints.
   Soft bounces are not suppressed. There is not yet a pool breaker or Abuse tab.
-- Portal **Customers → Manage** is rename + delete. Tenant nav has no Abuse or Billing.
+- Portal **Customers → Manage** can rename, delete, assign sending pool
+  (probation / shared / BYO / dedicated), override caps, and set billing mode
+  (`exempt` | `invoiced`). `invoiced` does not charge a card yet. Tenant nav
+  has no Abuse or Billing tab.
 - `/pricing` is a Resend vs self-host **calculator** plus waitlist. Stripe Payment
   Links exist for Launch Kit / Deployment Review. `collectStripeMetrics` runs if
   `STRIPE_SECRET_KEY` is set. There are no T&C pages, no CMS, no tenant invoices.
@@ -216,8 +219,9 @@ version + `effective_at`), landing footer, self-signup stores
 `accepted_terms_version`. Not a portal CMS (that is E).  
 **A1 shipped:** hour / day / month caps on the send path; SES hard-bounce and
 complaint suppression.  
-Still in A: pools (or a `sending_tier` enum), webhook breaker, portal Manage
-assignment, tenant Abuse tab + warnings.
+**A2 shipped:** `sending_tier` + `billing_mode` on tenants; Customers → Manage
+assigns pool, overrides caps, and sets exempt / invoiced.  
+Still in A: webhook breaker, tenant Abuse tab + warnings.
 
 **B — Plans that match pools**  
 `billing_plans` + `billing_mode` (including exempt). Split `/pricing` into real

@@ -41,7 +41,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Create an organization, an owner, and an optional sending domain.',
           'Copy the API key and MCP token immediately. They are shown once.',
-          'Manage opens a panel to rename the organization or delete the tenant. The slug stays as the identifier. The platform tenant cannot be deleted.',
+          'Manage opens a panel to rename the organization, assign the sending pool and billing mode, override caps, or delete the tenant. The slug stays as the identifier. The platform tenant cannot be deleted.',
           'Long lists are paged. Choose 5, 10, 25, or 50 rows per page.',
         ],
       },
@@ -141,7 +141,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Legen Sie eine Organisation, einen Owner und optional eine Versanddomain an.',
           'API-Schlüssel und MCP-Token sofort kopieren. Sie werden nur einmal angezeigt.',
-          'Verwalten öffnet ein Panel zum Umbenennen oder Löschen. Der Slug bleibt der Bezeichner. Der Plattformmandant kann nicht gelöscht werden.',
+          'Verwalten öffnet ein Panel zum Umbenennen, Zuweisen von Versandpool und Abrechnungsmodus, Überschreiben der Grenzen oder Löschen. Der Slug bleibt der Bezeichner. Der Plattformmandant kann nicht gelöscht werden.',
           'Lange Listen sind seitenweise. 5, 10, 25 oder 50 Zeilen pro Seite wählen.',
         ],
       },
@@ -241,7 +241,7 @@ const ADMIN: Record<Locale, Guide> = {
         paragraphs: [
           'Hozzon létre szervezetet, tulajdonost, és opcionálisan küldő domaint.',
           'Az API-kulcsot és az MCP-tokent azonnal másolja. Csak egyszer jelennek meg.',
-          'A kezelés panelen átnevezheti a szervezetet vagy törölheti a bérlőt. A slug azonosító marad. A platform bérlő nem törölhető.',
+          'A kezelés panelen átnevezheti a szervezetet, poolt és számlázási módot rendelhet, plafont írhat felül, vagy törölheti a bérlőt. A slug azonosító marad. A platform bérlő nem törölhető.',
           'A hosszú listák lapozhatók. Oldalanként 5, 10, 25 vagy 50 sor.',
         ],
       },

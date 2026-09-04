@@ -222,6 +222,7 @@ type Dict = {
       monthCap: number,
     ) => string;
     capsHint: string;
+    poolLabel: string;
     loading: string;
     volume: string;
     volumeHint: string;
@@ -349,6 +350,18 @@ type Dict = {
     invoiceGroupNone: string;
     invoiceGroupByo: string;
     invoiceGroupHint: string;
+    sendingTier: string;
+    billingMode: string;
+    tierProbation: string;
+    tierShared: string;
+    tierByo: string;
+    tierDedicated: string;
+    billingExempt: string;
+    billingInvoiced: string;
+    hourlyCap: string;
+    dailyCap: string;
+    monthlyCap: string;
+    policyHint: string;
   };
   organization: {
     aboutTitle: string;
@@ -992,6 +1005,7 @@ const en: Dict = {
     capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
       `${hourUsed} / ${hourCap} hour · ${dayUsed} / ${dayCap} day · ${monthUsed} / ${monthCap} month`,
     capsHint: 'Hard bounces and complaints are suppressed. Reaching a cap rejects further sends until the window resets.',
+    poolLabel: 'Sending pool',
     loading: 'Loading…',
     volume: '30-day volume',
     volumeHint: 'Logged sends for this tenant',
@@ -1105,7 +1119,7 @@ const en: Dict = {
     save: 'Save',
     saving: 'Saving…',
     cancel: 'Cancel',
-    updated: 'Organization name updated.',
+    updated: 'Organization updated.',
     updateFailed: 'Could not update tenant',
     delete: 'Delete',
     deleting: 'Deleting…',
@@ -1136,6 +1150,19 @@ const en: Dict = {
     invoiceGroupByo: 'BYO SES relay',
     invoiceGroupHint:
       'Preview of phase B. Enabling BYO will attach this tenant to the billed BYO invoice group. The checkbox does not charge a card.',
+    sendingTier: 'Sending pool',
+    billingMode: 'Billing mode',
+    tierProbation: 'Probation',
+    tierShared: 'Shared',
+    tierByo: 'Bring-your-own',
+    tierDedicated: 'Dedicated',
+    billingExempt: 'Exempt — not invoiced',
+    billingInvoiced: 'Invoiced — when billing ships',
+    hourlyCap: 'Hourly cap',
+    dailyCap: 'Daily cap',
+    monthlyCap: 'Monthly cap',
+    policyHint:
+      'Changing the pool resets caps to that pool unless you edit them. Exempt tenants are still capped and logged. Invoiced does not charge a card yet.',
   },
   organization: {
     aboutTitle: 'This organization',
@@ -1815,6 +1842,7 @@ const de: Dict = {
     capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
       `${hourUsed} / ${hourCap} Stunde · ${dayUsed} / ${dayCap} Tag · ${monthUsed} / ${monthCap} Monat`,
     capsHint: 'Harte Bounces und Beschwerden werden unterdrückt. Ist die Grenze erreicht, werden weitere Sendungen abgelehnt, bis das Fenster neu beginnt.',
+    poolLabel: 'Versandpool',
     loading: 'Laden…',
     volume: '30-Tage-Volumen',
     volumeHint: 'Protokollierte Sendungen dieses Mandanten',
@@ -1929,7 +1957,7 @@ const de: Dict = {
     save: 'Speichern',
     saving: 'Speichern…',
     cancel: 'Abbrechen',
-    updated: 'Organisationsname aktualisiert.',
+    updated: 'Organisation aktualisiert.',
     updateFailed: 'Mandant konnte nicht aktualisiert werden',
     delete: 'Löschen',
     deleting: 'Löschen…',
@@ -1961,6 +1989,19 @@ const de: Dict = {
     invoiceGroupByo: 'BYO-SES-Relay',
     invoiceGroupHint:
       'Vorschau auf Phase B. Eigenes SES hängt diesen Mandanten an die abgerechnete BYO-Rechnungsgruppe. Die Checkbox belastet keine Karte.',
+    sendingTier: 'Versandpool',
+    billingMode: 'Abrechnungsmodus',
+    tierProbation: 'Probe',
+    tierShared: 'Geteilt',
+    tierByo: 'Eigenes SES',
+    tierDedicated: 'Dediziert',
+    billingExempt: 'Befreit — nicht berechnet',
+    billingInvoiced: 'In Rechnung — wenn die Abrechnung kommt',
+    hourlyCap: 'Stundengrenze',
+    dailyCap: 'Tagesgrenze',
+    monthlyCap: 'Monatsgrenze',
+    policyHint:
+      'Ein neuer Pool setzt die Grenzen zurück, sofern Sie sie nicht ändern. Befreite Mandanten bleiben begrenzt und protokolliert. „In Rechnung“ belastet noch keine Karte.',
   },
   organization: {
     aboutTitle: 'Diese Organisation',
@@ -2641,6 +2682,7 @@ const hu: Dict = {
     capsLine: (hourUsed, hourCap, dayUsed, dayCap, monthUsed, monthCap) =>
       `${hourUsed} / ${hourCap} óra · ${dayUsed} / ${dayCap} nap · ${monthUsed} / ${monthCap} hónap`,
     capsHint: 'A kemény visszapattanások és a panaszok tiltólistára kerülnek. A plafon elérése után a további küldés elutasított, amíg az ablak újra nem nyílik.',
+    poolLabel: 'Küldési pool',
     loading: 'Betöltés…',
     volume: '30 napos forgalom',
     volumeHint: 'A bérlő naplózott küldései',
@@ -2755,7 +2797,7 @@ const hu: Dict = {
     save: 'Mentés',
     saving: 'Mentés…',
     cancel: 'Mégse',
-    updated: 'A szervezet neve frissült.',
+    updated: 'A szervezet frissült.',
     updateFailed: 'A bérlő frissítése sikertelen',
     delete: 'Törlés',
     deleting: 'Törlés…',
@@ -2787,6 +2829,19 @@ const hu: Dict = {
     invoiceGroupByo: 'Saját SES relé',
     invoiceGroupHint:
       'A B fázis előnézete. A saját SES ehhez a számlázott csoporthoz köti a bérlőt. A jelölőnégyzet nem von le kártyáról.',
+    sendingTier: 'Küldési pool',
+    billingMode: 'Számlázási mód',
+    tierProbation: 'Próbaidő',
+    tierShared: 'Megosztott',
+    tierByo: 'Saját SES',
+    tierDedicated: 'Dedikált',
+    billingExempt: 'Mentes — nem számlázott',
+    billingInvoiced: 'Számlázott — ha a számlázás elindul',
+    hourlyCap: 'Órás plafon',
+    dailyCap: 'Napi plafon',
+    monthlyCap: 'Havi plafon',
+    policyHint:
+      'A pool váltása visszaállítja a plafonokat, hacsak nem írja felül. A mentes bérlők is korlátosak és naplózottak. A számlázott mód még nem von le kártyáról.',
   },
   organization: {
     aboutTitle: 'Ez a szervezet',

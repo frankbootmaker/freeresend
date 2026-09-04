@@ -6,19 +6,31 @@ import {
   deleteTenant,
   TenantError,
   resolveTenantSesByoRequest,
+  updateTenantCommercialPolicy,
   updateTenantName,
   updateTenantSesByoAllowed,
 } from '@/lib/tenants';
+import { BILLING_MODES, SENDING_TIERS } from '@/lib/sending-tier';
 
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
   sesByoAllowed: z.boolean().optional(),
   sesByoDecision: z.enum(['approve', 'deny']).optional(),
+  sendingTier: z.enum(SENDING_TIERS).optional(),
+  billingMode: z.enum(BILLING_MODES).optional(),
+  hourlyEmailQuota: z.number().int().positive().optional(),
+  dailyEmailQuota: z.number().int().positive().optional(),
+  monthlyEmailQuota: z.number().int().positive().optional(),
 }).refine(
   (body) =>
     Boolean(body.name)
     || body.sesByoAllowed !== undefined
-    || body.sesByoDecision !== undefined,
+    || body.sesByoDecision !== undefined
+    || body.sendingTier !== undefined
+    || body.billingMode !== undefined
+    || body.hourlyEmailQuota !== undefined
+    || body.dailyEmailQuota !== undefined
+    || body.monthlyEmailQuota !== undefined,
   { message: 'No customer changes provided' },
 );
 
@@ -44,6 +56,21 @@ export async function PATCH(
       tenant = await resolveTenantSesByoRequest(id, body.sesByoDecision);
     } else if (body.sesByoAllowed !== undefined) {
       tenant = await updateTenantSesByoAllowed(id, body.sesByoAllowed);
+    }
+    if (
+      body.sendingTier
+      || body.billingMode
+      || body.hourlyEmailQuota
+      || body.dailyEmailQuota
+      || body.monthlyEmailQuota
+    ) {
+      tenant = await updateTenantCommercialPolicy(id, {
+        sendingTier: body.sendingTier,
+        billingMode: body.billingMode,
+        hourlyEmailQuota: body.hourlyEmailQuota,
+        dailyEmailQuota: body.dailyEmailQuota,
+        monthlyEmailQuota: body.monthlyEmailQuota,
+      });
     }
     if (!tenant) {
       return json({ error: 'No customer changes provided' }, 400);

@@ -55,7 +55,10 @@ export function parseTenantSesConfig(value: unknown): TenantSesConfig | null {
   };
 }
 
-export function tenantAllowsByoSes(tenant: Pick<Tenant, 'metadata'>): boolean {
+export function tenantAllowsByoSes(
+  tenant: Pick<Tenant, 'metadata'> & { sending_tier?: string },
+): boolean {
+  if (tenant.sending_tier === 'byo') return true;
   return tenant.metadata?.[BYO_META_KEY] === true;
 }
 

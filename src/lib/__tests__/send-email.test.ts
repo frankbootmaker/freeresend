@@ -52,6 +52,8 @@ function tenant(partial: Partial<Tenant> = {}): Tenant {
     monthly_email_quota: 100,
     hourly_email_quota: 5,
     daily_email_quota: 20,
+    sending_tier: 'probation',
+    billing_mode: 'exempt',
     inbound_transport: 'https',
     outbound_transport: 'ses',
     created_at: '2026-01-01',

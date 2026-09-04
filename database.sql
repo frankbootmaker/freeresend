@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS tenants (
   monthly_email_quota INTEGER DEFAULT 100000,
   hourly_email_quota INTEGER NOT NULL DEFAULT 5000,
   daily_email_quota INTEGER NOT NULL DEFAULT 20000,
+  sending_tier VARCHAR(20) NOT NULL DEFAULT 'probation',
+  billing_mode VARCHAR(20) NOT NULL DEFAULT 'exempt',
   inbound_transport VARCHAR(20) NOT NULL DEFAULT 'https',
   outbound_transport VARCHAR(20) NOT NULL DEFAULT 'ses',
   ses_config JSONB,
@@ -22,7 +24,11 @@ CREATE TABLE IF NOT EXISTS tenants (
     status IN ('pending_verification', 'active', 'suspended')
   ),
   CONSTRAINT tenants_hourly_quota_check CHECK (hourly_email_quota > 0),
-  CONSTRAINT tenants_daily_quota_check CHECK (daily_email_quota > 0)
+  CONSTRAINT tenants_daily_quota_check CHECK (daily_email_quota > 0),
+  CONSTRAINT tenants_sending_tier_check
+    CHECK (sending_tier IN ('probation', 'shared', 'byo', 'dedicated')),
+  CONSTRAINT tenants_billing_mode_check
+    CHECK (billing_mode IN ('exempt', 'invoiced'))
 );
 
 CREATE TABLE IF NOT EXISTS users (

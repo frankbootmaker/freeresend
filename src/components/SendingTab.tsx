@@ -72,6 +72,7 @@ export default function SendingTab() {
     usedDay: number;
     used: number;
   } | null>(null);
+  const [sendingTier, setSendingTier] = useState<string>('probation');
 
   useEffect(() => {
     api.getTenantStats(1).then((res) => {
@@ -90,6 +91,7 @@ export default function SendingTab() {
     });
     api.getTenant().then((res) => {
       const tenant = res.data.tenant;
+      setSendingTier(tenant.sending_tier || 'probation');
       setIngress(tenant.inbound_transport || 'https');
       setTransport(tenant.outbound_transport);
       if (tenant.smtp_upstream?.host) setHost(tenant.smtp_upstream.host);
@@ -218,6 +220,16 @@ export default function SendingTab() {
             {caps && (
               <p className="cardlead" data-testid="sending-caps">
                 <strong>{t.sending.capsTitle}.</strong>{' '}
+                {t.sending.poolLabel}
+                {': '}
+                {sendingTier === 'shared'
+                  ? t.customers.tierShared
+                  : sendingTier === 'byo'
+                    ? t.customers.tierByo
+                    : sendingTier === 'dedicated'
+                      ? t.customers.tierDedicated
+                      : t.customers.tierProbation}
+                {'. '}
                 {t.sending.capsLine(
                   caps.usedHour,
                   caps.hourly,

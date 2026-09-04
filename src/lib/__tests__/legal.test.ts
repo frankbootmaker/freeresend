@@ -53,6 +53,7 @@ describe('legal documents', () => {
 
   it('describes current product limits without inventing card billing', () => {
     const terms = legalMarkdown('terms', 'en');
+    expect(terms).toMatch(/probation/i);
     expect(terms).toMatch(/5,000/);
     expect(terms).toMatch(/20,000/);
     expect(terms).toMatch(/100,000/);

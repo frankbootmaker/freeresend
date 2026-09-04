@@ -47,7 +47,7 @@ Stored in `platform_settings` (row `id = 'default'`). Env vars remain fallbacks 
 - **Monitoring / alerts** — destination and from address for operational notices (waitlist and similar). Fallback chain: saved value, then `ALERT_EMAIL` / `ADMIN_EMAIL` and `ALERT_FROM` / `FROM_EMAIL`. Waitlist, password-reset, and configuration-test mail use the recipient’s last website locale (`users.locale`, EN/DE/HU).
 - **OIDC** — enable Authentik (or another OpenID Connect provider), issuer, client ID/secret, optional sign-in button label, JIT account creation, optional administrator group. Callback URL is `/api/auth/oidc/callback`. Env fallbacks: `OIDC_*`.
 
-Existing databases need every `database-migrate-*.sql` once (`platform-settings`, `oidc`, `user-profile`, `user-locale`, `accepted-terms`, `sending-caps`, and the others). New installs get columns from `database.sql`.
+Existing databases need every `database-migrate-*.sql` once (`platform-settings`, `oidc`, `user-profile`, `user-locale`, `accepted-terms`, `sending-caps`, `sending-tier`, and the others). New installs get columns from `database.sql`.
 
 ## Tenancy and auth
 
@@ -55,7 +55,7 @@ Existing databases need every `database-migrate-*.sql` once (`platform-settings`
 - Self-signup: `POST /api/auth/register` with the current `acceptedTermsVersion`. Admin provision: `POST /api/admin/customers`. Public legal pages: `/legal/terms`, `/legal/privacy`, `/legal/imprint`.
 - Dashboard: JWT after password or OIDC. Forgot password emails a one-hour link (`/login/reset?token=…`). Sending API: `frs_…` keys (bcrypt hashed, copy-once in the UI). MCP: `mcp_…` tokens.
 - Platform admin header `X-Tenant-Id` or `POST /api/auth/me` with `{ tenantId }` to switch context.
-- Suspended tenants cannot send. Domain names are globally unique. Hour / day / month caps default to 5,000 / 20,000 / 100,000. Permanent SES bounces and complaints suppress the recipient.
+- Suspended tenants cannot send. Domain names are globally unique. New tenants land in the **probation** pool (`sending_tier`) with hour / day / month caps 5,000 / 20,000 / 100,000. Portal Manage can promote the pool and set `billing_mode` (`exempt` | `invoiced`). Permanent SES bounces and complaints suppress the recipient.
 
 ## HTTP API and MCP (iteration 1)
 

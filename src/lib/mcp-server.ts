@@ -234,6 +234,8 @@ export async function callMcpTool(
       monthly_email_quota: tenant.monthly_email_quota,
       hourly_email_quota: tenant.hourly_email_quota,
       daily_email_quota: tenant.daily_email_quota,
+      sending_tier: tenant.sending_tier,
+      billing_mode: tenant.billing_mode,
       inbound_transport: tenant.inbound_transport,
       outbound_transport: tenant.outbound_transport,
       smtp_host: tenant.smtp_upstream?.host || null,

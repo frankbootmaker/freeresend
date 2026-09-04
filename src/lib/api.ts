@@ -256,6 +256,11 @@ class ApiClient {
     name?: string;
     sesByoAllowed?: boolean;
     sesByoDecision?: 'approve' | 'deny';
+    sendingTier?: 'probation' | 'shared' | 'byo' | 'dedicated';
+    billingMode?: 'exempt' | 'invoiced';
+    hourlyEmailQuota?: number;
+    dailyEmailQuota?: number;
+    monthlyEmailQuota?: number;
   }) {
     return this.request(`/admin/customers/${id}`, {
       method: 'PATCH',

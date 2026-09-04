@@ -8,6 +8,14 @@ import {
   type SendWindowCounts,
 } from './sending-quota';
 import {
+  parseBillingMode,
+  parseSendingTier,
+  TIER_CAPS,
+  tierAllowsByoSes,
+  type BillingMode,
+  type SendingTier,
+} from './sending-tier';
+import {
   parseJsonRecord,
   parseTenantSesConfig,
   tenantAllowsByoSes,
@@ -45,6 +53,8 @@ export interface Tenant {
   monthly_email_quota: number;
   hourly_email_quota: number;
   daily_email_quota: number;
+  sending_tier: SendingTier;
+  billing_mode: BillingMode;
   inbound_transport: InboundTransport;
   outbound_transport: OutboundTransport;
   ses_config?: TenantSesConfig | null;
@@ -89,6 +99,8 @@ function parseTenant(row: Record<string, unknown>): Tenant {
       row.hourly_email_quota ?? DEFAULT_HOURLY_EMAIL_QUOTA,
     ),
     daily_email_quota: Number(row.daily_email_quota ?? DEFAULT_DAILY_EMAIL_QUOTA),
+    sending_tier: parseSendingTier(row.sending_tier),
+    billing_mode: parseBillingMode(row.billing_mode),
     inbound_transport: normalizeInboundTransport(row.inbound_transport),
     ses_config: parseTenantSesConfig(row.ses_config),
     smtp_upstream: smtp,
@@ -151,6 +163,76 @@ export async function updateTenantName(
   const result = await query(
     'UPDATE tenants SET name = $2 WHERE id = $1 RETURNING *',
     [tenantId, nextName],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+  return parseTenant(result.rows[0]);
+}
+
+export async function updateTenantCommercialPolicy(
+  tenantId: string,
+  input: {
+    sendingTier?: SendingTier;
+    billingMode?: BillingMode;
+    hourlyEmailQuota?: number;
+    dailyEmailQuota?: number;
+    monthlyEmailQuota?: number;
+  },
+): Promise<Tenant> {
+  const existing = await getTenantById(tenantId);
+  if (!existing) {
+    throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
+  }
+
+  const sendingTier = input.sendingTier ?? existing.sending_tier;
+  const billingMode = input.billingMode ?? existing.billing_mode;
+  const tierChanged = Boolean(
+    input.sendingTier && input.sendingTier !== existing.sending_tier,
+  );
+  const defaults = TIER_CAPS[sendingTier];
+  const caps = {
+    hourly:
+      input.hourlyEmailQuota
+      ?? (tierChanged ? defaults.hourly : existing.hourly_email_quota),
+    daily:
+      input.dailyEmailQuota
+      ?? (tierChanged ? defaults.daily : existing.daily_email_quota),
+    monthly:
+      input.monthlyEmailQuota
+      ?? (tierChanged ? defaults.monthly : existing.monthly_email_quota),
+  };
+
+  let metadata = existing.metadata || {};
+  let sesConfig = existing.ses_config || {};
+  if (tierChanged) {
+    metadata = withSesByoAllowed(metadata, tierAllowsByoSes(sendingTier));
+    if (!tierAllowsByoSes(sendingTier) && sesConfig.mode === 'byo') {
+      sesConfig = { ...sesConfig, mode: 'platform' };
+    }
+  }
+
+  const result = await query(
+    `UPDATE tenants
+     SET sending_tier = $2,
+         billing_mode = $3,
+         hourly_email_quota = $4,
+         daily_email_quota = $5,
+         monthly_email_quota = $6,
+         metadata = $7::jsonb,
+         ses_config = $8::jsonb
+     WHERE id = $1
+     RETURNING *`,
+    [
+      tenantId,
+      sendingTier,
+      billingMode,
+      caps.hourly,
+      caps.daily,
+      caps.monthly,
+      JSON.stringify(metadata),
+      JSON.stringify(sesConfig),
+    ],
   );
   if (!result.rows[0]) {
     throw new TenantError('TENANT_NOT_FOUND', 'Tenant not found', 404);
@@ -260,7 +342,10 @@ export async function listTenantsPage(input: {
        AND COALESCE(metadata->>'ses_byo_allowed', 'false') <> 'true'`,
     );
   } else if (input.registryFilter === 'approved') {
-    clauses.push(`COALESCE(metadata->>'ses_byo_allowed', 'false') = 'true'`);
+    clauses.push(
+      `(COALESCE(metadata->>'ses_byo_allowed', 'false') = 'true'
+        OR sending_tier = 'byo')`,
+    );
   }
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const count = await query(
@@ -400,9 +485,27 @@ export async function resolveTenantSesByoRequest(
       409,
     );
   }
-  const metadata = decision === 'approve'
-    ? withSesByoAllowed(withoutSesByoRequest(existing.metadata), true)
-    : withSesByoAllowed(withoutSesByoRequest(existing.metadata), false);
+  if (decision === 'approve') {
+    const approved = await updateTenantCommercialPolicy(tenantId, {
+      sendingTier: 'byo',
+    });
+    const result = await query(
+      `UPDATE tenants
+       SET metadata = $2::jsonb
+       WHERE id = $1
+       RETURNING *`,
+      [
+        tenantId,
+        JSON.stringify(withoutSesByoRequest(approved.metadata)),
+      ],
+    );
+    if (!result.rows[0]) {
+      throw new TenantError('NOT_FOUND', 'Tenant not found', 404);
+    }
+    return parseTenant(result.rows[0]);
+  }
+
+  const metadata = withSesByoAllowed(withoutSesByoRequest(existing.metadata), false);
   const result = await query(
     `UPDATE tenants
      SET metadata = $2::jsonb

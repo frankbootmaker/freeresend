@@ -13,6 +13,12 @@ import {
   tenantSesByoRequestedAt,
   type TenantRegistryFilter,
 } from '@/lib/tenant-ses';
+import {
+  SENDING_TIERS,
+  TIER_CAPS,
+  type BillingMode,
+  type SendingTier,
+} from '@/lib/sending-tier';
 import type { Locale } from '@/lib/locale';
 
 function formatWhen(value: string, locale: Locale) {
@@ -27,6 +33,11 @@ type TenantRow = {
   status: string;
   inbound_transport?: string;
   outbound_transport: string;
+  sending_tier?: SendingTier;
+  billing_mode?: BillingMode;
+  hourly_email_quota?: number;
+  daily_email_quota?: number;
+  monthly_email_quota?: number;
   metadata?: Record<string, unknown>;
 };
 
@@ -46,6 +57,11 @@ export default function CustomersTab() {
   const [managed, setManaged] = useState<TenantRow | null>(null);
   const [editName, setEditName] = useState('');
   const [editByo, setEditByo] = useState(false);
+  const [editTier, setEditTier] = useState<SendingTier>('probation');
+  const [editBilling, setEditBilling] = useState<BillingMode>('exempt');
+  const [editHourly, setEditHourly] = useState(5000);
+  const [editDaily, setEditDaily] = useState(20000);
+  const [editMonthly, setEditMonthly] = useState(100000);
   const [panelError, setPanelError] = useState('');
   const [panelResult, setPanelResult] = useState('');
   const [saving, setSaving] = useState(false);
@@ -120,6 +136,22 @@ export default function CustomersTab() {
       row.outbound_transport === 'smtp' ? t.sending.smtp : 'SES'
     }`;
 
+  const tierLabel = (tier?: SendingTier) => {
+    if (tier === 'shared') return t.customers.tierShared;
+    if (tier === 'byo') return t.customers.tierByo;
+    if (tier === 'dedicated') return t.customers.tierDedicated;
+    return t.customers.tierProbation;
+  };
+
+  const changeTier = (tier: SendingTier) => {
+    setEditTier(tier);
+    const caps = TIER_CAPS[tier];
+    setEditHourly(caps.hourly);
+    setEditDaily(caps.daily);
+    setEditMonthly(caps.monthly);
+    if (tier === 'byo') setEditByo(true);
+  };
+
   const create = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
@@ -161,6 +193,12 @@ export default function CustomersTab() {
     setManaged(row);
     setEditName(row.name);
     setEditByo(tenantAllowsByoSes(row));
+    const tier = row.sending_tier || 'probation';
+    setEditTier(tier);
+    setEditBilling(row.billing_mode || 'exempt');
+    setEditHourly(row.hourly_email_quota || TIER_CAPS[tier].hourly);
+    setEditDaily(row.daily_email_quota || TIER_CAPS[tier].daily);
+    setEditMonthly(row.monthly_email_quota || TIER_CAPS[tier].monthly);
   };
 
   const closeManage = () => {
@@ -179,16 +217,36 @@ export default function CustomersTab() {
     try {
       const res = await api.updateCustomer(managed.id, {
         name: editName,
-        sesByoAllowed: tenantHasPendingByoRequest(managed)
+        sesByoAllowed: tenantHasPendingByoRequest(managed) || editTier === 'byo'
           ? undefined
           : editByo,
+        sendingTier: editTier,
+        billingMode: editBilling,
+        hourlyEmailQuota: editHourly,
+        dailyEmailQuota: editDaily,
+        monthlyEmailQuota: editMonthly,
       });
       const next = res.data?.tenant;
       const nextName = next?.name || editName.trim();
       const nextMeta = next?.metadata || { ...managed.metadata };
-      setManaged({ ...managed, name: nextName, metadata: nextMeta });
+      const nextTier = (next?.sending_tier || editTier) as SendingTier;
+      setManaged({
+        ...managed,
+        ...next,
+        name: nextName,
+        metadata: nextMeta,
+        sending_tier: nextTier,
+      });
       setEditName(nextName);
-      setEditByo(tenantAllowsByoSes({ metadata: nextMeta }));
+      setEditByo(tenantAllowsByoSes({
+        metadata: nextMeta,
+        sending_tier: nextTier,
+      }));
+      setEditTier(nextTier);
+      setEditBilling((next?.billing_mode || editBilling) as BillingMode);
+      if (next?.hourly_email_quota) setEditHourly(next.hourly_email_quota);
+      if (next?.daily_email_quota) setEditDaily(next.daily_email_quota);
+      if (next?.monthly_email_quota) setEditMonthly(next.monthly_email_quota);
       setPanelResult(t.customers.updated);
       refresh();
     } catch (err: unknown) {
@@ -212,8 +270,22 @@ export default function CustomersTab() {
       const next = res.data?.tenant;
       const nextMeta = next?.metadata || {};
       const nextName = next?.name || managed.name;
-      setManaged({ ...managed, name: nextName, metadata: nextMeta });
-      setEditByo(tenantAllowsByoSes({ metadata: nextMeta }));
+      const nextTier = (next?.sending_tier || managed.sending_tier || 'probation') as SendingTier;
+      setManaged({
+        ...managed,
+        ...next,
+        name: nextName,
+        metadata: nextMeta,
+        sending_tier: nextTier,
+      });
+      setEditByo(tenantAllowsByoSes({
+        metadata: nextMeta,
+        sending_tier: nextTier,
+      }));
+      setEditTier(nextTier);
+      if (next?.hourly_email_quota) setEditHourly(next.hourly_email_quota);
+      if (next?.daily_email_quota) setEditDaily(next.daily_email_quota);
+      if (next?.monthly_email_quota) setEditMonthly(next.monthly_email_quota);
       setPanelResult(
         decision === 'approve'
           ? t.customers.sesByoApproved
@@ -371,6 +443,7 @@ export default function CustomersTab() {
             <thead>
               <tr>
                 <th>{t.customers.organization}</th>
+                <th>{t.customers.sendingTier}</th>
                 <th>{t.customers.route}</th>
                 <th>{t.customers.state}</th>
                 <th />
@@ -399,6 +472,7 @@ export default function CustomersTab() {
                       </button>
                     ) : null}
                   </td>
+                  <td>{tierLabel(row.sending_tier)}</td>
                   <td>{routeLabel(row)}</td>
                   <td className="ok">{row.status.toUpperCase()}</td>
                   <td>
@@ -482,6 +556,67 @@ export default function CustomersTab() {
                   <div className="ok">{managed.status.toUpperCase()}</div>
                 </div>
                 <div className="field">
+                  <label htmlFor="manage-tier">{t.customers.sendingTier}</label>
+                  <select
+                    id="manage-tier"
+                    value={editTier}
+                    onChange={(e) => changeTier(e.target.value as SendingTier)}
+                  >
+                    {SENDING_TIERS.map((tier) => (
+                      <option key={tier} value={tier}>
+                        {tierLabel(tier)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="manage-billing">{t.customers.billingMode}</label>
+                  <select
+                    id="manage-billing"
+                    value={editBilling}
+                    onChange={(e) =>
+                      setEditBilling(e.target.value as BillingMode)
+                    }
+                  >
+                    <option value="exempt">{t.customers.billingExempt}</option>
+                    <option value="invoiced">{t.customers.billingInvoiced}</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="manage-hourly">{t.customers.hourlyCap}</label>
+                  <input
+                    id="manage-hourly"
+                    type="number"
+                    min={1}
+                    required
+                    value={editHourly}
+                    onChange={(e) => setEditHourly(Number(e.target.value))}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="manage-daily">{t.customers.dailyCap}</label>
+                  <input
+                    id="manage-daily"
+                    type="number"
+                    min={1}
+                    required
+                    value={editDaily}
+                    onChange={(e) => setEditDaily(Number(e.target.value))}
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="manage-monthly">{t.customers.monthlyCap}</label>
+                  <input
+                    id="manage-monthly"
+                    type="number"
+                    min={1}
+                    required
+                    value={editMonthly}
+                    onChange={(e) => setEditMonthly(Number(e.target.value))}
+                  />
+                </div>
+                <p className="muted field-span">{t.customers.policyHint}</p>
+                <div className="field">
                   <label>{t.customers.invoiceGroup}</label>
                   <select
                     disabled
@@ -528,7 +663,8 @@ export default function CustomersTab() {
                     <label className="checkline">
                       <input
                         type="checkbox"
-                        checked={editByo}
+                        checked={editByo || editTier === 'byo'}
+                        disabled={editTier === 'byo'}
                         onChange={(e) => setEditByo(e.target.checked)}
                       />
                       <span>{t.customers.sesByoAllowed}</span>

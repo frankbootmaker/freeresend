@@ -26,6 +26,8 @@ function tenant(partial: Partial<Tenant>): Tenant {
     monthly_email_quota: 1000,
     hourly_email_quota: 100,
     daily_email_quota: 400,
+    sending_tier: 'probation',
+    billing_mode: 'exempt',
     inbound_transport: 'https',
     outbound_transport: 'ses',
     ...partial,
@@ -37,6 +39,7 @@ describe('tenant SES helpers', () => {
     const row = tenant({});
     expect(tenantAllowsByoSes(row)).toBe(false);
     expect(tenantSesMode(row)).toBe('platform');
+    expect(tenantAllowsByoSes(tenant({ sending_tier: 'byo' }))).toBe(true);
   });
 
   it('keeps BYO mode only when membership allows it', () => {

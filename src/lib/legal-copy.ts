@@ -27,7 +27,7 @@ We may freeze, suspend, or close an organization for abuse, a security risk, a l
 
 ## Sending limits
 
-Each organization has sending caps. The defaults are **5,000** messages per rolling hour, **20,000** per calendar day, and **100,000** per calendar month unless the operator assigns different caps. Reaching a cap rejects further sends until the window resets or the operator raises the limit.
+Each organization has sending caps. New organizations start in the **probation** pool. The operator may assign **shared**, **bring-your-own**, or **dedicated**. Probation defaults are **5,000** messages per rolling hour, **20,000** per calendar day, and **100,000** per calendar month unless the operator overrides them. Reaching a cap rejects further sends until the window resets or the operator raises the limit. Invoiced versus exempt is a classification only — card billing is not live.
 
 Suspended organizations cannot send.
 
@@ -120,7 +120,7 @@ Wir können eine Organisation einfrieren, sperren oder schließen bei Missbrauch
 
 ## Versandgrenzen
 
-Jede Organisation hat Versandgrenzen. Standard sind **5.000** Nachrichten pro gleitender Stunde, **20.000** pro Kalendertag und **100.000** pro Kalendermonat, sofern der Betreiber keine anderen Grenzen setzt. Ist die Grenze erreicht, werden weitere Sendungen abgelehnt, bis das Fenster neu beginnt oder der Betreiber das Limit anhebt.
+Jede Organisation hat Versandgrenzen. Neue Organisationen starten im Pool **Probe**. Der Betreiber kann **Geteilt**, **Eigenes SES** oder **Dediziert** zuweisen. Probe-Standard sind **5.000** Nachrichten pro gleitender Stunde, **20.000** pro Kalendertag und **100.000** pro Kalendermonat, sofern der Betreiber sie nicht überschreibt. Ist die Grenze erreicht, werden weitere Sendungen abgelehnt, bis das Fenster neu beginnt oder der Betreiber das Limit anhebt. „In Rechnung“ und „Befreit“ sind nur eine Einordnung — Kartenzahlung ist nicht live.
 
 Gesperrte Organisationen können nicht senden.
 
@@ -213,7 +213,7 @@ Visszaélés, biztonsági kockázat, jogi kötelezettség vagy olyan tartozás m
 
 ## Küldési korlátok
 
-Minden szervezetnek küldési korlátjai vannak. Az alapértelmezett **5 000** üzenet gördülő óránként, **20 000** naptári naponként és **100 000** naptári havonta, hacsak az üzemeltető más plafont nem ad. A plafon elérése után a további küldés elutasított, amíg az ablak újra nem nyílik, vagy az üzemeltető nem emeli a limitet.
+Minden szervezetnek küldési korlátjai vannak. Az új szervezetek **próbaidő** poolban indulnak. Az üzemeltető **megosztott**, **saját SES** vagy **dedikált** poolt rendelhet. A próbaidő alapértelmezettje **5 000** üzenet gördülő óránként, **20 000** naptári naponként és **100 000** naptári havonta, hacsak az üzemeltető nem írja felül. A plafon elérése után a további küldés elutasított, amíg az ablak újra nem nyílik, vagy az üzemeltető nem emeli a limitet. A számlázott és a mentes csak besorolás — kártyás fizetés nincs élesben.
 
 Felfüggesztett szervezet nem küldhet.
 

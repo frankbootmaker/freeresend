@@ -22,8 +22,12 @@ export const RELEASES: Release[] = [
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
     summary:
-      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, and send-path caps plus suppression.',
+      'BYO SES request, dual SES/SMTP DNS with platform-relay failover records, a compact public header, published legal pages, send-path caps plus suppression, and sending-pool assignment.',
     changes: [
+      {
+        kind: 'added',
+        text: 'Portal Customers Manage assigns a sending pool (probation / shared / BYO / dedicated) and billing mode (exempt / invoiced); changing the pool resets hour, day, and month caps.',
+      },
       {
         kind: 'added',
         text: 'Hour, day, and month sending caps (defaults 5,000 / 20,000 / 100,000) enforced on HTTPS and SMTP send; SES hard bounces and complaints are suppressed.',

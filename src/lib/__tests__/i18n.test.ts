@@ -41,6 +41,9 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.en.sending.capsTitle).toMatch(/caps/i);
     expect(dictionaries.de.sending.capsTitle).toMatch(/versand/i);
     expect(dictionaries.hu.sending.capsTitle).toMatch(/korlát/i);
+    expect(dictionaries.en.customers.sendingTier).toMatch(/pool/i);
+    expect(dictionaries.de.customers.tierProbation).toMatch(/probe/i);
+    expect(dictionaries.hu.customers.billingExempt).toMatch(/mentes/i);
     expect(dictionaries.en.settings.oidcButtonLabel).toMatch(/button label/i);
     expect(readBrowserLocale()).toBe('en');
   });
