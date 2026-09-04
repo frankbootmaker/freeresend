@@ -205,6 +205,18 @@ class ApiClient {
     return this.request('/tenant/abuse');
   }
 
+  async listPlatformAbuse(params: {
+    page?: number;
+    limit?: number;
+    open?: boolean;
+  } = {}) {
+    return this.request(`/admin/abuse${toQuery({
+      page: params.page,
+      limit: params.limit,
+      open: params.open ? '1' : undefined,
+    })}`);
+  }
+
   async listCustomers(params: {
     page?: number;
     limit?: number;

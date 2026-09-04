@@ -27,7 +27,7 @@ bounces and complaints suppress recipients; a published 24-hour tripwire can
 
 | Surface | Who | What it does |
 | --- | --- | --- |
-| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Manage** can rename or delete that tenant, assign the sending pool and billing mode, override caps, Approve / Deny BYO SES, and unfreeze sending. **Users** adds, revokes, or deletes other platform administrators (not the last one). **Agents** issues platform MCP tokens with administrator access. **Logs** search across tenants. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. Long lists page at 25 rows; choose 5 / 10 / 25 / 50. |
+| **Portal** (`/portal`) | `users.is_platform_admin` | After login, platform admins land here. **Customers** provisions a tenant (owner, optional domain, API key and MCP token shown once). **Manage** can rename or delete that tenant, assign the sending pool and billing mode, override caps, Approve / Deny BYO SES, and unfreeze sending. **Abuse** lists every tenant’s used caps, 24-hour bounce/complaint rates, suppressions, and freeze; default filter is open warnings; Open tenant / Unfreeze from the table. **Users** adds, revokes, or deletes other platform administrators (not the last one). **Agents** issues platform MCP tokens with administrator access. **Logs** search across tenants. **Configuration** sets the platform sender, installation-level SES, a shared SMTP relay, inbound SMTP TLS, alerts, and Authentik/OIDC (optional JIT). **Guide** is the administrator walkthrough. The header profile menu edits name and an optional picture. Long lists page at 25 rows; choose 5 / 10 / 25 / 50. |
 | **Tenant console** (`/`) | Tenant owner / admin / member | **Sending**, **Domains**, **API Keys** (with domain column), **Agents**, **Logs**, **Abuse** (pool, caps, 24h bounce/complaint, suppressions, freeze), **Organization** (owners can erase the tenant), **Guide**. Tenant agents are scoped to that organization. Platform admins can switch back to the portal. |
 
 UI language: English, German, Hungarian. Theme toggle is in the shell.
@@ -72,9 +72,9 @@ App / MTA         -->  SMTP :2525 (API key as password) /
   sends to those addresses return **422**. Soft bounces are not suppressed.
 - If the last 24 hours reach **10% bounce** over at least **50** messages, or
   **3 complaints** (or **0.1%** over at least **100** messages), sending
-  freezes. HTTPS/SMTP then return **423**. The console stays up. Only portal
-  Manage can unfreeze. Operator and tenant-owner mail go out on the first
-  freeze. This is not a card-billing freeze.
+  freezes. HTTPS/SMTP then return **423**. The console stays up. Portal
+  **Abuse** or Customers → Manage can unfreeze. Operator and tenant-owner mail
+  go out on the first freeze. This is not a card-billing freeze.
 - Tenant **Abuse** shows the same numbers and “what happens next.” Tenants
   cannot raise the pool or turn the checks off.
 

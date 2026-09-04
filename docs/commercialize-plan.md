@@ -151,9 +151,11 @@ operator plus tenant owners. The console stays up. An administrator unfreezes.
 **SES-side** (master account): per-tenant configuration set where possible;
 CloudWatch alarms; do not put untrusted tenants on a shared dedicated IP.
 
-**Portal → Abuse queue** (still later): tenants near a tripwire. Today
-**Customers → Manage** assigns pool, overrides caps, sets billing mode, and
-unfreezes.
+**Portal → Abuse queue** (shipped): every tenant with used caps, 24-hour
+bounce/complaint rates, suppressions, freeze, and open warnings. Default filter
+is open warnings (frozen or near a cap/tripwire). Open tenant and Unfreeze from
+the table. **Customers → Manage** still assigns pool, overrides caps, and sets
+billing mode.
 
 **Tenant console → Abuse:** same numbers, warnings, “what happens next.” They
 cannot raise the pool or disable the breaker. In-app banner until dismissed.
@@ -227,6 +229,9 @@ assigns pool, overrides caps, and sets exempt / invoiced.
 suppressions).  
 **A4 shipped:** SES webhook reputation breaker freezes sending at the published
 24-hour bounce/complaint tripwire; portal Manage unfreezes.  
+**Portal Abuse shipped:** queue of every tenant’s used caps, 24-hour rates,
+suppressions, and freeze; default open-warnings filter; Open tenant / Unfreeze
+from the table.  
 A policy slices are live. Do not start C until T&C still match.
 
 **B — Plans that match pools**  

@@ -427,6 +427,20 @@ type Dict = {
     nextBreaker: string;
     bannerLead: string;
     dismiss: string;
+    portalTitle: string;
+    portalLead: string;
+    filterAll: string;
+    filterOpen: string;
+    empty: string;
+    emptyOpen: string;
+    columnCaps: string;
+    columnRates: string;
+    columnWarnings: string;
+    ratesShort: (
+      total: number,
+      bounceRate: string,
+      complaintRate: string,
+    ) => string;
   };
   users: {
     addTitle: string;
@@ -1311,6 +1325,18 @@ const en: Dict = {
       'A 24-hour bounce rate of 10% over at least 50 messages, or 3 complaints (or 0.1% over at least 100 messages), freezes sending. An administrator must unfreeze it. This is not a card-billing freeze.',
     bannerLead: 'Open Abuse for sending health and what happens next.',
     dismiss: 'Dismiss',
+    portalTitle: 'Sending health queue',
+    portalLead:
+      'Tenants near a cap or the 24-hour bounce/complaint tripwire. Unfreeze here. Assign pools and caps on Customers → Manage.',
+    filterAll: 'All tenants',
+    filterOpen: 'Open warnings',
+    empty: 'No tenants yet.',
+    emptyOpen: 'No open warnings or freezes.',
+    columnCaps: 'Caps used',
+    columnRates: 'Last 24 hours',
+    columnWarnings: 'Warning',
+    ratesShort: (total, bounceRate, complaintRate) =>
+      `${total} msgs · bounce ${bounceRate} · complaint ${complaintRate}`,
   },
   users: {
     addTitle: 'Add platform user',
@@ -2231,6 +2257,18 @@ const de: Dict = {
       'Eine 24-Stunden-Bounce-Rate von 10 % bei mindestens 50 Nachrichten oder 3 Beschwerden (oder 0,1 % bei mindestens 100 Nachrichten) sperrt den Versand. Ein Administrator muss entsperren. Das ist keine Karten-Sperre.',
     bannerLead: 'Öffnen Sie Missbrauch für Versandstatus und die nächsten Schritte.',
     dismiss: 'Ausblenden',
+    portalTitle: 'Versandstatus-Warteschlange',
+    portalLead:
+      'Mandanten nahe einer Grenze oder der 24-Stunden-Bounce-/Beschwerde-Schwelle. Hier entsperren. Pool und Grenzen unter Kunden → Verwalten.',
+    filterAll: 'Alle Mandanten',
+    filterOpen: 'Offene Warnungen',
+    empty: 'Noch keine Mandanten.',
+    emptyOpen: 'Keine offenen Warnungen oder Sperren.',
+    columnCaps: 'Verbrauchte Grenzen',
+    columnRates: 'Letzte 24 Stunden',
+    columnWarnings: 'Warnung',
+    ratesShort: (total, bounceRate, complaintRate) =>
+      `${total} Nachr. · Bounce ${bounceRate} · Beschwerde ${complaintRate}`,
   },
   users: {
     addTitle: 'Plattformbenutzer hinzufügen',
@@ -3150,6 +3188,18 @@ const hu: Dict = {
       'A 24 órás 10%-os visszapattanás legalább 50 üzenetnél, vagy 3 panasz (illetve 0,1% legalább 100 üzenetnél) befagyasztja a küldést. Adminisztrátornak kell feloldania. Ez nem kártyás befagyasztás.',
     bannerLead: 'Nyissa meg a Visszaélés lapot a küldési állapothoz és a következő lépésekhez.',
     dismiss: 'Elrejtés',
+    portalTitle: 'Küldési állapot sor',
+    portalLead:
+      'Bérlők, akik közel vannak a plafonhoz vagy a 24 órás visszapattanási/panasz küszöbhöz. Itt oldhatja fel. Poolt és plafont az Ügyfelek → Kezelés lapon állít.',
+    filterAll: 'Minden bérlő',
+    filterOpen: 'Nyitott figyelmeztetések',
+    empty: 'Még nincs bérlő.',
+    emptyOpen: 'Nincs nyitott figyelmeztetés vagy fagyasztás.',
+    columnCaps: 'Felhasznált plafon',
+    columnRates: 'Elmúlt 24 óra',
+    columnWarnings: 'Figyelmeztetés',
+    ratesShort: (total, bounceRate, complaintRate) =>
+      `${total} / 24ó · visszapattanás ${bounceRate} · panasz ${complaintRate}`,
   },
   users: {
     addTitle: 'Platformfelhasználó hozzáadása',

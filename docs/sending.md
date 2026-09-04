@@ -39,7 +39,7 @@ Sends that are not `failed` count against hour / day / month caps. New tenants s
 
 Permanent SES bounces and complaints suppress that recipient; further sends to them return **422**. Transient bounces are not suppressed. SMTP-uplink failures do not write the suppression list.
 
-The tenant **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next. Tenants cannot raise the pool or disable the checks. A 24-hour bounce rate of **10%** over at least **50** messages, or **3** complaints (or **0.1%** over at least **100** messages), freezes sending (HTTP **423**). Portal Customers → Manage unfreezes. This is not a card-billing freeze.
+The tenant **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next. Tenants cannot raise the pool or disable the checks. A 24-hour bounce rate of **10%** over at least **50** messages, or **3** complaints (or **0.1%** over at least **100** messages), freezes sending (HTTP **423**). Portal **Abuse** (or Customers → Manage) unfreezes. This is not a card-billing freeze.
 
 API keys are listed with label, **domain**, prefix, scope, and last used. Any member of the tenant can delete a key (including the provisioned default). Copy a new secret once.
 

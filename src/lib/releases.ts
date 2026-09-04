@@ -21,8 +21,13 @@ export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
-    summary: 'Existing Compose volumes apply sending-policy migrations on web start.',
+    summary:
+      'Portal Abuse queue plus sending-policy migrations applied on web start.',
     changes: [
+      {
+        kind: 'added',
+        text: 'Portal Abuse queue lists every tenant’s used caps, 24-hour bounce and complaint rates, suppressions, and freeze; default filter is open warnings; Open tenant and Unfreeze from the table.',
+      },
       {
         kind: 'fixed',
         text: 'Web applies database-migrate SQL on start so existing Compose volumes get suppressed_recipients and sending-pool columns before Abuse loads.',

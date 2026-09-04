@@ -6,7 +6,9 @@ import {
   CAP_WARN_RATIO,
   deriveAbuseWarnings,
   evaluateSendingBreaker,
+  isOpenAbuseRow,
   rateFromCounts,
+  sortAbuseQueue,
 } from '../abuse-health';
 
 const caps = { hourly: 100, daily: 400, monthly: 1000 };
@@ -120,5 +122,30 @@ describe('abuse-health', () => {
     expect(
       evaluateSendingBreaker({ total: 20, bounced: 0, complained: 3 }),
     ).toBe('complaint_rate');
+  });
+
+  it('sorts the portal queue by severity then name', () => {
+    const quiet = {
+      name: 'Quiet Co',
+      sendingFrozenAt: null,
+      warnings: [] as { code: 'suppressions'; severity: 'info' }[],
+    };
+    const watch = {
+      name: 'Watch Co',
+      sendingFrozenAt: null,
+      warnings: [{ code: 'cap_hour' as const, severity: 'warn' as const }],
+    };
+    const frozen = {
+      name: 'Apex Co',
+      sendingFrozenAt: '2026-09-04T10:00:00.000Z',
+      warnings: [{ code: 'frozen' as const, severity: 'high' as const }],
+    };
+    expect(isOpenAbuseRow(quiet)).toBe(false);
+    expect(isOpenAbuseRow(watch)).toBe(true);
+    expect(sortAbuseQueue([quiet, watch, frozen]).map((row) => row.name)).toEqual([
+      'Apex Co',
+      'Watch Co',
+      'Quiet Co',
+    ]);
   });
 });

@@ -6,6 +6,10 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ## Unreleased
 
+### Added
+
+- Portal **Abuse** queue lists every tenant’s used caps, 24-hour bounce/complaint rates, suppressions, and freeze; default filter is open warnings; Open tenant and Unfreeze from the table
+
 ### Fixed
 
 - Web applies `database-migrate-*.sql` on start so existing Compose volumes get `suppressed_recipients` and sending-pool columns before Abuse loads

@@ -22,5 +22,5 @@
 - Domains, API keys, email logs, MCP tokens (when tenant-scoped) always carry `tenant_id`
 - Domain names are globally unique (shared SES identity space)
 - A tenant MCP token cannot pass another `tenant_id`
-- Suspended tenants cannot send. Frozen tenants can open the console; HTTPS/SMTP send returns **423** until portal Manage unfreezes
+- Suspended tenants cannot send. Frozen tenants can open the console; HTTPS/SMTP send returns **423** until portal Abuse or Customers → Manage unfreezes
 - `sending_tier` is `probation` | `shared` | `byo` | `dedicated`. `billing_mode` is `exempt` | `invoiced` (no card charge yet)

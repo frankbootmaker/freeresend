@@ -43,6 +43,7 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.hu.sending.capsTitle).toMatch(/korlát/i);
     expect(dictionaries.en.customers.sendingTier).toMatch(/pool/i);
     expect(dictionaries.en.nav.abuse).toBe('Abuse');
+    expect(dictionaries.en.abuse.portalTitle).toMatch(/queue/i);
     expect(dictionaries.de.nav.abuse).toMatch(/missbrauch/i);
     expect(dictionaries.hu.nav.abuse).toMatch(/visszaélés/i);
     expect(dictionaries.en.abuse.nextBreaker).toMatch(/10%/);

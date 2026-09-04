@@ -14,12 +14,14 @@ import PlatformSettingsTab, {
   type SettingsSection,
 } from './PlatformSettingsTab';
 import GuideTab from './GuideTab';
+import PortalAbuseTab from './PortalAbuseTab';
 import AppShell, { type ShellNavItem } from './AppShell';
 
 type Tab =
   | 'health'
   | 'logs'
   | 'customers'
+  | 'abuse'
   | 'users'
   | 'agents'
   | 'backups'
@@ -65,6 +67,7 @@ export default function PortalDashboard() {
     health: t.nav.health,
     logs: t.nav.logs,
     customers: t.nav.customers,
+    abuse: t.nav.abuse,
     users: t.nav.users,
     agents: t.nav.agents,
     backups: t.nav.backups,
@@ -75,6 +78,7 @@ export default function PortalDashboard() {
     { id: 'health', label: tabLabels.health },
     { id: 'logs', label: tabLabels.logs },
     { id: 'customers', label: tabLabels.customers },
+    { id: 'abuse', label: tabLabels.abuse },
     { id: 'users', label: tabLabels.users },
     { id: 'agents', label: tabLabels.agents },
     { id: 'backups', label: tabLabels.backups },
@@ -112,6 +116,7 @@ export default function PortalDashboard() {
       id === 'health'
       || id === 'logs'
       || id === 'customers'
+      || id === 'abuse'
       || id === 'users'
       || id === 'agents'
       || id === 'backups'
@@ -136,6 +141,7 @@ export default function PortalDashboard() {
       {activeTab === 'health' && <PlatformHealthTab />}
       {activeTab === 'logs' && <PlatformLogsTab />}
       {activeTab === 'customers' && <CustomersTab />}
+      {activeTab === 'abuse' && <PortalAbuseTab />}
       {activeTab === 'users' && <PlatformUsersTab />}
       {activeTab === 'agents' && <AgentsTab kind="platform" />}
       {activeTab === 'backups' && <PlatformBackupsTab />}

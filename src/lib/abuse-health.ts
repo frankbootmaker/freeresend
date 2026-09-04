@@ -1,4 +1,4 @@
-import { getSendWindowCounts, getTenantTraffic } from './tenants';
+import { getSendWindowCounts, getTenantTraffic, listTenants } from './tenants';
 import { capsFromTenant, type SendWindowCaps, type SendWindowCounts } from './sending-quota';
 import { parseBillingMode, parseSendingTier, type BillingMode, type SendingTier } from './sending-tier';
 import { countSuppressedRecipients } from './suppression';
@@ -51,6 +51,47 @@ export type TenantAbuseSnapshot = {
   suppressionCount: number;
   warnings: AbuseWarning[];
 };
+
+export type PlatformAbuseRow = TenantAbuseSnapshot & {
+  tenantId: string;
+  name: string;
+  slug: string;
+};
+
+export function warningRank(
+  warnings: AbuseWarning[],
+  frozen?: boolean,
+): number {
+  if (frozen || warnings.some((warning) => warning.severity === 'high')) {
+    return 3;
+  }
+  if (warnings.some((warning) => warning.severity === 'warn')) {
+    return 2;
+  }
+  if (warnings.length > 0) {
+    return 1;
+  }
+  return 0;
+}
+
+export function isOpenAbuseRow(row: {
+  sendingFrozenAt?: string | null;
+  warnings: AbuseWarning[];
+}): boolean {
+  return Boolean(row.sendingFrozenAt) || row.warnings.length > 0;
+}
+
+export function sortAbuseQueue<
+  T extends { name: string; sendingFrozenAt?: string | null; warnings: AbuseWarning[] },
+>(rows: T[]): T[] {
+  return [...rows].sort((left, right) => {
+    const rankDelta =
+      warningRank(right.warnings, Boolean(right.sendingFrozenAt))
+      - warningRank(left.warnings, Boolean(left.sendingFrozenAt));
+    if (rankDelta !== 0) return rankDelta;
+    return left.name.localeCompare(right.name);
+  });
+}
 
 export function rateFromCounts(part: number, total: number): number {
   if (total <= 0) return 0;
@@ -198,4 +239,20 @@ export async function loadTenantAbuseSnapshot(tenant: {
       suppressionCount,
     }),
   };
+}
+
+export async function loadPlatformAbuseQueue(): Promise<PlatformAbuseRow[]> {
+  const tenants = await listTenants();
+  const rows = await Promise.all(
+    tenants.map(async (tenant) => {
+      const snapshot = await loadTenantAbuseSnapshot(tenant);
+      return {
+        tenantId: tenant.id,
+        name: tenant.name,
+        slug: tenant.slug,
+        ...snapshot,
+      };
+    }),
+  );
+  return sortAbuseQueue(rows);
 }

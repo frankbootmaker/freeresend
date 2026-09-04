@@ -31,6 +31,7 @@ Header `X-Tenant-Id` lets a platform admin act on another tenant.
 ## Admin
 
 - `GET|POST /api/admin/customers`
+- `GET /api/admin/abuse` — platform admin; every tenant’s used caps, 24-hour rates, suppressions, freeze, warnings; `open=1` keeps the queue (frozen or any warning); `page` / `limit`
 - `PATCH /api/admin/customers/:id` — rename; assign `sendingTier` / `billingMode` / caps; Approve / Deny BYO; `{ sendingFrozen: false }` to unfreeze
 - `DELETE /api/admin/customers/:id`
 - `GET|POST /api/admin/users` — list or add platform administrators
