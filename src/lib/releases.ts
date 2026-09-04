@@ -21,8 +21,13 @@ export const RELEASES: Release[] = [
   {
     version: UNRELEASED_VERSION,
     date: '2026-09-04',
-    summary: '',
-    changes: [],
+    summary: 'Existing Compose volumes apply sending-policy migrations on web start.',
+    changes: [
+      {
+        kind: 'fixed',
+        text: 'Web applies database-migrate SQL on start so existing Compose volumes get suppressed_recipients and sending-pool columns before Abuse loads.',
+      },
+    ],
   },
   {
     version: '1.9.3',

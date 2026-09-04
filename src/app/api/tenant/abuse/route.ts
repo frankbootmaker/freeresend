@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, error.status);
     }
+    console.error('GET /api/tenant/abuse failed', error);
     return json({ error: 'Internal server error' }, 500);
   }
 }

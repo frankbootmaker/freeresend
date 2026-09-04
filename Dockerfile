@@ -31,7 +31,10 @@ ENV PORT=3000
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/database-migrate-*.sql /app/migrations/
+COPY --from=builder /app/infrastructure/apply-migrations.sh /app/apply-migrations.sh
+RUN chmod +x /app/apply-migrations.sh
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["sh", "/app/apply-migrations.sh"]
