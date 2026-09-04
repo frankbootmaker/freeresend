@@ -5,6 +5,7 @@ import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import {
   deleteTenant,
   TenantError,
+  resolveTenantSesByoRequest,
   updateTenantName,
   updateTenantSesByoAllowed,
 } from '@/lib/tenants';
@@ -12,9 +13,14 @@ import {
 const updateSchema = z.object({
   name: z.string().min(1).optional(),
   sesByoAllowed: z.boolean().optional(),
-}).refine((body) => body.name || body.sesByoAllowed !== undefined, {
-  message: 'No customer changes provided',
-});
+  sesByoDecision: z.enum(['approve', 'deny']).optional(),
+}).refine(
+  (body) =>
+    Boolean(body.name)
+    || body.sesByoAllowed !== undefined
+    || body.sesByoDecision !== undefined,
+  { message: 'No customer changes provided' },
+);
 
 export async function OPTIONS() {
   return optionsResponse();
@@ -34,7 +40,9 @@ export async function PATCH(
     let tenant = body.name
       ? await updateTenantName(id, body.name)
       : null;
-    if (body.sesByoAllowed !== undefined) {
+    if (body.sesByoDecision) {
+      tenant = await resolveTenantSesByoRequest(id, body.sesByoDecision);
+    } else if (body.sesByoAllowed !== undefined) {
       tenant = await updateTenantSesByoAllowed(id, body.sesByoAllowed);
     }
     if (!tenant) {

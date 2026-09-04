@@ -169,3 +169,65 @@ export async function sendWelcomeEmail(
     console.error(`Failed to send welcome email to ${email}:`, error);
   }
 }
+
+export async function sendByoSesRequestNotification(input: {
+  tenantName: string;
+  tenantSlug: string;
+  requestedBy: string;
+  requestedAt: string;
+}): Promise<void> {
+  const settings = await getResolvedPlatformSettings();
+  const adminEmail = settings.alertEmail;
+  const fromEmail = platformSender(settings);
+  if (!adminEmail) {
+    console.warn('Alert email is not configured, skipping BYO SES request');
+    return;
+  }
+
+  const locale = await resolveMailLocale({ email: adminEmail });
+  const copy = systemMailCopy(locale);
+  const notify = copy.byoRequestNotify;
+  const origin = (process.env.NEXTAUTH_URL || '').replace(/\/$/, '');
+  const when = new Date(input.requestedAt).toLocaleString(copy.dateLocale);
+  const rows = [
+    { label: notify.organization, value: input.tenantName, emphasize: true },
+    { label: notify.slug, value: input.tenantSlug },
+    { label: notify.requestedBy, value: input.requestedBy },
+    { label: notify.requestedAt, value: when },
+  ];
+
+  const { html, text } = renderSystemEmail({
+    title: notify.title,
+    lead: notify.lead,
+    bodyHtml:
+      emailInfoTable(rows)
+      + `<p style="margin:0;color:#5c7266;font:400 14px/1.5 'Avenir Next',Avenir,'Segoe UI',sans-serif;">`
+      + `${notify.review}</p>`,
+    bodyText: [
+      `${notify.organization}: ${input.tenantName}`,
+      `${notify.slug}: ${input.tenantSlug}`,
+      `${notify.requestedBy}: ${input.requestedBy}`,
+      `${notify.requestedAt}: ${when}`,
+      '',
+      notify.review,
+    ].join('\n'),
+    cta: origin ? { label: notify.cta, href: origin } : undefined,
+    footerNote: notify.footer,
+  });
+
+  try {
+    await sendPlatformSystemEmail({
+      from: `RelayHorizon Notifications <${fromEmail}>`,
+      to: [adminEmail],
+      subject: notify.subject(input.tenantName),
+      html,
+      text,
+      tags: {
+        type: 'ses_byo_request',
+        tenant_slug: input.tenantSlug,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to send BYO SES request notification:', error);
+  }
+}

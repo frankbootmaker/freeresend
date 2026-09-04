@@ -6,7 +6,19 @@ import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrefs } from '@/contexts/PrefsContext';
 import ListPager from './ListPager';
-import { tenantAllowsByoSes } from '@/lib/tenant-ses';
+import {
+  registryFilterFromSearch,
+  tenantAllowsByoSes,
+  tenantHasPendingByoRequest,
+  tenantSesByoRequestedAt,
+  type TenantRegistryFilter,
+} from '@/lib/tenant-ses';
+import type { Locale } from '@/lib/locale';
+
+function formatWhen(value: string, locale: Locale) {
+  const tag = locale === 'de' ? 'de-DE' : locale === 'hu' ? 'hu-HU' : 'en-GB';
+  return new Date(value).toLocaleString(tag);
+}
 
 type TenantRow = {
   id: string;
@@ -19,7 +31,7 @@ type TenantRow = {
 };
 
 export default function CustomersTab() {
-  const { t } = usePrefs();
+  const { t, locale } = usePrefs();
   const { switchTenant } = useAuth();
   const [tenants, setTenants] = useState<TenantRow[]>([]);
   const [name, setName] = useState('');
@@ -40,6 +52,10 @@ export default function CustomersTab() {
   const [deleting, setDeleting] = useState(false);
   const [q, setQ] = useState('');
   const [appliedQ, setAppliedQ] = useState('');
+  const [registryFilter, setRegistryFilter] = useState<
+    TenantRegistryFilter | ''
+  >('');
+  const [deciding, setDeciding] = useState<'approve' | 'deny' | null>(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [pagination, setPagination] = useState({
@@ -51,19 +67,45 @@ export default function CustomersTab() {
 
   const refresh = useCallback(() => {
     return api
-      .listCustomers({ page, limit, q: appliedQ })
+      .listCustomers({
+        page,
+        limit,
+        q: appliedQ,
+        byo: registryFilter || undefined,
+      })
       .then((res) => {
         setTenants(res.data.tenants || []);
         if (res.data.pagination) setPagination(res.data.pagination);
       });
-  }, [page, limit, appliedQ]);
+  }, [page, limit, appliedQ, registryFilter]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  const applySearch = () => {
+  const filterLabels: Record<TenantRegistryFilter, string> = {
+    requested: t.customers.sesByoRequested,
+    approved: t.customers.sesByoApprovedTag,
+  };
+
+  const applyRegistryFilter = (next: TenantRegistryFilter | '') => {
     setPage(1);
+    setRegistryFilter(next);
+    if (registryFilterFromSearch(q, filterLabels)) setQ('');
+    setAppliedQ((current) =>
+      registryFilterFromSearch(current, filterLabels) ? '' : current,
+    );
+  };
+
+  const applySearch = () => {
+    const fromSearch = registryFilterFromSearch(q, filterLabels);
+    setPage(1);
+    if (fromSearch) {
+      setRegistryFilter(fromSearch);
+      setAppliedQ('');
+      setQ(filterLabels[fromSearch]);
+      return;
+    }
     setAppliedQ(q);
   };
 
@@ -137,7 +179,9 @@ export default function CustomersTab() {
     try {
       const res = await api.updateCustomer(managed.id, {
         name: editName,
-        sesByoAllowed: editByo,
+        sesByoAllowed: tenantHasPendingByoRequest(managed)
+          ? undefined
+          : editByo,
       });
       const next = res.data?.tenant;
       const nextName = next?.name || editName.trim();
@@ -153,6 +197,35 @@ export default function CustomersTab() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const decideByo = async (decision: 'approve' | 'deny') => {
+    if (!managed) return;
+    setPanelError('');
+    setPanelResult('');
+    setDeciding(decision);
+    try {
+      const res = await api.updateCustomer(managed.id, {
+        sesByoDecision: decision,
+      });
+      const next = res.data?.tenant;
+      const nextMeta = next?.metadata || {};
+      const nextName = next?.name || managed.name;
+      setManaged({ ...managed, name: nextName, metadata: nextMeta });
+      setEditByo(tenantAllowsByoSes({ metadata: nextMeta }));
+      setPanelResult(
+        decision === 'approve'
+          ? t.customers.sesByoApproved
+          : t.customers.sesByoDenied,
+      );
+      refresh();
+    } catch (err: unknown) {
+      setPanelError(
+        (err as { message?: string }).message || t.customers.updateFailed,
+      );
+    } finally {
+      setDeciding(null);
     }
   };
 
@@ -277,6 +350,19 @@ export default function CustomersTab() {
                 if (e.key === 'Enter') applySearch();
               }}
             />
+            <select
+              aria-label={t.customers.filter}
+              value={registryFilter}
+              onChange={(e) =>
+                applyRegistryFilter(
+                  e.target.value as TenantRegistryFilter | '',
+                )
+              }
+            >
+              <option value="">{t.customers.filterAll}</option>
+              <option value="requested">{t.customers.sesByoRequested}</option>
+              <option value="approved">{t.customers.sesByoApprovedTag}</option>
+            </select>
             <button type="button" onClick={applySearch}>
               {t.logs.apply}
             </button>
@@ -293,7 +379,26 @@ export default function CustomersTab() {
             <tbody>
               {tenants.map((row) => (
                 <tr key={row.id}>
-                  <td>{row.name}</td>
+                  <td>
+                    <div>{row.name}</div>
+                    {tenantAllowsByoSes(row) ? (
+                      <button
+                        type="button"
+                        className="tag-filter"
+                        onClick={() => applyRegistryFilter('approved')}
+                      >
+                        {t.customers.sesByoApprovedTag}
+                      </button>
+                    ) : tenantHasPendingByoRequest(row) ? (
+                      <button
+                        type="button"
+                        className="tag-filter"
+                        onClick={() => applyRegistryFilter('requested')}
+                      >
+                        {t.customers.sesByoRequested}
+                      </button>
+                    ) : null}
+                  </td>
                   <td>{routeLabel(row)}</td>
                   <td className="ok">{row.status.toUpperCase()}</td>
                   <td>
@@ -316,6 +421,12 @@ export default function CustomersTab() {
               ))}
             </tbody>
           </table>
+          {tenants.length === 0 && registryFilter === 'requested' && (
+            <p className="cardlead">{t.customers.sesByoEmpty}</p>
+          )}
+          {tenants.length === 0 && registryFilter === 'approved' && (
+            <p className="cardlead">{t.customers.sesByoEmptyApproved}</p>
+          )}
           <ListPager
             page={pagination.page}
             totalPages={pagination.totalPages}
@@ -371,17 +482,60 @@ export default function CustomersTab() {
                   <div className="ok">{managed.status.toUpperCase()}</div>
                 </div>
                 <div className="field">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={editByo}
-                      onChange={(e) => setEditByo(e.target.checked)}
-                    />
-                    {' '}
-                    {t.customers.sesByoAllowed}
-                  </label>
-                  <p className="muted">{t.customers.sesByoAllowedHint}</p>
+                  <label>{t.customers.invoiceGroup}</label>
+                  <select
+                    disabled
+                    value={editByo ? 'byo' : 'none'}
+                    aria-label={t.customers.invoiceGroup}
+                  >
+                    <option value="none">{t.customers.invoiceGroupNone}</option>
+                    <option value="byo">{t.customers.invoiceGroupByo}</option>
+                  </select>
+                  <p className="muted">{t.customers.invoiceGroupHint}</p>
                 </div>
+                {tenantHasPendingByoRequest(managed) ? (
+                  <div className="field field-span">
+                    <label>{t.customers.sesByoRequested}</label>
+                    <p className="muted">
+                      {t.customers.sesByoRequestedOn(
+                        formatWhen(tenantSesByoRequestedAt(managed)!, locale),
+                      )}
+                    </p>
+                    <div className="inline-actions">
+                      <button
+                        type="button"
+                        className="primary"
+                        disabled={Boolean(deciding)}
+                        onClick={() => decideByo('approve')}
+                      >
+                        {deciding === 'approve'
+                          ? t.customers.sesByoApproving
+                          : t.customers.sesByoApprove}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={Boolean(deciding)}
+                        onClick={() => decideByo('deny')}
+                      >
+                        {deciding === 'deny'
+                          ? t.customers.sesByoDenying
+                          : t.customers.sesByoDeny}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="field">
+                    <label className="checkline">
+                      <input
+                        type="checkbox"
+                        checked={editByo}
+                        onChange={(e) => setEditByo(e.target.checked)}
+                      />
+                      <span>{t.customers.sesByoAllowed}</span>
+                    </label>
+                    <p className="muted">{t.customers.sesByoAllowedHint}</p>
+                  </div>
+                )}
               </div>
               <div className="inline-actions">
                 <button className="primary" type="submit" disabled={saving}>

@@ -4,10 +4,16 @@
 
 import {
   parseTenantSesConfig,
+  parseTenantRegistryFilter,
+  registryFilterFromSearch,
   tenantAllowsByoSes,
+  tenantHasPendingByoRequest,
+  tenantSesByoRequestedAt,
   tenantSesMode,
   tenantSesSendAccount,
   withSesByoAllowed,
+  withoutSesByoRequest,
+  withSesByoRequested,
 } from '../tenant-ses';
 import type { Tenant } from '../tenants';
 
@@ -61,5 +67,30 @@ describe('tenant SES helpers', () => {
       note: 'x',
       ses_byo_allowed: true,
     });
+  });
+
+  it('records a BYO request timestamp without enabling send', () => {
+    const requested = withSesByoRequested({ note: 'x' }, '2026-09-04T12:00:00.000Z');
+    expect(tenantSesByoRequestedAt({ metadata: requested })).toBe(
+      '2026-09-04T12:00:00.000Z',
+    );
+    expect(tenantAllowsByoSes({ metadata: requested })).toBe(false);
+    expect(tenantHasPendingByoRequest({ metadata: requested })).toBe(true);
+    expect(tenantHasPendingByoRequest({
+      metadata: { ...requested, ses_byo_allowed: true },
+    })).toBe(false);
+    expect(withoutSesByoRequest(requested)).toEqual({ note: 'x' });
+  });
+
+  it('maps registry search and query params to filters', () => {
+    expect(parseTenantRegistryFilter('requested')).toBe('requested');
+    expect(parseTenantRegistryFilter('approved')).toBe('approved');
+    expect(parseTenantRegistryFilter('other')).toBeUndefined();
+    expect(registryFilterFromSearch('BYO requested')).toBe('requested');
+    expect(registryFilterFromSearch('BYO approved')).toBe('approved');
+    expect(registryFilterFromSearch('beta')).toBeUndefined();
+    expect(registryFilterFromSearch('BYO genehmigt', {
+      approved: 'BYO genehmigt',
+    })).toBe('approved');
   });
 });

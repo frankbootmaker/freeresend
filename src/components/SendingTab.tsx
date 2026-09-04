@@ -51,6 +51,8 @@ export default function SendingTab() {
   });
   const [sesMode, setSesMode] = useState<SesMode>('platform');
   const [sesByoAllowed, setSesByoAllowed] = useState(false);
+  const [sesByoRequestedAt, setSesByoRequestedAt] = useState<string | null>(null);
+  const [requestingByo, setRequestingByo] = useState(false);
   const [sesAccessKey, setSesAccessKey] = useState('');
   const [sesSecretKey, setSesSecretKey] = useState('');
   const [ses, setSes] = useState({
@@ -89,6 +91,7 @@ export default function SendingTab() {
       if (res.data.ses) {
         const allowed = Boolean(res.data.ses.byoAllowed);
         setSesByoAllowed(allowed);
+        setSesByoRequestedAt(res.data.ses.byoRequestedAt || null);
         setSesMode(allowed && res.data.ses.mode === 'byo' ? 'byo' : 'platform');
         setSes({
           region: res.data.ses.region,
@@ -140,6 +143,20 @@ export default function SendingTab() {
       setMessage(t.sending.saved);
     } catch (err: unknown) {
       setError((err as { message?: string }).message || t.sending.saveFailed);
+    }
+  };
+
+  const requestByo = async () => {
+    setError('');
+    setMessage('');
+    setRequestingByo(true);
+    try {
+      const res = await api.requestByoSes();
+      setSesByoRequestedAt(res.data.requestedAt || new Date().toISOString());
+    } catch (err: unknown) {
+      setError((err as { message?: string }).message || t.sending.sesByoRequestFailed);
+    } finally {
+      setRequestingByo(false);
     }
   };
 
@@ -245,7 +262,37 @@ export default function SendingTab() {
                   </SegButton>
                 </div>
                 {!sesByoAllowed && (
-                  <p className="cardlead">{t.sending.sesByoLockedHint}</p>
+                  <div className="byo-request">
+                    {sesByoRequestedAt ? (
+                      <p className="fr-ok">{t.sending.sesByoRequested}</p>
+                    ) : (
+                      <>
+                        <p className="cardlead">{t.sending.sesByoLockedHint}</p>
+                        <p className="cardlead">{t.sending.sesByoFeeHint}</p>
+                        <button
+                          type="button"
+                          className="primary"
+                          disabled={requestingByo}
+                          onClick={requestByo}
+                        >
+                          {requestingByo
+                            ? t.sending.sesByoRequesting
+                            : t.sending.sesByoRequest}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {sesByoAllowed && (
+                  <div className="byo-request">
+                    <p className="cardlead">{t.sending.sesByoAllowedLead}</p>
+                    <p className="cardlead">{t.sending.sesByoChecklistTitle}</p>
+                    <ol className="checklist">
+                      {t.sending.sesByoChecklist.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ol>
+                  </div>
                 )}
               </>
             )}

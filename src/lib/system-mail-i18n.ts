@@ -51,6 +51,18 @@ export type SystemMailCopy = {
     cta: string;
     footer: (signupId: string) => string;
   };
+  byoRequestNotify: {
+    subject: (name: string) => string;
+    title: string;
+    lead: string;
+    organization: string;
+    slug: string;
+    requestedBy: string;
+    requestedAt: string;
+    review: string;
+    cta: string;
+    footer: string;
+  };
 };
 
 function volumeLabel(locale: string, unspecified: string) {
@@ -119,6 +131,19 @@ const en: SystemMailCopy = {
     footer: (signupId) =>
       `You are receiving this because you joined the waitlist. Signup ID: ${signupId}`,
   },
+  byoRequestNotify: {
+    subject: (name) => `BYO SES request: ${name}`,
+    title: 'Bring-your-own SES request',
+    lead: `A tenant asked to leave platform SES and use their own AWS account.`,
+    organization: 'Organization',
+    slug: 'Slug',
+    requestedBy: 'Requested by',
+    requestedAt: 'Requested at',
+    review:
+      'Quote the monthly relay administrative fee, then enable BYO on Customers → Manage. Do not flip them while they are still in the SES sandbox.',
+    cta: 'Open customers',
+    footer: 'Sent because a tenant requested bring-your-own SES.',
+  },
 };
 
 const de: SystemMailCopy = {
@@ -184,6 +209,19 @@ const de: SystemMailCopy = {
     footer: (signupId) =>
       `Sie erhalten diese Nachricht, weil Sie sich in die Warteliste eingetragen haben. Anmelde-ID: ${signupId}`,
   },
+  byoRequestNotify: {
+    subject: (name) => `BYO-SES-Anfrage: ${name}`,
+    title: 'Anfrage für eigenes SES',
+    lead: 'Ein Mandant möchte das Plattform-SES verlassen und ein eigenes AWS-Konto nutzen.',
+    organization: 'Organisation',
+    slug: 'Slug',
+    requestedBy: 'Angefragt von',
+    requestedAt: 'Angefragt am',
+    review:
+      'Monatliche Relay-Verwaltungsgebühr nennen, dann BYO unter Kunden → Verwalten einschalten. Nicht umschalten, solange das Konto noch in der SES-Sandbox ist.',
+    cta: 'Kunden öffnen',
+    footer: 'Gesendet, weil ein Mandant eigenes SES angefragt hat.',
+  },
 };
 
 const hu: SystemMailCopy = {
@@ -248,6 +286,19 @@ const hu: SystemMailCopy = {
     cta: 'Saját hoszt felfedezése',
     footer: (signupId) =>
       `Azért kapja ezt, mert feliratkozott a várólistára. Jelentkezés azonosítója: ${signupId}`,
+  },
+  byoRequestNotify: {
+    subject: (name) => `Saját SES kérés: ${name}`,
+    title: 'Saját SES kérés',
+    lead: 'Egy bérlő a platform SES helyett a saját AWS-fiókját szeretné használni.',
+    organization: 'Szervezet',
+    slug: 'Slug',
+    requestedBy: 'Kérte',
+    requestedAt: 'Kérés ideje',
+    review:
+      'Adja meg a havi relé-adminisztrációs díjat, majd engedélyezze a saját SES-t Ügyfelek → Kezelés alatt. Ne váltson, amíg a fiók SES-homokozóban van.',
+    cta: 'Ügyfelek megnyitása',
+    footer: 'Azért ment, mert egy bérlő saját SES-t kért.',
   },
 };
 

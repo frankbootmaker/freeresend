@@ -12,7 +12,10 @@ UI language remains EN / DE / HU.
 
 - Tenants send through RelayHorizon (HTTPS and/or SMTP ingress). Egress is platform
   SES **or** tenant SMTP upstream (empty host → platform SMTP relay).
-- `tenants.ses_config` exists but is unused. SES send always uses platform keys.
+- BYO SES send is wired when an admin allows it and the tenant saves keys
+  (`tenants.ses_config` + `metadata.ses_byo_allowed`). Domain identity, DKIM, and
+  configuration-set create still run on **platform** SES. New tenants stay on
+  platform SES until you sell and enable BYO.
 - Safety today: tenant `active`, verified DNS, API key `send`, calendar-month quota
   (default **100000**). The SES webhook marks bounce/complaint on logs; it does not
   suppress or trip the tenant.
@@ -49,7 +52,7 @@ Starter catalog (names can change; fields matter):
 | --- | --- | --- | --- |
 | **Probation** | Platform SES | Tight hour / day / month | Every new tenant |
 | **Shared** | Platform SES | Medium | Proven clean, modest volume |
-| **BYO** | Tenant SES or SMTP | High on our side | Heavy or untrusted-on-master |
+| **BYO** | Tenant SES or SMTP | High on our side | Sold, not self-serve — see below |
 | **Dedicated** | Platform SES + dedicated IP / config set | High | High invoice volume, clean |
 
 New tenants land in Probation. Egress becomes a **consequence of the pool**. The
@@ -58,6 +61,46 @@ is BYO, or the reverse.
 
 Optional later: an **Internal** pool (tight bursts, platform SES) for in-house
 apps that are also `billing_mode = exempt`.
+
+## BYO SES sales path
+
+BYO is **not** a self-serve toggle. The Sending card stays faded until an admin
+allows it. They ask; you decide; you enable; you charge for the **relay**, not
+for AWS.
+
+**What they pay.** AWS bills their account for sending. The RelayHorizon charge
+is a **monthly relay administrative fee** (optional one-time setup if you walk
+IAM and the first domain): API and SMTP ingress, logs, webhooks,
+bounce/complaint handling, dashboard, keys, domains, and keeping them on the
+BYO pool. Price lives on a `billing_plans` row whose pool is BYO — not only in
+CMS copy.
+
+**Motion**
+
+1. They stay on Probation / Shared (platform SES) until you agree.
+2. They contact you via **Sending → Request bring-your-own SES** (stores
+   `metadata.ses_byo_requested_at` and mails the alert address). No in-app
+   checkout flips the pool. That request is the precursor to a billed
+   **invoice group** in phase B (`byo-ses-relay`).
+3. You quote the monthly fee and state that SES usage is theirs.
+4. You tick **Allow bring-your-own SES** on Customers → Manage and assign the
+   BYO plan / pool. Capability and money stay separate: the checkbox is not
+   the invoice.
+5. They receive a checklist: AWS account; IAM user with SES (and SNS when we
+   provision events); paste keys and region; add the domain in RelayHorizon
+   (today they still create the SES identity in their account; later the same
+   wizard can call their key); leave SES sandbox if they are still in it;
+   switch Sending to Bring your own only after that.
+6. Until Stripe subscriptions exist, invoice the fee by hand or attach a
+   Stripe Price manually.
+
+**Do not** auto-enable BYO because they paid. **Do not** cut them over while
+the account is still sandboxed unless you accept send-to-verified-identities
+only. Prefer: stay on platform SES until `ProductionAccessEnabled`, then flip
+`ses_config.mode` to `byo`.
+
+If you later require BYO (reputation or volume on master SES), the same
+checklist and fee apply; T&C already allow “we may require BYO.”
 
 ## Abuse controls
 
@@ -93,6 +136,8 @@ Invoicing is **EU-wide** (and later anywhere), not Hungary-only.
   EU from one establishment.
 - Tenant Billing collects legal name, address, and VAT/tax ID for any country.
 - `billing_plans` map to sending-pool eligibility and to Stripe Products/Prices.
+  The BYO plan is the monthly relay administrative fee (see sales path above),
+  not a pass-through of AWS SES charges.
 - Nightly (or Stripe usage records): count billable sends for `invoiced` tenants
   → Stripe subscription/usage → card charge → store the row tenants see.
 - Failed payment: Stripe dunning, then **freeze sending** after N days (T&C).
@@ -126,7 +171,8 @@ Footer on the landing page reads **published** documents. Checkout/signup
 requires current T&C.
 
 T&C must cover: caps; freeze/suspend; no guarantee of platform SES; we may
-require BYO; log retention; abuse may close the account; card dunning then
+require BYO; BYO is sold (contact, monthly relay fee, their AWS bill);
+log retention; abuse may close the account; card dunning then
 freeze; exempt in-house still logged and capped; invoices issued for EU
 customers (VAT/reverse charge as applicable).
 

@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { json, optionsResponse, emailSchema } from '@/lib/http';
 import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { setupCustomer, listTenantsPage, type SmtpUpstream } from '@/lib/tenants';
-import { likeQuery, paginationMeta, parsePagination } from '@/lib/pagination';
+import { paginationMeta, parsePagination } from '@/lib/pagination';
+import {
+  parseTenantRegistryFilter,
+  registryFilterFromSearch,
+} from '@/lib/tenant-ses';
 
 const setupSchema = z.object({
   name: z.string().min(1),
@@ -39,8 +43,17 @@ export async function GET(request: NextRequest) {
       return json({ error: 'Platform admin required' }, 403);
     }
     const { page, limit, offset } = parsePagination(request.nextUrl.searchParams);
-    const q = likeQuery(request.nextUrl.searchParams.get('q'));
-    const { tenants, total } = await listTenantsPage({ q, limit, offset });
+    const rawQ = request.nextUrl.searchParams.get('q');
+    const registryFilter = parseTenantRegistryFilter(
+      request.nextUrl.searchParams.get('byo'),
+    ) || registryFilterFromSearch(rawQ);
+    const q = registryFilter && registryFilterFromSearch(rawQ) ? null : rawQ;
+    const { tenants, total } = await listTenantsPage({
+      q,
+      registryFilter,
+      limit,
+      offset,
+    });
     return json({
       success: true,
       data: { tenants, pagination: paginationMeta(page, limit, total) },

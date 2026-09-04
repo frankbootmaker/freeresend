@@ -5,7 +5,12 @@ import {
   parseJsonRecord,
   parseTenantSesConfig,
   tenantAllowsByoSes,
+  tenantHasPendingByoRequest,
+  tenantSesByoRequestedAt,
+  type TenantRegistryFilter,
   withSesByoAllowed,
+  withoutSesByoRequest,
+  withSesByoRequested,
   type SesAccountMode,
   type TenantSesConfig,
 } from './tenant-ses';
@@ -221,26 +226,40 @@ export async function listTenants(): Promise<Tenant[]> {
 
 export async function listTenantsPage(input: {
   q?: string | null;
+  registryFilter?: TenantRegistryFilter;
   limit: number;
   offset: number;
 }): Promise<{ tenants: Tenant[]; total: number }> {
-  const q = input.q?.trim() ? `%${input.q.trim()}%` : null;
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  const raw = input.q?.trim();
+  if (raw) {
+    params.push(`%${raw}%`);
+    clauses.push(
+      `(name ILIKE $${params.length} OR slug ILIKE $${params.length})`,
+    );
+  }
+  if (input.registryFilter === 'requested') {
+    clauses.push(
+      `(metadata->>'ses_byo_requested_at') IS NOT NULL
+       AND (metadata->>'ses_byo_requested_at') <> ''
+       AND COALESCE(metadata->>'ses_byo_allowed', 'false') <> 'true'`,
+    );
+  } else if (input.registryFilter === 'approved') {
+    clauses.push(`COALESCE(metadata->>'ses_byo_allowed', 'false') = 'true'`);
+  }
+  const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
   const count = await query(
-    `SELECT COUNT(*)::int AS count
-     FROM tenants
-     WHERE $1::text IS NULL
-        OR name ILIKE $1
-        OR slug ILIKE $1`,
-    [q],
+    `SELECT COUNT(*)::int AS count FROM tenants ${where}`,
+    params,
   );
+  params.push(input.limit, input.offset);
   const result = await query(
     `SELECT * FROM tenants
-     WHERE $1::text IS NULL
-        OR name ILIKE $1
-        OR slug ILIKE $1
+     ${where}
      ORDER BY created_at DESC
-     LIMIT $2 OFFSET $3`,
-    [q, input.limit, input.offset],
+     LIMIT $${params.length - 1} OFFSET $${params.length}`,
+    params,
   );
   return {
     tenants: result.rows.map(parseTenant),
@@ -319,6 +338,68 @@ export async function addMembership(
      ON CONFLICT (tenant_id, user_id) DO UPDATE SET role = EXCLUDED.role`,
     [tenantId, userId, role],
   );
+}
+
+export async function recordTenantSesByoRequest(
+  tenantId: string,
+): Promise<{ tenant: Tenant; created: boolean }> {
+  const existing = await getTenantById(tenantId);
+  if (!existing) {
+    throw new TenantError('NOT_FOUND', 'Tenant not found', 404);
+  }
+  if (tenantAllowsByoSes(existing)) {
+    throw new TenantError(
+      'SES_BYO_ALREADY_ALLOWED',
+      'Bring-your-own SES is already enabled',
+      409,
+    );
+  }
+  if (tenantSesByoRequestedAt(existing)) {
+    return { tenant: existing, created: false };
+  }
+  const requestedAt = new Date().toISOString();
+  const result = await query(
+    `UPDATE tenants
+     SET metadata = $2::jsonb
+     WHERE id = $1
+     RETURNING *`,
+    [tenantId, JSON.stringify(withSesByoRequested(existing.metadata, requestedAt))],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('NOT_FOUND', 'Tenant not found', 404);
+  }
+  return { tenant: parseTenant(result.rows[0]), created: true };
+}
+
+export async function resolveTenantSesByoRequest(
+  tenantId: string,
+  decision: 'approve' | 'deny',
+): Promise<Tenant> {
+  const existing = await getTenantById(tenantId);
+  if (!existing) {
+    throw new TenantError('NOT_FOUND', 'Tenant not found', 404);
+  }
+  if (decision === 'deny' && !tenantHasPendingByoRequest(existing)) {
+    throw new TenantError(
+      'SES_BYO_NO_REQUEST',
+      'There is no pending bring-your-own SES request',
+      409,
+    );
+  }
+  const metadata = decision === 'approve'
+    ? withSesByoAllowed(withoutSesByoRequest(existing.metadata), true)
+    : withSesByoAllowed(withoutSesByoRequest(existing.metadata), false);
+  const result = await query(
+    `UPDATE tenants
+     SET metadata = $2::jsonb
+     WHERE id = $1
+     RETURNING *`,
+    [tenantId, JSON.stringify(metadata)],
+  );
+  if (!result.rows[0]) {
+    throw new TenantError('NOT_FOUND', 'Tenant not found', 404);
+  }
+  return parseTenant(result.rows[0]);
 }
 
 export async function updateTenantSesByoAllowed(

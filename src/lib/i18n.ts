@@ -247,6 +247,14 @@ type Dict = {
     sesPlatform: string;
     sesByo: string;
     sesByoLockedHint: string;
+    sesByoFeeHint: string;
+    sesByoRequest: string;
+    sesByoRequesting: string;
+    sesByoRequested: string;
+    sesByoRequestFailed: string;
+    sesByoChecklistTitle: string;
+    sesByoChecklist: string[];
+    sesByoAllowedLead: string;
     sesPlatformHint: (region: string, configurationSet: string) => string;
   };
   customers: {
@@ -298,6 +306,23 @@ type Dict = {
     deleteFailed: string;
     sesByoAllowed: string;
     sesByoAllowedHint: string;
+    sesByoRequested: string;
+    sesByoRequestedOn: (when: string) => string;
+    sesByoApprove: string;
+    sesByoDeny: string;
+    sesByoApproving: string;
+    sesByoDenying: string;
+    sesByoApproved: string;
+    sesByoApprovedTag: string;
+    sesByoDenied: string;
+    sesByoEmpty: string;
+    sesByoEmptyApproved: string;
+    filter: string;
+    filterAll: string;
+    invoiceGroup: string;
+    invoiceGroupNone: string;
+    invoiceGroupByo: string;
+    invoiceGroupHint: string;
   };
   organization: {
     aboutTitle: string;
@@ -970,11 +995,27 @@ const en: Dict = {
     sesPlatform: 'Platform',
     sesByo: 'Bring your own',
     sesByoLockedHint:
-      'Bring-your-own SES is available when a platform administrator enables it for this organization.',
+      'Bring-your-own SES is sold, not self-serve. Request it and we will quote the monthly relay fee.',
+    sesByoFeeHint:
+      'Amazon bills sending to your AWS account. RelayHorizon charges a monthly relay administrative fee for ingress, logs, and webhooks. That fee becomes an invoice group when billing plans ship.',
+    sesByoRequest: 'Request bring-your-own SES',
+    sesByoRequesting: 'Sending request…',
+    sesByoRequested:
+      'Request sent. We will reply with the fee and setup steps.',
+    sesByoRequestFailed: 'Could not send the request',
+    sesByoChecklistTitle: 'Before you switch',
+    sesByoChecklist: [
+      'Create or use an AWS account and leave the SES sandbox.',
+      'Create an IAM user with SES (and SNS) permissions.',
+      'Verify the sending domain in your SES console (RelayHorizon still provisions identity on the platform account today).',
+      'Paste region, configuration set, and keys below, then choose Bring your own.',
+    ],
+    sesByoAllowedLead:
+      'This organization is on the BYO SES relay invoice group. The monthly fee is billed separately from Amazon.',
     sesPlatformHint: (region, configurationSet) =>
       configurationSet
-        ? `Mail leaves through RelayHorizon SES (${region}, ${configurationSet}).`
-        : `Mail leaves through RelayHorizon SES (${region}).`,
+        ? `Current status: mail leaves through RelayHorizon SES (${region}, ${configurationSet}).`
+        : `Current status: mail leaves through RelayHorizon SES (${region}).`,
   },
   customers: {
     kicker: 'Portal administration',
@@ -1026,6 +1067,24 @@ const en: Dict = {
     sesByoAllowed: 'Allow bring-your-own SES',
     sesByoAllowedHint:
       'Unlocks the BYO SES toggle on Sending. Until then mail uses the platform SES account.',
+    sesByoRequested: 'BYO requested',
+    sesByoRequestedOn: (when) => `Requested ${when}. Quote the monthly relay fee, then approve or deny.`,
+    sesByoApprove: 'Approve',
+    sesByoDeny: 'Deny',
+    sesByoApproving: 'Approving…',
+    sesByoDenying: 'Denying…',
+    sesByoApproved: 'Bring-your-own SES approved.',
+    sesByoApprovedTag: 'BYO approved',
+    sesByoDenied: 'Request denied. They can ask again.',
+    sesByoEmpty: 'No pending bring-your-own SES requests.',
+    sesByoEmptyApproved: 'No tenants with approved bring-your-own SES.',
+    filter: 'Filter',
+    filterAll: 'All',
+    invoiceGroup: 'Invoice group',
+    invoiceGroupNone: 'None — platform SES',
+    invoiceGroupByo: 'BYO SES relay',
+    invoiceGroupHint:
+      'Preview of phase B. Enabling BYO will attach this tenant to the billed BYO invoice group. The checkbox does not charge a card.',
   },
   organization: {
     aboutTitle: 'This organization',
@@ -1731,11 +1790,27 @@ const de: Dict = {
     sesPlatform: 'Plattform',
     sesByo: 'Eigenes Konto',
     sesByoLockedHint:
-      'Eigenes SES ist verfügbar, wenn ein Plattformadministrator es für diese Organisation einschaltet.',
+      'Eigenes SES wird verkauft, nicht selbst eingeschaltet. Fragen Sie an, wir nennen die monatliche Relay-Gebühr.',
+    sesByoFeeHint:
+      'Amazon rechnet den Versand über Ihr AWS-Konto ab. RelayHorizon berechnet eine monatliche Relay-Verwaltungsgebühr für Eingang, Protokolle und Webhooks. Diese Gebühr wird später eine Rechnungsgruppe.',
+    sesByoRequest: 'Eigenes SES anfragen',
+    sesByoRequesting: 'Anfrage wird gesendet…',
+    sesByoRequested:
+      'Anfrage gesendet. Wir antworten mit Gebühr und nächsten Schritten.',
+    sesByoRequestFailed: 'Anfrage konnte nicht gesendet werden',
+    sesByoChecklistTitle: 'Bevor Sie umschalten',
+    sesByoChecklist: [
+      'AWS-Konto anlegen oder nutzen und die SES-Sandbox verlassen.',
+      'IAM-Benutzer mit SES- (und SNS-) Rechten anlegen.',
+      'Die Versanddomain in der SES-Konsole verifizieren (RelayHorizon legt die Identität heute noch im Plattformkonto an).',
+      'Region, Configuration Set und Schlüssel eintragen, dann Eigenes Konto wählen.',
+    ],
+    sesByoAllowedLead:
+      'Diese Organisation liegt auf der Rechnungsgruppe BYO-SES-Relay. Die monatliche Gebühr wird getrennt von Amazon abgerechnet.',
     sesPlatformHint: (region, configurationSet) =>
       configurationSet
-        ? `Post geht über RelayHorizon-SES (${region}, ${configurationSet}).`
-        : `Post geht über RelayHorizon-SES (${region}).`,
+        ? `Aktueller Status: Post geht über RelayHorizon-SES (${region}, ${configurationSet}).`
+        : `Aktueller Status: Post geht über RelayHorizon-SES (${region}).`,
   },
   customers: {
     kicker: 'Portalverwaltung',
@@ -1788,6 +1863,25 @@ const de: Dict = {
     sesByoAllowed: 'Eigenes SES erlauben',
     sesByoAllowedHint:
       'Schaltet den BYO-SES-Schalter unter Versand frei. Sonst nutzt der Versand das Plattform-SES.',
+    sesByoRequested: 'BYO angefragt',
+    sesByoRequestedOn: (when) =>
+      `Angefragt ${when}. Monatliche Relay-Gebühr nennen, dann genehmigen oder ablehnen.`,
+    sesByoApprove: 'Genehmigen',
+    sesByoDeny: 'Ablehnen',
+    sesByoApproving: 'Wird genehmigt…',
+    sesByoDenying: 'Wird abgelehnt…',
+    sesByoApproved: 'Eigenes SES genehmigt.',
+    sesByoApprovedTag: 'BYO genehmigt',
+    sesByoDenied: 'Anfrage abgelehnt. Sie können erneut anfragen.',
+    sesByoEmpty: 'Keine offenen Anfragen für eigenes SES.',
+    sesByoEmptyApproved: 'Keine Mandanten mit genehmigtem eigenem SES.',
+    filter: 'Filter',
+    filterAll: 'Alle',
+    invoiceGroup: 'Rechnungsgruppe',
+    invoiceGroupNone: 'Keine — Plattform-SES',
+    invoiceGroupByo: 'BYO-SES-Relay',
+    invoiceGroupHint:
+      'Vorschau auf Phase B. Eigenes SES hängt diesen Mandanten an die abgerechnete BYO-Rechnungsgruppe. Die Checkbox belastet keine Karte.',
   },
   organization: {
     aboutTitle: 'Diese Organisation',
@@ -2494,11 +2588,27 @@ const hu: Dict = {
     sesPlatform: 'Platform',
     sesByo: 'Saját fiók',
     sesByoLockedHint:
-      'A saját SES akkor érhető el, ha a platformadminisztrátor engedélyezi a szervezetnek.',
+      'A saját SES eladott szolgáltatás, nem önkiszolgáló. Kérje, és megadjuk a havi relédíjat.',
+    sesByoFeeHint:
+      'Az Amazon a küldést az Ön AWS-fiókjára számlázza. A RelayHorizon havi relé-adminisztrációs díjat számít a bejövő útért, naplókért és webhookokért. Ez a díj később számlázási csoport lesz.',
+    sesByoRequest: 'Saját SES kérése',
+    sesByoRequesting: 'Kérés küldése…',
+    sesByoRequested:
+      'Kérés elküldve. A díjjal és a következő lépésekkel válaszolunk.',
+    sesByoRequestFailed: 'A kérést nem sikerült elküldeni',
+    sesByoChecklistTitle: 'Kapcsolás előtt',
+    sesByoChecklist: [
+      'Hozzon létre vagy használjon AWS-fiókot, és lépjen ki a SES-homokozóból.',
+      'Hozzon létre IAM-felhasználót SES (és SNS) jogosultságokkal.',
+      'Igazolja a küldő domaint a SES-konzolban (a RelayHorizon ma még a platformfiókban hozza létre az identitást).',
+      'Adja meg a régiót, a configuration setet és a kulcsokat, majd válassza a Saját fiókot.',
+    ],
+    sesByoAllowedLead:
+      'Ez a szervezet a saját SES relé számlázási csoportján van. A havi díj az Amazontól külön kerül számlázásra.',
     sesPlatformHint: (region, configurationSet) =>
       configurationSet
-        ? `A levél a RelayHorizon SES-en megy ki (${region}, ${configurationSet}).`
-        : `A levél a RelayHorizon SES-en megy ki (${region}).`,
+        ? `Jelenlegi állapot: a levél a RelayHorizon SES-en megy ki (${region}, ${configurationSet}).`
+        : `Jelenlegi állapot: a levél a RelayHorizon SES-en megy ki (${region}).`,
   },
   customers: {
     kicker: 'Portáladminisztráció',
@@ -2551,6 +2661,25 @@ const hu: Dict = {
     sesByoAllowed: 'Saját SES engedélyezése',
     sesByoAllowedHint:
       'Feloldja a saját SES kapcsolót a Küldés lapon. Addig a platform SES-fiók megy.',
+    sesByoRequested: 'Saját SES kérve',
+    sesByoRequestedOn: (when) =>
+      `Kérve: ${when}. Adja meg a havi relédíjat, majd hagyja jóvá vagy utasítsa el.`,
+    sesByoApprove: 'Jóváhagyás',
+    sesByoDeny: 'Elutasítás',
+    sesByoApproving: 'Jóváhagyás…',
+    sesByoDenying: 'Elutasítás…',
+    sesByoApproved: 'A saját SES jóváhagyva.',
+    sesByoApprovedTag: 'Saját SES jóváhagyva',
+    sesByoDenied: 'A kérés elutasítva. Újra kérhetik.',
+    sesByoEmpty: 'Nincs függőben lévő saját SES kérés.',
+    sesByoEmptyApproved: 'Nincs jóváhagyott saját SES-es bérlő.',
+    filter: 'Szűrő',
+    filterAll: 'Mind',
+    invoiceGroup: 'Számlázási csoport',
+    invoiceGroupNone: 'Nincs — platform SES',
+    invoiceGroupByo: 'Saját SES relé',
+    invoiceGroupHint:
+      'A B fázis előnézete. A saját SES ehhez a számlázott csoporthoz köti a bérlőt. A jelölőnégyzet nem von le kártyáról.',
   },
   organization: {
     aboutTitle: 'Ez a szervezet',

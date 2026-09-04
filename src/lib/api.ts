@@ -167,6 +167,10 @@ class ApiClient {
     });
   }
 
+  async requestByoSes() {
+    return this.request('/tenant/ses-byo-request', { method: 'POST' });
+  }
+
   async updateTenantSending(payload: {
     inboundTransport?: "https" | "smtp" | "both";
     outboundTransport?: "ses" | "smtp";
@@ -195,7 +199,12 @@ class ApiClient {
     return this.request(`/stats/tenant?days=${days}`);
   }
 
-  async listCustomers(params: { page?: number; limit?: number; q?: string } = {}) {
+  async listCustomers(params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    byo?: 'requested' | 'approved';
+  } = {}) {
     return this.request(`/admin/customers${toQuery(params)}`);
   }
 
@@ -244,6 +253,7 @@ class ApiClient {
   async updateCustomer(id: string, payload: {
     name?: string;
     sesByoAllowed?: boolean;
+    sesByoDecision?: 'approve' | 'deny';
   }) {
     return this.request(`/admin/customers/${id}`, {
       method: 'PATCH',

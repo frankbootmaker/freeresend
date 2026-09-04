@@ -13,7 +13,11 @@ import { SMTP_SUBMISSION_USERNAME } from '@/lib/brand';
 import { getResolvedPlatformSettings } from '@/lib/platform-settings';
 import { requestOrigin } from '@/lib/oidc';
 import { resolveSmtpPublicHost, resolveSmtpPublicPorts } from '@/lib/smtp-listen';
-import { tenantAllowsByoSes, tenantSesMode } from '@/lib/tenant-ses';
+import {
+  tenantAllowsByoSes,
+  tenantSesByoRequestedAt,
+  tenantSesMode,
+} from '@/lib/tenant-ses';
 
 const deleteSchema = z.object({
   confirmName: z.string().min(1),
@@ -101,6 +105,7 @@ export async function GET(request: NextRequest) {
               : platform.sesConfigurationSet,
           mode: tenantSesMode(session.tenant),
           byoAllowed: tenantAllowsByoSes(session.tenant),
+          byoRequestedAt: tenantSesByoRequestedAt(session.tenant) || null,
           accessKeyConfigured: Boolean(session.tenant.ses_config?.accessKeyId),
         },
         platformSmtpRelay: {

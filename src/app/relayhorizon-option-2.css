@@ -944,6 +944,30 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.byo-request {
+  margin: 0 0 12px;
+}
+
+.byo-request .cardlead:last-child {
+  margin-bottom: 0;
+}
+
+.byo-request .primary {
+  margin-top: 4px;
+}
+
+.checklist {
+  margin: 0 0 12px;
+  padding-left: 18px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.checklist li + li {
+  margin-top: 6px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -978,6 +1002,32 @@ code {
   grid-template-columns: 1fr 170px auto auto auto;
   gap: 7px;
   margin-bottom: 10px;
+}
+
+.filters .on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.tag-filter {
+  margin-top: 4px;
+  padding: 0;
+  min-height: auto;
+  height: auto;
+  background: transparent;
+  border-color: transparent;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.tag-filter:hover {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+}
+
+.field-span {
+  grid-column: 1 / -1;
 }
 
 .empty {
@@ -1186,9 +1236,26 @@ code {
   height: 16px;
   min-width: 16px;
   min-height: 16px;
+  max-width: 16px;
+  max-height: 16px;
   margin: 0;
   padding: 0;
   flex: none;
+  appearance: auto;
+}
+
+.field .checkline {
+  margin: 0;
+}
+
+.field input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  max-width: 16px;
+  max-height: 16px;
+  padding: 0;
 }
 
 @media (max-width: 760px) {
