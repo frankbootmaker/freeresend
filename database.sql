@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS api_keys (
   key_hash VARCHAR(255) NOT NULL,
   key_prefix VARCHAR(40) NOT NULL,
   permissions JSONB DEFAULT '["send"]',
+  egress_preference VARCHAR(10) NOT NULL DEFAULT 'auto'
+    CHECK (egress_preference IN ('auto', 'ses', 'smtp')),
   last_used_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

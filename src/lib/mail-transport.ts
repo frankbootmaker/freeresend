@@ -6,6 +6,13 @@ import type { Tenant } from './tenants';
 import { getTenantBySlug } from './tenants';
 import { getResolvedPlatformSettings } from './platform-settings';
 import { tenantSesSendAccount } from './tenant-ses';
+import {
+  missingEgressMessage,
+  resolveOutboundHop,
+  sesEgressReady,
+  smtpEgressReady,
+  type EgressPreference,
+} from './egress-pin';
 
 export interface OutboundDkim {
   domainName?: string | null;
@@ -62,18 +69,20 @@ export async function sendOutboundEmail(
   tenant: Tenant,
   options: SendEmailOptions,
   dkim?: OutboundDkim,
+  egressPreference: EgressPreference = 'auto',
 ): Promise<string> {
-  if (tenant.outbound_transport === 'smtp') {
+  const hop = resolveOutboundHop(tenant, egressPreference);
+  if (hop === 'smtp') {
     const tenantSmtp = tenant.smtp_upstream;
     if (tenantSmtp?.host) {
       return sendViaSmtpRelay(tenantSmtp, options, dkim);
     }
 
     const platform = await getResolvedPlatformSettings();
-    if (platform.smtpEnabled && platform.smtpHost) {
+    if (smtpEgressReady(tenant, platform)) {
       return sendViaSmtpRelay(
         {
-          host: platform.smtpHost,
+          host: platform.smtpHost as string,
           port: platform.smtpPort,
           secure: platform.smtpSecure,
           username: platform.smtpUsername,
@@ -84,9 +93,13 @@ export async function sendOutboundEmail(
       );
     }
 
-    throw new Error('Tenant SMTP upstream is not configured');
+    throw new Error(missingEgressMessage('smtp', egressPreference));
   }
 
+  const platform = await getResolvedPlatformSettings();
+  if (!sesEgressReady(tenant, platform)) {
+    throw new Error(missingEgressMessage('ses', egressPreference));
+  }
   return sendViaSes(options, tenantSesSendAccount(tenant));
 }
 

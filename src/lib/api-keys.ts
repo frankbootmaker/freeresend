@@ -2,6 +2,10 @@ import { nanoid } from "nanoid";
 import bcrypt from "bcryptjs";
 import { query } from "./database";
 import type { ApiKey } from "./database";
+import {
+  parseEgressPreference,
+  type EgressPreference,
+} from "./egress-pin";
 
 export interface ApiKeyWithKey extends Omit<ApiKey, "key_hash"> {
   key: string;
@@ -29,6 +33,7 @@ export async function generateApiKey(
   keyName: string,
   permissions: string[] = ["send"],
   tenantId?: string,
+  egressPreference: EgressPreference = "auto",
 ): Promise<ApiKeyWithKey> {
   // Generate a secure API key with prefix
   const keyId = nanoid(8);
@@ -52,8 +57,9 @@ export async function generateApiKey(
   try {
     const result = await query(
       `INSERT INTO api_keys
-        (tenant_id, user_id, domain_id, key_name, key_hash, key_prefix, permissions)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+        (tenant_id, user_id, domain_id, key_name, key_hash, key_prefix,
+         permissions, egress_preference)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
       [
         tenantId,
@@ -63,6 +69,7 @@ export async function generateApiKey(
         keyHash,
         `frs_${keyId}`,
         JSON.stringify(permissions),
+        parseEgressPreference(egressPreference),
       ]
     );
 
@@ -74,6 +81,7 @@ export async function generateApiKey(
     return {
       ...data,
       permissions: safeParsePermissions(data.permissions),
+      egress_preference: parseEgressPreference(data.egress_preference),
       key: apiKey,
     };
   } catch (error: unknown) {
@@ -124,6 +132,7 @@ export async function verifyApiKey(apiKey: string): Promise<ApiKey | null> {
         return {
           ...key,
           permissions: safeParsePermissions(key.permissions),
+          egress_preference: parseEgressPreference(key.egress_preference),
         };
       }
     }
@@ -139,6 +148,7 @@ function mapApiKeyRow(row: ApiKey & { domain_name?: string }) {
   return {
     ...row,
     permissions: safeParsePermissions(row.permissions),
+    egress_preference: parseEgressPreference(row.egress_preference),
     domains: row.domain_name ? { domain: row.domain_name } : null,
   };
 }
@@ -198,6 +208,7 @@ export async function getUserApiKeys(
     return result.rows.map((row) => ({
       ...row,
       permissions: safeParsePermissions(row.permissions),
+      egress_preference: parseEgressPreference(row.egress_preference),
       domains: row.domain_name ? { domain: row.domain_name } : null,
     }));
   } catch (error: unknown) {
@@ -218,6 +229,7 @@ export async function getDomainApiKeys(domainId: string): Promise<ApiKey[]> {
     return result.rows.map((row) => ({
       ...row,
       permissions: safeParsePermissions(row.permissions),
+      egress_preference: parseEgressPreference(row.egress_preference),
     }));
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);

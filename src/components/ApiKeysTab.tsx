@@ -4,6 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 import { DEFAULT_PAGE_SIZE } from '@/lib/pagination';
 import { usePrefs } from '@/contexts/PrefsContext';
+import {
+  EGRESS_PREFERENCES,
+  parseEgressPreference,
+  type EgressPreference,
+} from '@/lib/egress-pin';
 import ListPager from './ListPager';
 
 interface Domain {
@@ -18,6 +23,7 @@ interface ApiKey {
   key_name: string;
   key_prefix: string;
   permissions: string[];
+  egress_preference?: EgressPreference;
   last_used_at?: string;
   created_at: string;
   domains?: { domain: string };
@@ -66,6 +72,7 @@ export default function ApiKeysTab() {
     domainId: '',
     keyName: t.keys.labelPlaceholder,
     permissions: ['send'],
+    egressPreference: 'auto' as EgressPreference,
   });
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -142,6 +149,7 @@ export default function ApiKeysTab() {
         newKey.domainId,
         newKey.keyName.trim(),
         newKey.permissions,
+        newKey.egressPreference,
       );
       setPage(1);
       await loadData();
@@ -151,6 +159,7 @@ export default function ApiKeysTab() {
         domainId: verifiedDomains[0]?.id || '',
         keyName: t.keys.labelPlaceholder,
         permissions: ['send'],
+        egressPreference: 'auto',
       });
       setShowCreateForm(false);
     } catch (createError: unknown) {
@@ -195,6 +204,13 @@ export default function ApiKeysTab() {
     }
 
     setError(t.keys.copyFailed);
+  };
+
+  const egressLabel = (value?: EgressPreference) => {
+    const pin = parseEgressPreference(value);
+    if (pin === 'ses') return t.keys.egressSes;
+    if (pin === 'smtp') return t.keys.egressSmtp;
+    return t.keys.egressAuto;
   };
 
   const maskApiKey = (keyPrefix: string) => `${keyPrefix}_${'…'.repeat(4)}`;
@@ -275,6 +291,33 @@ export default function ApiKeysTab() {
                 required
               />
             </div>
+            <div className="field">
+              <label id="key-egress-label">{t.keys.egress}</label>
+              <div
+                className="seg"
+                role="radiogroup"
+                aria-labelledby="key-egress-label"
+                aria-label={t.keys.egressAria}
+              >
+                {EGRESS_PREFERENCES.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={newKey.egressPreference === value ? 'on' : undefined}
+                    onClick={() =>
+                      setNewKey({ ...newKey, egressPreference: value })
+                    }
+                  >
+                    {value === 'auto'
+                      ? t.keys.egressAuto
+                      : value === 'ses'
+                        ? t.keys.egressSes
+                        : t.keys.egressSmtp}
+                  </button>
+                ))}
+              </div>
+              <p className="cardlead">{t.keys.egressHint}</p>
+            </div>
             <div className="field" style={{ alignSelf: 'end', display: 'flex', gap: 8 }}>
               <button className="primary" type="submit" disabled={creating}>
                 {creating ? t.keys.creating : t.keys.createSubmit}
@@ -301,6 +344,7 @@ export default function ApiKeysTab() {
                   <th>{t.keys.domain}</th>
                   <th>{t.keys.prefix}</th>
                   <th>{t.keys.scope}</th>
+                  <th>{t.keys.egress}</th>
                   <th>{t.keys.lastUsed}</th>
                   <th />
                 </tr>
@@ -322,6 +366,7 @@ export default function ApiKeysTab() {
                         ? 'send:write'
                         : key.permissions.join(':')}
                     </td>
+                    <td>{egressLabel(key.egress_preference)}</td>
                     <td>{formatLastUsed(key.last_used_at)}</td>
                     <td>
                       <button type="button" onClick={() => handleDeleteKey(key.id)}>

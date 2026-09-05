@@ -415,11 +415,17 @@ class ApiClient {
   async createApiKey(
     domainId: string,
     keyName: string,
-    permissions: string[] = ["send"]
+    permissions: string[] = ["send"],
+    egressPreference: "auto" | "ses" | "smtp" = "auto",
   ) {
     return this.request("/api-keys", {
       method: "POST",
-      body: JSON.stringify({ domainId, keyName, permissions }),
+      body: JSON.stringify({
+        domainId,
+        keyName,
+        permissions,
+        egressPreference,
+      }),
     });
   }
 

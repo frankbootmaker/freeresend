@@ -5,11 +5,13 @@ import { AuthError, resolveTenantSession } from '@/lib/tenant-context';
 import { generateApiKey, getTenantApiKeysPage } from '@/lib/api-keys';
 import { paginationMeta, parsePagination } from '@/lib/pagination';
 import { getDomainById } from '@/lib/domains';
+import { EGRESS_PREFERENCES } from '@/lib/egress-pin';
 
 const createApiKeySchema = z.object({
   domainId: z.string().uuid(),
   keyName: z.string().min(1),
   permissions: z.array(z.string()).optional().default(['send']),
+  egressPreference: z.enum(EGRESS_PREFERENCES).optional().default('auto'),
 });
 
 export async function OPTIONS() {
@@ -45,9 +47,8 @@ export async function POST(request: NextRequest) {
     if (!session.user) {
       return json({ error: 'Dashboard session required' }, 401);
     }
-    const { domainId, keyName, permissions } = createApiKeySchema.parse(
-      await request.json(),
-    );
+    const { domainId, keyName, permissions, egressPreference } =
+      createApiKeySchema.parse(await request.json());
     const domain = await getDomainById(domainId);
     if (!domain || domain.tenant_id !== session.tenant.id) {
       return json({ error: 'Domain not found or unauthorized' }, 404);
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       keyName,
       permissions,
       session.tenant.id,
+      egressPreference,
     );
     return json({
       success: true,

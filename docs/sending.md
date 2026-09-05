@@ -39,9 +39,9 @@ Sends that are not `failed` count against hour / day / month caps. New tenants s
 
 Permanent SES bounces and complaints suppress that recipient; further sends to them return **422**. Transient bounces are not suppressed. SMTP-uplink failures do not write the suppression list.
 
-The tenant **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next. Tenants cannot raise the pool or disable the checks. A 24-hour bounce rate of **10%** over at least **50** messages, or **3** complaints (or **0.1%** over at least **100** messages), freezes sending (HTTP **423**). Portal **Abuse** (or Customers → Manage) unfreezes. This is not a card-billing freeze.
+The tenant **Abuse** tab shows pool, used caps, 24-hour bounce/complaint rates, suppressions, and what happens next. Tenants cannot raise the pool or disable the checks. A 24-hour bounce rate of **10%** over at least **50** messages, or **3** complaints (or **0.1%** over at least **100** messages), freezes sending (HTTP **423**). Portal **Abuse** (or Customers → Manage) unfreezes. This is not a card-billing freeze. Delivered / bounce / complaint only update after the operator wires SNS on the SES configuration set (see [admin-guide.md](admin-guide.md#ses-event-notifications-sns)).
 
-API keys are listed with label, **domain**, prefix, scope, and last used. Any member of the tenant can delete a key (including the provisioned default). Copy a new secret once.
+API keys are listed with label, **domain**, prefix, scope, **egress**, and last used. Create-time **Auto** follows the Sending tab; **SES** or **SMTP** pins that key to one hop (a missing hop fails the send). Existing and provisioned keys stay Auto. Any member of the tenant can delete a key (including the provisioned default). Copy a new secret once.
 
 Delivery **Logs** (tenant and portal) page at 25 rows by default. Choose 5, 10, 25, or 50. Search applies on Apply, not every keystroke.
 

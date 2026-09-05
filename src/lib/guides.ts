@@ -94,7 +94,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Configuration',
         paragraphs: [
           'System domain attaches the platform sending domain (the current web host is the usual start), shows the DNS records to publish, and locks the programmatic From to that domain.',
-          'Set SES credentials, an optional platform SMTP relay, inbound SMTP TLS (needed before remote clients accept STARTTLS on 587), alert addresses, and Authentik/OIDC sign-in.',
+          'Set SES credentials, an optional platform SMTP relay, inbound SMTP TLS (needed before remote clients accept STARTTLS on 587), alert addresses, and Authentik/OIDC sign-in. SES keys do not publish Delivery, Bounce, or Complaint — add Amazon SNS on the configuration set as well and keep that destination pointed at this host (see SES notifications).',
           'For OIDC, paste the issuer, client ID, and secret from Authentik, and copy the callback URL into the provider application.',
           'Optional sign-in button label appears on the console Sign in page when OIDC is enabled. Leave it blank for the locale default (Continue with Authentik).',
           'JIT accounts creates a local user on first sign-in. Leave it off to allow only people already in Users. An optional group grants portal administrator access.',
@@ -123,7 +123,18 @@ const ADMIN: Record<Locale, Guide> = {
           'The smtp Compose profile must be running, and the VPS firewall must allow 587. Traefik does not proxy SMTP.',
           'New tenants start at 5,000 / 20,000 / 100,000 messages per hour / day / month. Hard SES bounces and complaints suppress that address.',
           'A 24-hour bounce rate of 10% over at least 50 messages, or 3 complaints (or 0.1% over at least 100 messages), freezes sending (HTTP 423). Unfreeze from the portal Abuse queue or Customers → Manage. This is not a card-billing freeze.',
-          'For SES egress, subscribe SNS to POST /api/webhooks/ses with Delivery, Bounce, and Complaint. The webhook confirms the SNS subscription itself. Until that is wired, Health Sent rises and Delivered stays 0.',
+          'SES keys in Configuration are not enough. Also wire Amazon SNS on the configuration set (see SES notifications). Until that is done, Health Sent rises, Delivered stays 0, and the Abuse freeze never trips.',
+        ],
+      },
+      {
+        id: 'ses-events',
+        title: 'SES notifications',
+        paragraphs: [
+          'RelayHorizon does not create the AWS event destination. You add it in the Amazon SES console and keep it pointed at this host. Inbox delivery does not update the console by itself.',
+          'Open Configuration sets in the same AWS region as portal Configuration. Use the set named there (often relayhorizon-prod). Per-domain freeresend- sets do not inherit that destination.',
+          'Add an event destination with Deliveries, Hard bounces, and Complaints only. Leave Opens and Clicks off. This is base SES, not Virtual Deliverability Manager.',
+          'Choose Amazon SNS, enable publishing, and subscribe HTTPS to https://<public-host>/api/webhooks/ses. The webhook confirms the SNS subscription. If it stays Pending, confirm it in SNS.',
+          'After a hostname change, a renamed configuration set, a new freeresend- set, or an AWS account/region move, update the destination or subscription and send a SES test. Health Delivered should move. Existing sent rows do not backfill. SMTP egress never writes these events.',
         ],
       },
     ],
@@ -207,7 +218,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Konfiguration',
         paragraphs: [
           'Unter Systemdomain binden Sie die Plattform-Versanddomain an (meist der aktuelle Webhost), veröffentlichen die DNS-Records und setzen den programmatischen Absender auf diese Domain.',
-          'SES-Zugangsdaten, optionales Plattform-SMTP-Relais, eingehendes SMTP-TLS (nötig, bevor entfernte Clients STARTTLS auf 587 akzeptieren), Alert-Adressen und Authentik/OIDC-Anmeldung.',
+          'SES-Zugangsdaten, optionales Plattform-SMTP-Relais, eingehendes SMTP-TLS (nötig, bevor entfernte Clients STARTTLS auf 587 akzeptieren), Alert-Adressen und Authentik/OIDC-Anmeldung. SES-Schlüssel veröffentlichen keine Delivery-, Bounce- oder Complaint-Ereignisse — Amazon SNS zusätzlich am Configuration Set einrichten und auf diesen Host halten (siehe SES-Benachrichtigungen).',
           'Für OIDC Issuer, Client-ID und Secret aus Authentik eintragen und die Callback-URL in die Provider-Anwendung kopieren.',
           'Optionaler Anmelde-Schaltflächentext erscheint auf der Anmeldeseite, wenn OIDC aktiv ist. Leer lassen für die Sprachvorgabe (Weiter mit Authentik).',
           'JIT-Konten legt beim ersten Anmelden ein lokales Konto an. Ausgeschaltet bleiben nur Personen aus Benutzer. Eine optionale Gruppe gibt Portaladministratorrechte.',
@@ -236,7 +247,18 @@ const ADMIN: Record<Locale, Guide> = {
           'Das Compose-Profil smtp muss laufen, und die VPS-Firewall muss 587 erlauben. Traefik leitet SMTP nicht weiter.',
           'Neue Mandanten starten bei 5.000 / 20.000 / 100.000 Nachrichten pro Stunde / Tag / Monat. Harte SES-Bounces und Beschwerden unterdrücken diese Adresse.',
           'Eine 24-Stunden-Bounce-Rate von 10 % bei mindestens 50 Nachrichten oder 3 Beschwerden (oder 0,1 % bei mindestens 100) sperrt den Versand (HTTP 423). Entsperren unter Missbrauch oder Kunden → Verwalten. Das ist keine Karten-Sperre.',
-          'Bei SES-Egress SNS auf POST /api/webhooks/ses mit Delivery, Bounce und Complaint. Das Webhook bestätigt das SNS-Abo selbst. Ohne das steigt in Status nur Gesendet, Zugestellt bleibt 0.',
+          'SES-Schlüssel in der Konfiguration reichen nicht. Zusätzlich Amazon SNS am Configuration Set einrichten (siehe SES-Benachrichtigungen). Sonst steigt in Status nur Gesendet, Zugestellt bleibt 0, und die Missbrauch-Sperre löst nicht aus.',
+        ],
+      },
+      {
+        id: 'ses-events',
+        title: 'SES-Benachrichtigungen',
+        paragraphs: [
+          'RelayHorizon legt das AWS-Eventziel nicht an. Sie richten es in der Amazon-SES-Konsole ein und halten es auf diesen Host. Zustellung im Postfach aktualisiert die Konsole nicht von selbst.',
+          'Öffnen Sie Configuration Sets in derselben AWS-Region wie die Portal-Konfiguration. Nutzen Sie den dort genannten Satz (oft relayhorizon-prod). Domain-Sätze freeresend- erben dieses Ziel nicht.',
+          'Eventziel mit nur Deliveries, Hard bounces und Complaints. Opens und Clicks aus. Das ist Basis-SES, nicht Virtual Deliverability Manager.',
+          'Amazon SNS wählen, Publishing aktivieren, HTTPS auf https://<öffentlicher-Host>/api/webhooks/ses. Das Webhook bestätigt das Abo. Bleibt es Pending, in SNS bestätigen.',
+          'Nach Hostnamenwechsel, umbenanntem Configuration Set, neuem freeresend-Satz oder Konto-/Regionswechsel Ziel oder Abo anpassen und einen SES-Test senden. Zugestellt muss steigen. Alte Gesendet-Zeilen werden nicht nachgezogen. SMTP-Egress schreibt diese Ereignisse nicht.',
         ],
       },
     ],
@@ -320,7 +342,7 @@ const ADMIN: Record<Locale, Guide> = {
         title: 'Konfiguráció',
         paragraphs: [
           'A Rendszerdomain csatolja a platform küldő domainjét (általában a jelenlegi webhost), megmutatja a DNS-rekordokat, és a programozott feladót ehhez a domainhez köti.',
-          'SES-hitelesítő adatok, opcionális platform SMTP-relé, bejövő SMTP TLS (kell, mielőtt távoli kliensek elfogadják a STARTTLS-t a 587-en), riasztási címek és Authentik/OIDC-belépés.',
+          'SES-hitelesítő adatok, opcionális platform SMTP-relé, bejövő SMTP TLS (kell, mielőtt távoli kliensek elfogadják a STARTTLS-t a 587-en), riasztási címek és Authentik/OIDC-belépés. A SES-kulcs nem küld Delivery, Bounce vagy Complaint eseményt — az Amazon SNS-t is kötse be a configuration seten, és tartsa ezen a gépen (lásd SES értesítések).',
           'OIDC-nál írja be az Authentik issuer, client ID és secret értékeit, a callback URL-t másolja a provider alkalmazásba.',
           'Opcionális belépő gomb felirat jelenik meg a konzol belépő oldalán, ha az OIDC be van kapcsolva. Üresen a nyelvi alapértelmezés (Folytatás Authentikkal).',
           'A JIT-fiók az első belépéskor helyi felhasználót hoz létre. Kikapcsolva csak a Felhasználókban már meglévők léphetnek be. Opcionális csoport portáladminisztrátori jogot ad.',
@@ -349,7 +371,18 @@ const ADMIN: Record<Locale, Guide> = {
           'Az smtp Compose-profilnak futnia kell, és a VPS tűzfalán a 587-et engedélyezni kell. A Traefik nem továbbítja az SMTP-t.',
           'Az új bérlők 5 000 / 20 000 / 100 000 üzenettel indulnak óránként / naponként / havonta. A kemény SES-visszapattanások és a panaszok tiltják azt a címet.',
           'A 24 órás 10%-os visszapattanás legalább 50 üzenetnél, vagy 3 panasz (illetve 0,1% legalább 100 üzenetnél) befagyasztja a küldést (HTTP 423). Feloldás: Visszaélés vagy Ügyfelek → Kezelés. Ez nem kártyás befagyasztás.',
-          'SES kimenetnél irassa fel az SNS-t a POST /api/webhooks/ses címre Delivery, Bounce és Complaint eseményekkel. A webhook maga erősíti meg az előfizetést. Addig az Állapot Elküldve nő, a Kézbesítve 0 marad.',
+          'A Konfigurációban lévő SES-kulcs nem elég. Az Amazon SNS-t is be kell kötni a configuration seten (lásd SES értesítések). Addig az Állapot Elküldve nő, a Kézbesítve 0 marad, és a Visszaélés fagyasztás nem old ki.',
+        ],
+      },
+      {
+        id: 'ses-events',
+        title: 'SES értesítések',
+        paragraphs: [
+          'A RelayHorizon nem hozza létre az AWS eseménycélt. Azt az Amazon SES konzolon állítja be, és ezen a gépen tartja. A postafiókba érkezés önmagában nem frissíti a konzolt.',
+          'Nyissa meg a Configuration sets oldalt ugyanabban az AWS-régióban, mint a portál Konfiguráció. Az ott megadott setet használja (gyakran relayhorizon-prod). A freeresend- domainsetek nem öröklik ezt a célt.',
+          'Eseménycél: csak Deliveries, Hard bounces és Complaints. Opens és Clicks kikapcsolva. Ez az alap SES, nem a Virtual Deliverability Manager.',
+          'Amazon SNS, publishing bekapcsolva, HTTPS: https://<nyilvános-gép>/api/webhooks/ses. A webhook megerősíti az előfizetést. Ha Pending marad, az SNS-ben erősítse meg.',
+          'Gépnévváltás, átnevezett configuration set, új freeresend- set vagy fiók/régió váltás után frissítse a célt vagy az előfizetést, és küldjön SES-tesztet. A Kézbesítve el kell mozduljon. A régi Elküldve sorok nem töltődnek vissza. SMTP kimenet nem írja ezeket az eseményeket.',
         ],
       },
     ],
@@ -395,8 +428,8 @@ const TENANT: Record<Locale, Guide> = {
         id: 'keys',
         title: 'API keys',
         paragraphs: [
-          'Create a key (frs_…). Copy it once.',
-          'The table lists label, domain, prefix, scope, and last used. Any member of this organization can delete a key.',
+          'Create a key (frs_…). Copy it once. Choose Auto (follows Sending), SES, or SMTP. A pinned hop that is not configured fails that send. Existing keys stay Auto.',
+          'The table lists label, domain, prefix, scope, egress, and last used. Any member of this organization can delete a key.',
           'Use it as the Authorization Bearer token or as the SMTP password.',
         ],
       },
@@ -423,7 +456,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Logs',
         paragraphs: [
           'Delivery events for this tenant. Filter by recipient or status, then Apply. Choose 5, 10, 25, or 50 rows per page.',
-          'Delivered, bounces, and complaints update after SES SNS is connected to /api/webhooks/ses. Permanent bounces and complaints also join the suppression list.',
+          'Delivered, bounces, and complaints update after the operator wires Amazon SNS on the SES configuration set to /api/webhooks/ses and keeps that destination current. Inbox arrival does not update these statuses. Permanent bounces and complaints also join the suppression list.',
         ],
       },
       {
@@ -484,8 +517,8 @@ const TENANT: Record<Locale, Guide> = {
         id: 'keys',
         title: 'API-Schlüssel',
         paragraphs: [
-          'Schlüssel (frs_…) anlegen und einmal kopieren.',
-          'Die Tabelle zeigt Bezeichnung, Domain, Präfix, Umfang und letzte Nutzung. Jedes Mitglied dieser Organisation kann einen Schlüssel löschen.',
+          'Schlüssel (frs_…) anlegen und einmal kopieren. Auto folgt Versand; SES oder SMTP bindet den Schlüssel. Fehlt dieser Weg, schlägt der Versand fehl. Bestehende Schlüssel bleiben Auto.',
+          'Die Tabelle zeigt Bezeichnung, Domain, Präfix, Umfang, Ausgang und letzte Nutzung. Jedes Mitglied dieser Organisation kann einen Schlüssel löschen.',
           'Als Authorization-Bearer oder als SMTP-Passwort verwenden.',
         ],
       },
@@ -512,7 +545,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Protokolle',
         paragraphs: [
           'Zustellereignisse dieses Mandanten. Nach Empfänger oder Status filtern, dann Anwenden. 5, 10, 25 oder 50 Zeilen pro Seite.',
-          'Zugestellt, Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt. Permanente Bounces und Beschwerden kommen auf die Unterdrückungsliste.',
+          'Zugestellt, Bounces und Complaints erscheinen, sobald der Betreiber Amazon SNS am SES-Configuration-Set auf /api/webhooks/ses zeigt und das Ziel aktuell hält. Zustellung im Postfach aktualisiert diese Status nicht. Permanente Bounces und Beschwerden kommen auf die Unterdrückungsliste.',
         ],
       },
       {
@@ -573,8 +606,8 @@ const TENANT: Record<Locale, Guide> = {
         id: 'keys',
         title: 'API-kulcsok',
         paragraphs: [
-          'Hozzon létre kulcsot (frs_…), és másolja egyszer.',
-          'A táblázat a címkét, a domaint, az előtagot, a hatókört és az utolsó használatot mutatja. A szervezet bármely tagja törölhet kulcsot.',
+          'Hozzon létre kulcsot (frs_…), és másolja egyszer. Auto a Küldés lapot követi; SES vagy SMTP rögzíti a kulcsot. Ha az út nincs beállítva, a küldés sikertelen. A meglévő kulcsok Auto maradnak.',
+          'A táblázat a címkét, a domaint, az előtagot, a hatókört, a kimenetet és az utolsó használatot mutatja. A szervezet bármely tagja törölhet kulcsot.',
           'Authorization Bearer tokentként vagy SMTP-jelszóként használja.',
         ],
       },
@@ -601,7 +634,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Naplók',
         paragraphs: [
           'Ennek a bérlőnek a kézbesítési eseményei. Szűrjön címzett vagy állapot szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
-          'A kézbesítés, bounce és complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
+          'A kézbesítés, bounce és complaint akkor frissül, ha az üzemeltető az Amazon SNS-t a SES configuration seten a /api/webhooks/ses címre köti, és azt aktuálisan tartja. A postafiókba érkezés ezeket az állapotokat nem frissíti. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
         ],
       },
       {

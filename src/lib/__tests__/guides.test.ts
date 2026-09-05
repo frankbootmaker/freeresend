@@ -30,6 +30,7 @@ describe('getGuide', () => {
         tenantAbuse: RegExp;
         tenantByoRequest: RegExp;
         tenantDualDns: RegExp;
+        tenantKeyPin: RegExp;
       }
     > = {
       en: {
@@ -38,6 +39,7 @@ describe('getGuide', () => {
         tenantAbuse: /HTTP 423/,
         tenantByoRequest: /Request bring-your-own SES/,
         tenantDualDns: /Both SES and SMTP record sets/,
+        tenantKeyPin: /Auto \(follows Sending\)/,
       },
       de: {
         adminByo: /genehmigen oder ablehnen/i,
@@ -45,6 +47,7 @@ describe('getGuide', () => {
         tenantAbuse: /HTTP 423/,
         tenantByoRequest: /Eigenes SES anfragen/,
         tenantDualDns: /SES- und SMTP-Recordsätze/,
+        tenantKeyPin: /Auto folgt Versand/,
       },
       hu: {
         adminByo: /hagyja jóvá vagy utasítsa el/,
@@ -52,6 +55,7 @@ describe('getGuide', () => {
         tenantAbuse: /HTTP 423/,
         tenantByoRequest: /Saját SES kérése/,
         tenantDualDns: /SES és az SMTP rekordkészlet/,
+        tenantKeyPin: /Auto a Küldés lapot követi/,
       },
     };
 
@@ -64,11 +68,16 @@ describe('getGuide', () => {
 
       expect(tenant.sections.some((section) => section.id === 'abuse')).toBe(true);
       expect(admin.sections.some((section) => section.id === 'abuse')).toBe(true);
+      expect(admin.sections.some((section) => section.id === 'ses-events')).toBe(
+        true,
+      );
+      expect(adminText).toMatch(/Amazon SNS/);
       expect(adminText).toMatch(expected.adminByo);
       expect(adminText).toMatch(expected.adminUnfreeze);
       expect(tenantText).toMatch(expected.tenantAbuse);
       expect(tenantText).toMatch(expected.tenantByoRequest);
       expect(tenantText).toMatch(expected.tenantDualDns);
+      expect(tenantText).toMatch(expected.tenantKeyPin);
     }
   });
 });

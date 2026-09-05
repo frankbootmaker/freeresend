@@ -10,6 +10,7 @@ import {
 } from './suppression';
 import type { ApiKey } from './database';
 import type { SendEmailOptions } from './ses';
+import { parseEgressPreference } from './egress-pin';
 
 export class SendDispatchError extends Error {
   constructor(
@@ -92,11 +93,16 @@ export async function dispatchTenantEmail(input: DispatchEmailInput) {
   let status: 'sent' | 'failed' = 'sent';
   let errorMessage: string | null = null;
   try {
-    messageId = await sendOutboundEmail(tenant, payload, {
-      domainName: domain.domain,
-      selector: domain.dkim_selector,
-      privateKeyPem: domain.dkim_private_key,
-    });
+    messageId = await sendOutboundEmail(
+      tenant,
+      payload,
+      {
+        domainName: domain.domain,
+        selector: domain.dkim_selector,
+        privateKeyPem: domain.dkim_private_key,
+      },
+      parseEgressPreference(apiKey.egress_preference),
+    );
   } catch (sendError: unknown) {
     status = 'failed';
     errorMessage =

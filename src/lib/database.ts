@@ -90,6 +90,7 @@ export interface ApiKey {
   key_hash: string;
   key_prefix: string;
   permissions: string[];
+  egress_preference?: 'auto' | 'ses' | 'smtp';
   last_used_at?: string;
   created_at: string;
   updated_at: string;

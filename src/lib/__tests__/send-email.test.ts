@@ -150,6 +150,26 @@ describe('dispatchTenantEmail', () => {
       channel: 'https',
     });
     expect(result.id).toBe('log-1');
-    expect(mockedSend).toHaveBeenCalled();
+    expect(mockedSend).toHaveBeenCalledWith(
+      expect.anything(),
+      payload,
+      expect.objectContaining({ domainName: 'acme.test' }),
+      'auto',
+    );
+  });
+
+  it('passes a SES pin through to outbound send', async () => {
+    await dispatchTenantEmail({
+      tenant: tenant(),
+      apiKey: { ...apiKey, egress_preference: 'ses' },
+      payload,
+      channel: 'https',
+    });
+    expect(mockedSend).toHaveBeenCalledWith(
+      expect.anything(),
+      payload,
+      expect.any(Object),
+      'ses',
+    );
   });
 });

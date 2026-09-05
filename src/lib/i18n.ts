@@ -740,6 +740,12 @@ type Dict = {
     emptyBody: string;
     prefix: string;
     scope: string;
+    egress: string;
+    egressHint: string;
+    egressAria: string;
+    egressAuto: string;
+    egressSes: string;
+    egressSmtp: string;
     lastUsed: string;
     confirmDelete: string;
     needVerified: string;
@@ -1666,6 +1672,13 @@ const en: Dict = {
     emptyBody: 'Create your first API key to start sending mail.',
     prefix: 'Key prefix',
     scope: 'Scope',
+    egress: 'Egress',
+    egressHint:
+      'Auto follows Sending. SES or SMTP pins this key to that hop. A missing hop fails the send.',
+    egressAria: 'Egress pin',
+    egressAuto: 'Auto',
+    egressSes: 'SES',
+    egressSmtp: 'SMTP',
     lastUsed: 'Last used',
     confirmDelete: 'Are you sure you want to delete this API key? This action cannot be undone.',
     needVerified: 'Add and verify a domain on the Domains page before creating API keys.',
@@ -2601,6 +2614,13 @@ const de: Dict = {
     emptyBody: 'Erstellen Sie den ersten API-Schlüssel, um Mail zu senden.',
     prefix: 'Schlüsselpräfix',
     scope: 'Geltungsbereich',
+    egress: 'Ausgang',
+    egressHint:
+      'Auto folgt Versand. SES oder SMTP bindet diesen Schlüssel an diesen Weg. Fehlt der Weg, schlägt der Versand fehl.',
+    egressAria: 'Ausgangspin',
+    egressAuto: 'Auto',
+    egressSes: 'SES',
+    egressSmtp: 'SMTP',
     lastUsed: 'Zuletzt genutzt',
     confirmDelete: 'Diesen API-Schlüssel wirklich löschen? Das kann nicht rückgängig gemacht werden.',
     needVerified: 'Fügen Sie auf der Domains-Seite eine verifizierte Domain hinzu, bevor Sie API-Schlüssel erstellen.',
@@ -3534,6 +3554,13 @@ const hu: Dict = {
     emptyBody: 'Hozza létre az első API-kulcsot a küldéshez.',
     prefix: 'Kulcselőtag',
     scope: 'Hatáskör',
+    egress: 'Kimenet',
+    egressHint:
+      'Az Auto a Küldés lapot követi. A SES vagy az SMTP ehhez a kulcshoz köti azt az utat. Ha az út hiányzik, a küldés sikertelen.',
+    egressAria: 'Kimenet rögzítés',
+    egressAuto: 'Auto',
+    egressSes: 'SES',
+    egressSmtp: 'SMTP',
     lastUsed: 'Utoljára használva',
     confirmDelete: 'Biztosan törli ezt az API-kulcsot? A művelet nem vonható vissza.',
     needVerified: 'Először adjon hozzá és igazoljon egy domaint a Domainek lapon.',

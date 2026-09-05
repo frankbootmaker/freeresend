@@ -13,6 +13,9 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.de.landing.fact4Title).toMatch(/egress/i);
     expect(dictionaries.hu.landing.fact4Title).toMatch(/kimenet/i);
     expect(dictionaries.de.keys.create).toMatch(/schlüssel/i);
+    expect(dictionaries.en.keys.egressAuto).toBe('Auto');
+    expect(dictionaries.de.keys.egressHint).toMatch(/versand/i);
+    expect(dictionaries.hu.keys.egressHint).toMatch(/küldés/i);
     expect(dictionaries.hu.logs.title).toMatch(/esemény/i);
     expect(dictionaries.en.changelog.title).toMatch(/release/i);
     expect(dictionaries.de.changelog.close).toMatch(/schließen/i);
