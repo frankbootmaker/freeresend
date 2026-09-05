@@ -646,6 +646,7 @@ type Dict = {
     lastDump: (when: string) => string;
     volume24h: string;
     volume7d: string;
+    volumeHint: string;
     total: string;
     sent: string;
     delivered: string;
@@ -1566,6 +1567,8 @@ const en: Dict = {
     lastDump: (when) => `Last dump ${when}`,
     volume24h: 'Last 24 hours',
     volume7d: 'Last 7 days',
+    volumeHint:
+      'Sent means SES or the SMTP relay accepted the message. Delivered, bounce, and complaint update after SES posts to /api/webhooks/ses.',
     total: 'Total',
     sent: 'Sent',
     delivered: 'Delivered',
@@ -2499,6 +2502,8 @@ const de: Dict = {
     lastDump: (when) => `Letztes Dump ${when}`,
     volume24h: 'Letzte 24 Stunden',
     volume7d: 'Letzte 7 Tage',
+    volumeHint:
+      'Gesendet heißt: SES oder das SMTP-Relay hat angenommen. Zugestellt, Bounce und Beschwerde erscheinen, sobald SES an /api/webhooks/ses sendet.',
     total: 'Gesamt',
     sent: 'Gesendet',
     delivered: 'Zugestellt',
@@ -3430,6 +3435,8 @@ const hu: Dict = {
     lastDump: (when) => `Utolsó dump: ${when}`,
     volume24h: 'Elmúlt 24 óra',
     volume7d: 'Elmúlt 7 nap',
+    volumeHint:
+      'Az Elküldve azt jelenti, hogy a SES vagy az SMTP-relé átvette. Kézbesítés, visszapattanás és panasz akkor frissül, ha a SES a /api/webhooks/ses címre küld.',
     total: 'Összesen',
     sent: 'Elküldve',
     delivered: 'Kézbesítve',

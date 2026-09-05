@@ -48,7 +48,7 @@ Fresh volume: schema comes from `database.sql`. Existing volume: `web` applies e
 
 - Confirm **Health** shows a backup heartbeat (`relayhorizon_backups` is mounted on `web` and `db-backup`).
 - Schedule `POST /api/cron/ops` with header `x-cron-secret: $CRON_SECRET` (hourly is enough). This rotates logs and pushes pending offsite dumps. See [operations.md](operations.md).
-- For SES egress, subscribe SNS to `POST https://<host>/api/webhooks/ses` and confirm the subscription. Bounce and complaint status will not update until that is wired. The handler currently logs `SubscriptionConfirmation` and does not fetch `SubscribeURL` for you — confirm in the AWS console.
+- For SES egress, subscribe SNS (configuration-set event destination) to `POST https://<host>/api/webhooks/ses` and include **Delivery**, **Bounce**, and **Complaint**. The webhook confirms `SubscribeURL` automatically when AWS sends `SubscriptionConfirmation`. Until that is wired, Health **Sent** rises and **Delivered** stays 0. SMTP egress never writes Delivered.
 - Optional S3 offsite: Portal → Backups.
 
 ## SMTP submission later

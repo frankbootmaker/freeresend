@@ -123,7 +123,7 @@ const ADMIN: Record<Locale, Guide> = {
           'The smtp Compose profile must be running, and the VPS firewall must allow 587. Traefik does not proxy SMTP.',
           'New tenants start at 5,000 / 20,000 / 100,000 messages per hour / day / month. Hard SES bounces and complaints suppress that address.',
           'A 24-hour bounce rate of 10% over at least 50 messages, or 3 complaints (or 0.1% over at least 100 messages), freezes sending (HTTP 423). Unfreeze from the portal Abuse queue or Customers → Manage. This is not a card-billing freeze.',
-          'For SES egress, subscribe SNS to POST /api/webhooks/ses and confirm the subscription in AWS.',
+          'For SES egress, subscribe SNS to POST /api/webhooks/ses with Delivery, Bounce, and Complaint. The webhook confirms the SNS subscription itself. Until that is wired, Health Sent rises and Delivered stays 0.',
         ],
       },
     ],
@@ -236,7 +236,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Das Compose-Profil smtp muss laufen, und die VPS-Firewall muss 587 erlauben. Traefik leitet SMTP nicht weiter.',
           'Neue Mandanten starten bei 5.000 / 20.000 / 100.000 Nachrichten pro Stunde / Tag / Monat. Harte SES-Bounces und Beschwerden unterdrücken diese Adresse.',
           'Eine 24-Stunden-Bounce-Rate von 10 % bei mindestens 50 Nachrichten oder 3 Beschwerden (oder 0,1 % bei mindestens 100) sperrt den Versand (HTTP 423). Entsperren unter Missbrauch oder Kunden → Verwalten. Das ist keine Karten-Sperre.',
-          'Bei SES-Egress SNS auf POST /api/webhooks/ses abonnieren und in AWS bestätigen.',
+          'Bei SES-Egress SNS auf POST /api/webhooks/ses mit Delivery, Bounce und Complaint. Das Webhook bestätigt das SNS-Abo selbst. Ohne das steigt in Status nur Gesendet, Zugestellt bleibt 0.',
         ],
       },
     ],
@@ -349,7 +349,7 @@ const ADMIN: Record<Locale, Guide> = {
           'Az smtp Compose-profilnak futnia kell, és a VPS tűzfalán a 587-et engedélyezni kell. A Traefik nem továbbítja az SMTP-t.',
           'Az új bérlők 5 000 / 20 000 / 100 000 üzenettel indulnak óránként / naponként / havonta. A kemény SES-visszapattanások és a panaszok tiltják azt a címet.',
           'A 24 órás 10%-os visszapattanás legalább 50 üzenetnél, vagy 3 panasz (illetve 0,1% legalább 100 üzenetnél) befagyasztja a küldést (HTTP 423). Feloldás: Visszaélés vagy Ügyfelek → Kezelés. Ez nem kártyás befagyasztás.',
-          'SES kimenetnél iratkoztassa fel az SNS-t a POST /api/webhooks/ses címre, és erősítse meg az AWS-ben.',
+          'SES kimenetnél irassa fel az SNS-t a POST /api/webhooks/ses címre Delivery, Bounce és Complaint eseményekkel. A webhook maga erősíti meg az előfizetést. Addig az Állapot Elküldve nő, a Kézbesítve 0 marad.',
         ],
       },
     ],
@@ -423,7 +423,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Logs',
         paragraphs: [
           'Delivery events for this tenant. Filter by recipient or status, then Apply. Choose 5, 10, 25, or 50 rows per page.',
-          'Bounces and complaints update after SES SNS is connected to /api/webhooks/ses. Permanent bounces and complaints also join the suppression list.',
+          'Delivered, bounces, and complaints update after SES SNS is connected to /api/webhooks/ses. Permanent bounces and complaints also join the suppression list.',
         ],
       },
       {
@@ -512,7 +512,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Protokolle',
         paragraphs: [
           'Zustellereignisse dieses Mandanten. Nach Empfänger oder Status filtern, dann Anwenden. 5, 10, 25 oder 50 Zeilen pro Seite.',
-          'Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt. Permanente Bounces und Beschwerden kommen auf die Unterdrückungsliste.',
+          'Zugestellt, Bounces und Complaints erscheinen, sobald SES-SNS auf /api/webhooks/ses zeigt. Permanente Bounces und Beschwerden kommen auf die Unterdrückungsliste.',
         ],
       },
       {
@@ -601,7 +601,7 @@ const TENANT: Record<Locale, Guide> = {
         title: 'Naplók',
         paragraphs: [
           'Ennek a bérlőnek a kézbesítési eseményei. Szűrjön címzett vagy állapot szerint, majd Alkalmaz. Oldalanként 5, 10, 25 vagy 50 sor.',
-          'A bounce és a complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
+          'A kézbesítés, bounce és complaint akkor frissül, ha a SES SNS a /api/webhooks/ses címre mutat. A tartós visszapattanások és a panaszok a tiltólistára is felkerülnek.',
         ],
       },
       {

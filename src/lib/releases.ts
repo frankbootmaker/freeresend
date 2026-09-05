@@ -30,6 +30,10 @@ export const RELEASES: Release[] = [
       },
       {
         kind: 'fixed',
+        text: 'SES webhook accepts AWS Delivery, Bounce, and Complaint event names and confirms SNS subscriptions so Health Delivered can move off 0.',
+      },
+      {
+        kind: 'fixed',
         text: 'Web applies database-migrate SQL on start so existing Compose volumes get suppressed_recipients and sending-pool columns before Abuse loads.',
       },
     ],

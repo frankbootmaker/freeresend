@@ -1,4 +1,5 @@
 import { query } from './database';
+import { sesEventKindFromPayload } from './ses-events';
 
 export type SuppressionReason = 'bounce' | 'complaint';
 
@@ -46,7 +47,8 @@ export function suppressionActionsFromSesEvent(
     bounceType?: string;
   }> = [];
 
-  if (message.eventType === 'bounce' && shouldSuppressBounce(message.bounce?.bounceType)) {
+  const eventType = sesEventKindFromPayload(message);
+  if (eventType === 'bounce' && shouldSuppressBounce(message.bounce?.bounceType)) {
     for (const row of message.bounce?.bouncedRecipients || []) {
       const email = extractRecipientEmail(String(row.emailAddress || ''));
       if (email.includes('@')) {
@@ -59,7 +61,7 @@ export function suppressionActionsFromSesEvent(
     }
   }
 
-  if (message.eventType === 'complaint') {
+  if (eventType === 'complaint') {
     for (const row of message.complaint?.complainedRecipients || []) {
       const email = extractRecipientEmail(String(row.emailAddress || ''));
       if (email.includes('@')) {

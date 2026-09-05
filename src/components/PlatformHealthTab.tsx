@@ -109,6 +109,7 @@ export default function PlatformHealthTab() {
           <strong>{volume.total}</strong>
           <span>{t.health.total}</span>
         </p>
+        <p className="muted">{t.health.volumeHint}</p>
         <dl className="health-breakdown">
           {STATUS_KEYS.map((key) => (
             <div key={key}>

@@ -60,5 +60,20 @@ describe('suppressionActionsFromSesEvent', () => {
         },
       }),
     ).toEqual([{ email: 'user@relay.test', reason: 'complaint' }]);
+    expect(
+      suppressionActionsFromSesEvent({
+        eventType: 'Bounce',
+        bounce: {
+          bounceType: 'Permanent',
+          bouncedRecipients: [{ emailAddress: 'aws@relay.test' }],
+        },
+      }),
+    ).toEqual([
+      {
+        email: 'aws@relay.test',
+        reason: 'bounce',
+        bounceType: 'Permanent',
+      },
+    ]);
   });
 });

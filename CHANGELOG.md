@@ -12,6 +12,7 @@ The app reads `src/lib/releases.ts`. Update both files when you cut a version.
 
 ### Fixed
 
+- SES webhook accepts AWS `Delivery` / `Bounce` / `Complaint` event names and confirms SNS subscriptions, so Health Delivered can move off 0
 - Web applies `database-migrate-*.sql` on start so existing Compose volumes get `suppressed_recipients` and sending-pool columns before Abuse loads
 
 ## 1.9.3 — 2026-09-04

@@ -47,6 +47,7 @@ describe('i18n dictionaries', () => {
     expect(dictionaries.de.nav.abuse).toMatch(/missbrauch/i);
     expect(dictionaries.hu.nav.abuse).toMatch(/visszaélés/i);
     expect(dictionaries.en.abuse.nextBreaker).toMatch(/10%/);
+    expect(dictionaries.en.health.volumeHint).toMatch(/webhooks\/ses/);
     expect(dictionaries.en.customers.unfreeze).toMatch(/unfreeze/i);
     expect(dictionaries.de.customers.tierProbation).toMatch(/probe/i);
     expect(dictionaries.hu.customers.billingExempt).toMatch(/mentes/i);
